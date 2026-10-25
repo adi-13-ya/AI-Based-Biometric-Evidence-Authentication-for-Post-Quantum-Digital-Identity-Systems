@@ -23,7 +23,7 @@ def explain(
     detection_details: dict[str, dict] | None = None,
     below_threshold_modules: list[str] | None = None,
     fused_score: float | None = None,
-    accept_threshold: float = 0.6,
+    accept_threshold: float = 0.5,
     liveness: dict | None = None,
     challenge: str = "",
 ) -> list[str]:
@@ -84,6 +84,12 @@ def _explain_liveness(liveness: dict, challenge: str) -> str:
 
 
 def _explain_detector(module: str, score: float, d: dict) -> str:
+    if module == "presentation_attack" and "p_real" in d:
+        kind = "printed photo" if d.get("p_print", 0) >= d.get("p_replay", 0) else "screen replay"
+        return (f"Looks like a photo or screen held up to the camera (presentation attack, score {score:.2f}): the "
+                f"MiniFASNet anti-spoofing models give P(live face) = {d['p_real']:.2f}; the most likely attack is a "
+                f"{kind} (P = {max(d.get('p_print', 0), d.get('p_replay', 0)):.2f}). If this is you: light your face "
+                "from the front and avoid a bright window behind you.")
     if module == "presentation_attack":
         cues = []
         if d.get("face_black_level", 0) > 25:
@@ -108,6 +114,10 @@ def _explain_detector(module: str, score: float, d: dict) -> str:
         why = "; ".join(cues) or "blending artifacts in the face region"
         return (f"Looks like two faces blended into one (morph, score {score:.2f}): {why}. A strongly repeating "
                 "pattern around the face (a screen's moiré, stripes, blinds) also causes this.")
+    if module == "deepfake" and "p_real" in d:
+        n = d.get("num_frames", 1)
+        return (f"Looks AI-generated or face-swapped (deepfake, score {score:.2f}): the deepfake classifier's mean "
+                f"probability that the face is real was {d['p_real']:.2f} over {n} frame{'s' if n != 1 else ''}.")
     if module == "deepfake":
         hf = d.get("high_freq_ratio")
         measured = f"{hf:.0%} of the image's frequency content is very fine detail (camera images: about 35% or less)" if hf is not None else "unusual high-frequency content"
@@ -121,6 +131,17 @@ def _explain_detector(module: str, score: float, d: dict) -> str:
         return (f"This is a resubmission of a capture the server has already seen: same picture structure "
                 f"(perceptual-hash difference {diff}){same}, i.e. the same capture rather than a new one. "
                 "A captured image cannot be reused, even a genuine one. Record a new clip instead.")
+    if module == "injection" and "dup_rate" in d:
+        cues = []
+        if d["dup_rate"] > 0:
+            cues.append(f"{d['dup_rate']:.0%} of consecutive frames are repeats of the previous one, which happens when a "
+                        "video file is played into a virtual camera at a different frame rate; a camera sensor never "
+                        "delivers the same picture twice")
+        if d.get("static_16", 0) > 0.3:
+            cues.append(f"{d['static_16']:.0%} of 16×16 blocks are copied unchanged between frames, typical of a video "
+                        "that was compressed a second time")
+        why = "; ".join(cues) or "its noise and compression pattern match a decoded video file rather than a live sensor"
+        return f"Looks like a video fed in instead of a live camera (injection, score {score:.2f}): {why}."
     if module == "injection":
         cues = []
         jitter = d.get("frame_interval_jitter_ratio")

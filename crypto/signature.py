@@ -3,10 +3,12 @@
 Used to sign the transaction-binding payload described in spec Section 7:
     binding_payload = evidence_hash || session_nonce || timestamp || challenge_response
 
-See README.md "Assumptions" #2: in this prototype both the "client" signer
-and the "server" verifier run inside the same Dockerized process (the
-Streamlit demo has no native liboqs build available), so `SignerIdentity` is
-deliberately generic about who calls it.
+Trust split: `SignerIdentity` is only ever instantiated on the capture
+device (client_demo/device.py), which generates the keypair, keeps the
+secret key in its own key file and enrolls only the public key with the
+server (POST /device/enroll). The server imports nothing but `verify` and
+`build_binding_payload` from this module, so it cannot produce a valid
+binding signature on a client's behalf.
 """
 from __future__ import annotations
 
@@ -28,19 +30,30 @@ def _check_alg(alg: str) -> None:
 
 
 class SignerIdentity:
-    """Holds one party's ML-DSA signing keypair for the lifetime of a
-    session. Must be closed (or used as a context manager) when done."""
+    """Holds one party's ML-DSA signing keypair. Pass `secret_key` and
+    `public_key` to reload a keypair saved with `export_secret_key()`;
+    otherwise a fresh one is generated. Must be closed (or used as a
+    context manager) when done."""
 
-    def __init__(self, alg: str = DEFAULT_SIG_ALG):
+    def __init__(self, alg: str = DEFAULT_SIG_ALG, secret_key: bytes | None = None, public_key: bytes | None = None):
         import oqs
 
         _check_alg(alg)
         self.alg = alg
-        self._sig = oqs.Signature(alg)
-        self.public_key: bytes = self._sig.generate_keypair()
+        if secret_key is not None:
+            if public_key is None:
+                raise ValueError("reloading a keypair needs its public key too")
+            self._sig = oqs.Signature(alg, secret_key=secret_key)
+            self.public_key: bytes = public_key
+        else:
+            self._sig = oqs.Signature(alg)
+            self.public_key = self._sig.generate_keypair()
 
     def sign(self, message: bytes) -> bytes:
         return self._sig.sign(message)
+
+    def export_secret_key(self) -> bytes:
+        return self._sig.export_secret_key()
 
     def close(self) -> None:
         self._sig.free()

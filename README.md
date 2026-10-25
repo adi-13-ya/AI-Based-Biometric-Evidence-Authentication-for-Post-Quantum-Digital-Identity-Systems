@@ -18,17 +18,25 @@ computers.
 
 - **Post-quantum channel.** The client runs **ML-KEM-768** (FIPS 203)
   against the session's key and encrypts the evidence with **AES-256-GCM**.
-- **Transaction binding.** An **ML-DSA-65** (FIPS 204) signature over the
-  evidence fingerprint, a single-use 256-bit nonce, a timestamp and the
-  liveness-challenge answer; plus a 30 s freshness window and a check that
-  the analysed frames are the signed ones. Any failure rejects the
-  submission in about 1 ms, before any AI runs.
+- **Transaction binding with early rejection.** An **ML-DSA-65** (FIPS 204)
+  signature, made on the capture device with a key that never leaves it,
+  over the evidence fingerprint, a single-use 256-bit nonce, a timestamp and
+  the liveness-challenge answer. The server checks nonce, freshness,
+  signature and frame fingerprint cheapest-first and stops at the first
+  failure, so forged or replayed submissions are rejected before any image
+  is decoded or any model runs.
+- **Distributed trust.** Devices enrol only their public key
+  (`POST /device/enroll`); the server stores public keys and has no way to
+  sign on a client's behalf.
 - **Live recording with a liveness challenge.** The dashboard records a
   4 s clip from the browser camera while the person performs a randomly
   chosen task (turn head, nod, say a number).
-- **Five AI evidence checks:** presentation attack (photo or screen), face
-  morph, deepfake, replay and injection (virtual camera), combined by
-  weighted fusion where any single detector can veto.
+- **Trained detectors, measured on public data:** MiniFASNet presentation
+  attack detection, an EfficientNet-B0 deepfake detector fine-tuned on
+  DeepFakeFace, and a virtual-camera (injection) classifier that relies on
+  pixels rather than client-reported timestamps; plus replay and morph
+  checks. ISO/IEC 30107-3 APCER/BPCER on CASIA-FASD, CelebA-Spoof, a webcam
+  liveness sample and DeepFakeFace (`evaluation/`).
 - **Explained decisions.** Every rejection comes with plain-language reasons
   and the values that were measured.
 - **Quantum threat model, simulated.** Shor's algorithm, Grover's algorithm
@@ -39,28 +47,32 @@ computers.
 
 ![Verification sequence](report/figures/fig_a2_binding_sequence.png)
 
+0. **Enrol (once).** The device generates an ML-DSA keypair and sends only
+   the public key.
 1. **Session.** The server issues a session ID, a one-time nonce, a random
    liveness challenge and an ML-KEM public key.
 2. **Capture.** The person records a short clip: looking at the camera,
    then performing the challenge.
-3. **Bind.** The frames' SHA-256 fingerprint is signed with ML-DSA together
-   with the nonce, timestamp and challenge answer.
+3. **Bind.** On the device, the frames' SHA-256 fingerprint is signed with
+   the device's ML-DSA key together with the nonce, timestamp and challenge
+   answer.
 4. **Seal.** The client derives a key with ML-KEM-768 and HKDF and
    encrypts the submission with AES-256-GCM.
-5. **Gate.** The server decrypts and checks the signature, nonce,
-   freshness, challenge and frame fingerprint. Any failure → REJECT.
-6. **Detect and decide.** Five detectors score the evidence. The fusion
-   engine accepts only if the weighted score is ≥ 0.6 and no detector is
-   below 0.5.
+5. **Gate.** The server decrypts, then checks nonce → freshness → ML-DSA
+   signature → frame fingerprint, stopping at the first failure. Only then
+   are frames decoded and the liveness challenge checked.
+6. **Detect and decide.** Five detectors score the evidence. Each score is
+   normalised to its own calibrated threshold; any detector below its
+   threshold rejects.
 7. **Explain.** The response says why.
 
 | Detector | What it checks |
 |---|---|
-| Presentation attack | Recapture cues on the face: true black level (paper and screens can't show black), sharpness, colour saturation |
-| Morph | Double contours ("ghosting") and unnaturally symmetric fine texture left by blending two faces |
-| Deepfake | Excess very-fine-detail energy left by face generators' upsampling |
-| Replay | Whether this exact capture was already submitted: same picture **and** same pixel-level detail |
-| Injection | Machine-perfect frame timing and re-encoding artifacts of video files and virtual cameras |
+| Presentation attack | RetinaFace + MiniFASNetV2 (2.7×) + MiniFASNetV1SE (4.0×), released Silent-Face-Anti-Spoofing checkpoints |
+| Deepfake | EfficientNet-B0 fine-tuned on DeepFakeFace face swaps (identity-disjoint split) |
+| Injection | Repeated frames, inter-frame sensor noise, 8/16-px blocking and static blocks of an 8-frame burst → logistic regression |
+| Replay | Whether this exact capture was already submitted: same picture **and** same pixel-level detail (binary) |
+| Morph | Double contours ("ghosting") and unnaturally symmetric fine texture left by blending two faces (signal processing, not benchmarked) |
 
 Why post-quantum: Shor's algorithm breaks RSA and elliptic curves, and
 Grover's algorithm halves symmetric key strength. Both are simulated in
@@ -69,17 +81,18 @@ Detailed design: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Results at a glance
 
-Measured on an Apple M3 laptop; details in [`report/FINAL_REPORT.md`](report/FINAL_REPORT.md) §4.4.
+Apple M3, CPU only; details in `report/final-report/QUANTUM-FINAL-REPORT-REVISED.docx`.
 
 | | Result |
 |---|---|
-| ML-KEM-768 encaps + decaps vs RSA-3072 | 0.044 ms vs 2.14 ms (48× faster) |
-| Post-quantum path on the server (decaps + AES-GCM + binding checks) | 0.88 ms, 1.9% of server time |
-| Full verification, client side (sealed, 5 frames) | 109 ms median |
-| Protocol attacks (stale, swapped frames, nonce reuse, wrong challenge, tampered channel) | 5/5 rejected in about 1 ms, before any AI |
-| Content attacks (replay, printed photo, screen replay, morph, deepfake, injection) | 6/6 rejected by the intended detector |
-| Genuine submissions | 41/41 accepted |
-| Shor (N = 15) / Grover (4 qubits), ideal → 1% gate error | 0.499 → 0.132 / 0.960 → 0.430 success |
+| Forged submission, server time: integrated vs layered pipeline | 0.26 ms vs 498 ms (≈1,900×) |
+| Forged-request flood (4 attacker processes, 20 s) | 3,306 vs 41 forged requests absorbed for the same genuine slowdown |
+| All post-quantum work on the server per verification | 5.97 ms (1.2% of server time) |
+| ML-KEM-768 encaps + decaps vs RSA-3072 | 0.045 ms vs 3.70 ms |
+| PAD (MiniFASNet), CASIA-FASD test | worst-species APCER 0.7%, BPCER 14.4%, EER 6.3% (heuristic: 44.8%) |
+| PAD cross-dataset AUC: CelebA-Spoof / webcam video | 0.782 / 0.782 |
+| Deepfake (EfficientNet-B0), DFF unseen identities | AUC 0.930 on the training generator; does not transfer to unseen diffusion generators |
+| Injection classifier vs timing heuristic (forged jitter) | APCER 4.0% vs 100% (25→30 fps file), BPCER 6.4% |
 
 ![Demo samples](report/figures/fig_r6_demo_samples.png)
 
@@ -223,13 +236,13 @@ step-by-step presenter's guide is in [`GUIDE.md`](GUIDE.md).
 
 ```
 crypto/         ML-KEM / ML-DSA wrappers (liboqs), AES-256-GCM channel, RSA/ECDSA baseline
-binding/        Transaction binding: signature, nonce, freshness, challenge checks
-detection/      Five detectors, face-region helper, liveness-challenge check, fusion engine
-server/         FastAPI app: sessions, sealed verification pipeline, decision explanations
-client_demo/    Streamlit dashboard, clip recorder, API client
-evaluation/     Benchmark harness (latency, PQC vs classical, throughput), ISO 30107-3 metrics
+binding/        Transaction binding gate (cost-ordered, short-circuit)
+detection/      Detectors (MiniFASNet, EfficientNet-B0, injection classifier, replay, morph), face detector, liveness, fusion
+server/         FastAPI app: device registry, sessions, sealed verification pipeline, explanations
+client_demo/    Device identity (ML-DSA key), Streamlit dashboard, clip recorder, API client
+evaluation/     Data fetch, training/fine-tuning, PAD/deepfake/injection benchmarks, ISO 30107-3 metrics
 scripts/        make_demo_assets.py (demo samples), demo_check.py (self-check)
-tests/          105 unit and API tests
+tests/          117 unit and API tests
 report/         Final report, figures, raw data, experiment scripts (incl. Qiskit circuits)
 docs/           Architecture, setup guides, study guide, original specification
 datasets/       Download instructions only (datasets are not committed)
@@ -241,20 +254,23 @@ demo_assets/    Generated demo samples (gitignored) and their description
 | Endpoint | Purpose |
 |---|---|
 | `GET /health` | Status, algorithms, liboqs readiness |
-| `POST /session/start` | New session: nonce, challenge, ML-KEM public key, ML-DSA identity |
-| `POST /session/{id}/evidence` | ML-DSA-sign the binding payload (see Limitations) |
-| `POST /session/{id}/verify-sealed` | Sealed (ML-KEM + AES-256-GCM) submission → binding → AI → decision + explanations |
-| `POST /session/{id}/verify` | Same pipeline for clients without liboqs (plaintext) |
-| `POST /session/{id}/channel` | Server-side ML-KEM round trip, for diagnostics |
+| `POST /device/enroll` | `{sig_alg, public_key}` → `device_id`; registers a device's ML-DSA public key |
+| `POST /session/start` | `{device_id}` → nonce, challenge, ML-KEM public key |
+| `POST /session/{id}/verify-sealed` | Binary PQB1 envelope (ML-KEM ct, sealed header, sealed frames). Header checked first; frames read only if the signature is valid → liveness → AI → decision + explanations |
+| `POST /session/{id}/verify` | Same pipeline without the sealed channel (still requires the device signature) |
 | `POST /demo/reset-replay-store` | Clear replay memory between rehearsals (`DEMO_MODE=true` only) |
 | `DELETE /session/{id}` | Close a session and free its keys |
 
 ## Testing and reproducibility
 
 ```bash
-pytest tests/ -q                                 # 105 tests; liboqs-dependent ones skip without liboqs
-python scripts/demo_check.py --explain           # 12 attack/genuine scenarios against a running server
-python report/scripts/system_experiments.py      # regenerates the report's tables and figures
+pytest tests/ -q                                 # 117 tests; liboqs-dependent ones skip without liboqs
+python evaluation/fetch_data.py                  # exact public subsets (HTTP range requests)
+python evaluation/finetune_pad.py && python evaluation/benchmark_pad.py
+python evaluation/train_deepfake.py && python evaluation/benchmark_deepfake.py
+python evaluation/train_injection.py             # injection classifier + its evaluation
+python report/scripts/distributed_experiments.py # two-process latency, integrated vs layered, flood
+python report/scripts/results_figures.py         # figures from the saved results
 ```
 
 The quantum experiments need Qiskit in a separate environment
@@ -262,37 +278,33 @@ The quantum experiments need Qiskit in a separate environment
 
 ## Limitations
 
-- **Detectors are heuristics, not trained models.** Each has a documented
-  path to a pretrained model (MiniFASNet, Meso4;
-  [`detection/README-models.md`](detection/README-models.md)), but none is
-  bundled. They were calibrated on one public-domain portrait, its attack
-  derivatives and simulated webcam conditions. The results show each layer
-  working as designed; they are not accuracy figures on a dataset, and a
-  high-quality print in good light can defeat the presentation-attack cues.
-- **Signing happens in the server process.** The client encrypts the channel
-  itself, but the per-session ML-DSA "client identity" lives on the server,
-  so that a Windows client never needs liboqs. A production client would
-  hold its own key (device or TEE).
-- **Challenges.** Head movements are verified from the recording; spoken
-  numbers are checked by string match (no speech recognition).
-- **In-memory state.** Sessions and replay memory live in one process; a
-  multi-server deployment would need a shared store such as Redis.
-- **Quantum results are simulations** on a parametric noise model, not
-  real quantum hardware.
+- **PAD across cameras.** MiniFASNet is strong on CASIA-FASD but loses
+  accuracy on CelebA-Spoof and webcam video (see the report, Section 4.1);
+  prints and paper outlines in the webcam sample were accepted.
+- **Deepfakes from unseen generators.** The EfficientNet-B0 detector
+  separates real faces from the face swaps it was trained on, but not from
+  diffusion-model fakes it has never seen.
+- **Injection.** A lossless video file at the camera's own frame rate is
+  pixel-identical to a camera stream and is not detected. The injection
+  benchmark is an emulation on real webcam footage; no public virtual-camera
+  dataset exists.
+- **Morph detector** is still signal processing and is not benchmarked
+  (public morph datasets require an access request).
+- **Enrollment is trust-on-first-use.** A deployment would tie
+  `POST /device/enroll` to onboarding or hardware key attestation and rate-
+  limit per device.
+- **liboqs is required on the client** now that the client signs.
+- **In-memory state.** Sessions, devices and replay memory live in one
+  process; a multi-server deployment would need a shared store.
+- **Quantum results are simulations** on a parametric noise model.
 
 ## Future work
 
-- Plug in pretrained MiniFASNet and Meso4 and measure APCER/BPCER on
-  CelebA-Spoof, FaceForensics++ and AMSL.
-- A trained virtual-camera detector, so injected *still images* are caught
-  too.
-- Sign on the client device or in a TEE, so the private key never leaves the
-  capture device.
-- Hybrid X25519 + ML-KEM-768 key exchange for the transition period.
-- Feed session nonces from a quantum random number generator (with HKDF
-  conditioning), and run the Shor/Grover circuits on IBM Quantum hardware.
-- Speech recognition for spoken-number challenges; Redis-backed state for
-  horizontal scaling.
+- Larger and more diverse PAD training data (and domain adaptation) for
+  webcam conditions; deepfake training across several generator families.
+- Hardware-backed device keys (TEE / secure element) with attestation at
+  enrollment; hybrid X25519 + ML-KEM-768.
+- QRNG-sourced nonces with HKDF conditioning; Shor/Grover on IBM hardware.
 
 ## Documentation
 

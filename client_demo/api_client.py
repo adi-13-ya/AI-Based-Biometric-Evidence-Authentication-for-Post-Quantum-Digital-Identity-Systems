@@ -1,19 +1,17 @@
 """HTTP client for the FastAPI server (server/main.py).
 
-The client hashes the captured evidence itself (Section 3:
-`evidence_hash = SHA-256(frame bytes)`). If liboqs is importable here it
-also runs ML-KEM-768 encapsulation against the session's public key and
-seals the verification payload with AES-256-GCM (/verify-sealed), so the
-evidence never crosses the network in plaintext. Without liboqs (e.g. native
-Windows, see SETUP.md) it falls back to the plaintext /verify endpoint.
-ML-DSA signing is still delegated to the server's per-session "client
-identity" (README.md "Assumptions" #2).
+Everything the client is trusted with happens in this process: it hashes
+the captured evidence (`evidence_hash = SHA-256(frame bytes)`), signs the
+binding payload with the device's own ML-DSA key (client_demo/device.py),
+encapsulates against the session's ML-KEM public key and seals the payload
+with AES-256-GCM (/verify-sealed). The server only ever sees the device's
+public key. liboqs is therefore required on the client; there is no longer
+a mode in which the server signs for it.
 """
 from __future__ import annotations
 
 import base64
 import hashlib
-import json
 import os
 import re
 from datetime import datetime, timedelta, timezone
@@ -44,47 +42,39 @@ def health() -> dict:
     return _request("GET", "/health")
 
 
+_device = None
+
+
+def device():
+    """This client's DeviceIdentity, created (and its key file written) on
+    first use."""
+    global _device
+    if _device is None:
+        from client_demo.device import DeviceIdentity
+
+        _device = DeviceIdentity(alg=os.getenv("SIG_ALG", "ML-DSA-65"))
+    return _device
+
+
+def enroll_device() -> str:
+    """Enroll this device's public key with the server once; returns device_id."""
+    dev = device()
+    device_id = dev.device_id_for(API_BASE_URL)
+    if device_id is None:
+        device_id = _request("POST", "/device/enroll", json={"sig_alg": dev.alg, "public_key": dev.public_key.hex()})["device_id"]
+        dev.remember_enrollment(API_BASE_URL, device_id)
+    return device_id
+
+
 def session_start() -> dict:
-    return _request("POST", "/session/start")
-
-
-def establish_channel(session_id: str) -> dict:
-    return _request("POST", f"/session/{session_id}/channel")
-
-
-def sign_evidence(session_id: str, evidence_hash_hex: str, timestamp: str, challenge_response: str) -> dict:
-    return _request(
-        "POST",
-        f"/session/{session_id}/evidence",
-        json={
-            "evidence_hash": evidence_hash_hex,
-            "timestamp": timestamp,
-            "challenge_response": challenge_response,
-        },
-    )
-
-
-def verify_evidence(
-    session_id: str,
-    evidence_hash_hex: str,
-    timestamp: str,
-    challenge_response: str,
-    signature_hex: str,
-    frames_b64: list[str],
-    frame_timestamps: list[float] | None = None,
-) -> dict:
-    return _request(
-        "POST",
-        f"/session/{session_id}/verify",
-        json={
-            "evidence_hash": evidence_hash_hex,
-            "timestamp": timestamp,
-            "challenge_response": challenge_response,
-            "signature": signature_hex,
-            "frames_b64": frames_b64,
-            "frame_timestamps": frame_timestamps,
-        },
-    )
+    try:
+        return _request("POST", "/session/start", json={"device_id": enroll_device()})
+    except ApiError as exc:
+        if "Unknown device_id" not in str(exc):
+            raise
+        # The server forgot us (in-memory registry restarted): enroll again.
+        device().forget_enrollment(API_BASE_URL)
+        return _request("POST", "/session/start", json={"device_id": enroll_device()})
 
 
 def end_session(session_id: str) -> dict:
@@ -142,12 +132,13 @@ def run_verification(
     session: dict | None = None,
     tamper: str | None = None,
     sealed: bool | None = None,
+    burst_frames: int = 0,
 ) -> tuple[dict, dict]:
     """Full client flow for one submission: start a session (unless one is
-    given), hash the frames, have the evidence signed (ML-DSA, see README
-    Assumption #2), and submit - over the sealed ML-KEM + AES-256-GCM
-    channel when this client has liboqs, else in plaintext. Returns
-    (session, verify_response). `tamper` selects one of TAMPER_MODES."""
+    given), hash the frames, sign the binding payload with this device's
+    ML-DSA key, and submit over the sealed ML-KEM + AES-256-GCM channel
+    (plaintext /verify only if `sealed=False`, e.g. for measurements).
+    Returns (session, verify_response). `tamper` selects one of TAMPER_MODES."""
     from client_demo.frame_utils import frame_to_png_bytes
     from crypto.channel import evidence_hash_of
 
@@ -161,51 +152,58 @@ def run_verification(
     frame_bytes = [frame_to_png_bytes(f) for f in frames]
     evidence_hash = evidence_hash_of(frame_bytes).hex()
     timestamp = now_iso(-120 if tamper == "stale_timestamp" else 0)
-    signature = sign_evidence(session_id, evidence_hash, timestamp, challenge_response)["signature"]
+    signature = device().sign_binding(
+        bytes.fromhex(evidence_hash), base64.b64decode(session["nonce"]), timestamp, challenge_response
+    ).hex()
 
     if tamper == "swap_frames":
         # e.g. a different face swapped in after a genuine one was signed
         frame_bytes = [frame_to_png_bytes(np.ascontiguousarray(f[:, ::-1])) for f in frames]
-    payload = {
+    header = {
         "evidence_hash": evidence_hash,
         "timestamp": timestamp,
         "challenge_response": challenge_response,
         "signature": signature,
-        "frames_b64": [base64.b64encode(b).decode("ascii") for b in frame_bytes],
         "frame_timestamps": frame_timestamps,
+        "burst_frames": burst_frames,
     }
 
     sealed = can_seal() if sealed is None else sealed
     submit = _submit_sealed if sealed else _submit_plain
     if tamper == "reuse_nonce":
-        submit(session, payload)  # first, legitimate use of the nonce
-    return session, submit(session, payload, corrupt=(tamper == "corrupt_channel"))
+        submit(session, header, frame_bytes)  # first, legitimate use of the nonce
+    return session, submit(session, header, frame_bytes, corrupt=(tamper == "corrupt_channel"))
 
 
-def _submit_plain(session: dict, payload: dict, corrupt: bool = False) -> dict:
+def _submit_plain(session: dict, header: dict, frame_bytes: list[bytes], corrupt: bool = False) -> dict:
     if corrupt:
-        raise ApiError("corrupt_channel needs the sealed channel (liboqs on the client)")
+        raise ApiError("corrupt_channel needs the sealed channel")
+    payload = {**header, "frames_b64": [base64.b64encode(b).decode("ascii") for b in frame_bytes]}
     return _request("POST", f"/session/{session['session_id']}/verify", json=payload)
 
 
-def _submit_sealed(session: dict, payload: dict, corrupt: bool = False) -> dict:
-    from crypto.channel import seal_payload
+def seal_submission(session: dict, header: dict, frame_bytes: list[bytes]) -> bytes:
+    """The PQB1 envelope (crypto/channel.py): ML-KEM ciphertext, sealed
+    header, sealed frames - header first so the server can reject a bad
+    signature before it reads the frames."""
+    from crypto.channel import seal_envelope
     from crypto.kem import client_encapsulate
 
     kem_ciphertext, shared_secret = client_encapsulate(bytes.fromhex(session["kem_public_key"]), alg=session["kem_alg"])
-    aead_nonce, ciphertext = seal_payload(
-        shared_secret, base64.b64decode(session["nonce"]), session["session_id"], json.dumps(payload).encode("utf-8")
+    return seal_envelope(shared_secret, base64.b64decode(session["nonce"]), session["session_id"], kem_ciphertext, header, frame_bytes)
+
+
+def post_sealed(session: dict, envelope: bytes) -> dict:
+    return _request(
+        "POST", f"/session/{session['session_id']}/verify-sealed",
+        data=envelope, headers={"Content-Type": "application/octet-stream"},
     )
+
+
+def _submit_sealed(session: dict, header: dict, frame_bytes: list[bytes], corrupt: bool = False) -> dict:
+    envelope = bytearray(seal_submission(session, header, frame_bytes))
     if corrupt:
-        ciphertext = bytes([ciphertext[0] ^ 0x01]) + ciphertext[1:]
-    result = _request(
-        "POST",
-        f"/session/{session['session_id']}/verify-sealed",
-        json={
-            "kem_ciphertext": kem_ciphertext.hex(),
-            "aead_nonce": base64.b64encode(aead_nonce).decode("ascii"),
-            "ciphertext": base64.b64encode(ciphertext).decode("ascii"),
-        },
-    )
-    result["sealed_bytes"] = {"kem_ciphertext": len(kem_ciphertext), "aes_gcm_ciphertext": len(ciphertext)}
+        envelope[-1] ^= 0x01  # one bit of the sealed frames
+    result = post_sealed(session, bytes(envelope))
+    result["sealed_bytes"] = len(envelope)
     return result

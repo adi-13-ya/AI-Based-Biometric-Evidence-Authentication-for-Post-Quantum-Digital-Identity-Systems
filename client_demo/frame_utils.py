@@ -32,12 +32,16 @@ def load_image_frames(path: Path) -> tuple[list[np.ndarray], None]:
     return [np.array(img)], None
 
 
-def load_video_frames(path: Path, max_frames: int = 8) -> tuple[list[np.ndarray], list[float]]:
-    """Uniformly samples up to `max_frames` frames from the video, and returns
-    the timestamp (seconds, from the container's frame rate) of *every*
-    frame in the file - the same shape as a live recording, where all
-    capture times go to the injection detector's timing check but only a
-    sample of frames is sent as images."""
+_BURST_START = 3  # skip the first frames (camera exposure settling)
+BURST_FRAMES = 8  # consecutive frames appended for the injection classifier
+
+
+def load_video_frames(path: Path, max_frames: int = 8, burst: int = BURST_FRAMES) -> tuple[list[np.ndarray], list[float], int]:
+    """Uniformly samples up to `max_frames` frames from the video, appends
+    `burst` *consecutive* frames from the start of the clip, and returns the
+    timestamp (seconds, from the container's frame rate) of *every* frame in
+    the file - the same shape as a live recording (recorder.select_frames).
+    Returns (frames, timestamps, number of trailing burst frames)."""
     import cv2
 
     cap = cv2.VideoCapture(str(path))
@@ -49,6 +53,7 @@ def load_video_frames(path: Path, max_frames: int = 8) -> tuple[list[np.ndarray]
     step = max(1, total // max_frames)
 
     frames: list[np.ndarray] = []
+    burst_frames: list[np.ndarray] = []
     timestamps: list[float] = []
     idx = 0
     try:
@@ -57,15 +62,21 @@ def load_video_frames(path: Path, max_frames: int = 8) -> tuple[list[np.ndarray]
             if not ok:
                 break
             timestamps.append(idx / fps)
+            rgb = None
             if idx % step == 0 and len(frames) < max_frames:
-                frames.append(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB))
+                rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+                frames.append(rgb)
+            if _BURST_START <= idx < _BURST_START + burst:
+                burst_frames.append(rgb if rgb is not None else cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB))
             idx += 1
     finally:
         cap.release()
 
     if not frames:
         raise ValueError(f"No frames could be read from video file: {path}")
-    return frames, timestamps
+    if len(burst_frames) < 2:
+        burst_frames = []
+    return frames + burst_frames, timestamps, len(burst_frames)
 
 
 def quality_check(frame: np.ndarray) -> tuple[bool, str]:
@@ -91,10 +102,11 @@ def quality_check(frame: np.ndarray) -> tuple[bool, str]:
     return True, "ok"
 
 
-def load_attack_file(path: Path, max_frames: int = 8) -> tuple[list[np.ndarray], list[float] | None]:
+def load_attack_file(path: Path, max_frames: int = 8) -> tuple[list[np.ndarray], list[float] | None, int]:
+    """(frames, timestamps, burst_frames) - see load_video_frames."""
     suffix = path.suffix.lower()
     if suffix in IMAGE_SUFFIXES:
-        return load_image_frames(path)
+        return (*load_image_frames(path), 0)
     if suffix in VIDEO_SUFFIXES:
         return load_video_frames(path, max_frames=max_frames)
     raise ValueError(f"Unsupported attack sample file type {suffix!r} (expected one of {IMAGE_SUFFIXES | VIDEO_SUFFIXES})")

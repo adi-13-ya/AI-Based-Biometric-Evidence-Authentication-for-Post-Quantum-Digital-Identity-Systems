@@ -73,3 +73,27 @@ def test_multiple_vetoes_lead_with_the_most_specific_reason():
         below_threshold_modules=["injection", "morph", "presentation_attack"],
     )
     assert out[0].startswith("Looks like a photo or screen") and len(out) == 3
+
+
+def test_minifasnet_explanation_names_the_attack_type():
+    out = explain(
+        accepted=False,
+        binding_checks={},
+        binding_reasons=[],
+        detection_scores={"presentation_attack": 0.08},
+        detection_details={"presentation_attack": {"p_real": 0.08, "p_print": 0.12, "p_replay": 0.80}},
+        below_threshold_modules=["presentation_attack"],
+    )
+    assert "MiniFASNet" in out[0] and "screen replay" in out[0] and "0.08" in out[0]
+
+
+def test_injection_classifier_explains_repeated_frames():
+    out = explain(
+        accepted=False,
+        binding_checks={},
+        binding_reasons=[],
+        detection_scores={"injection": 0.1},
+        detection_details={"injection": {"dup_rate": 0.29, "static_16": 0.5}},
+        below_threshold_modules=["injection"],
+    )
+    assert "29%" in out[0] and "virtual camera" in out[0] and "50%" in out[0]

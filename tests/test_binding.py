@@ -88,7 +88,9 @@ class TestCheckTransactionBinding:
 
         assert result.accepted is False
         assert result.checks["timestamp_fresh"] is False
-        assert result.checks["signature_valid"] is True  # only freshness should fail
+        # short-circuit: the signature is never verified for a stale submission
+        assert "signature_valid" not in result.checks
+        assert "challenge_fulfilled" not in result.checks
 
     def test_rejects_already_used_nonce(self):
         from crypto.signature import SignerIdentity
@@ -162,3 +164,40 @@ class TestCheckTransactionBinding:
 
         assert result.accepted is False
         assert result.checks["challenge_fulfilled"] is False
+
+
+@skip_if_no_oqs
+def test_bad_signature_never_reaches_the_liveness_model():
+    """Early cryptographic rejection: a forged submission must be rejected
+    before the (expensive) challenge check is invoked at all."""
+    from crypto.signature import SignerIdentity
+
+    calls = []
+
+    def expensive_check(challenge: str, response: str) -> bool:
+        calls.append(challenge)
+        return True
+
+    with SignerIdentity(alg="ML-DSA-65") as signer, SignerIdentity(alg="ML-DSA-65") as attacker:
+        nonce = b"\x06" * 32
+        timestamp = datetime.now(timezone.utc).isoformat()
+        from crypto.signature import build_binding_payload
+
+        forged = attacker.sign(build_binding_payload(b"\x00" * 32, nonce, timestamp, "7"))
+        result = check_transaction_binding(
+            session_nonce=nonce,
+            session_challenge="say 7",
+            client_public_key=signer.public_key,
+            sig_alg="ML-DSA-65",
+            evidence_hash=b"\x00" * 32,
+            timestamp=timestamp,
+            challenge_response="7",
+            signature=forged,
+            nonce_already_used=False,
+            challenge_check=expensive_check,
+            extra_checks=[("evidence_matches_hash", lambda: calls.append("hash") or True, "x")],
+        )
+
+    assert result.accepted is False
+    assert result.checks == {"nonce_unused": True, "timestamp_fresh": True, "signature_valid": False}
+    assert calls == []

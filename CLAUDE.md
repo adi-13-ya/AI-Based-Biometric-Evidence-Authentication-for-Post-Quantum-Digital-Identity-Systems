@@ -54,7 +54,7 @@ docs.
   genuine, for every module and the fused score (`detection/base.py`,
   `detection/fusion.py`). Keep new detectors on this same scale so
   `.env`'s per-module thresholds and the fusion weights stay meaningful.
-- **`server/main.py`'s `_verify_core` is a short-circuit pipeline** (behind
+- **`server/main.py`'s `_verify_core` is a short-circuit pipeline** (`PIPELINE_MODE=layered` is an ablation for measurement only) (behind
   both `/verify` and `/verify-sealed`): the sealed channel must authenticate,
   then the Section 7 transaction-binding checks run (including
   `evidence_matches_hash`: the received frames must hash, via
@@ -63,13 +63,20 @@ docs.
   restructure this to run detection unconditionally - it's both spec-
   mandated (Section 7 step 7) and a real latency optimization since a
   binding-rejected request never needs to touch the 5 detectors.
-- **ML-DSA signing runs in the server process; ML-KEM sealing runs in the
-  client when it can** (see `README.md` "Assumptions" #2). The client
-  (`client_demo/api_client.py: run_verification`) encapsulates and seals
-  with AES-256-GCM via `crypto/channel.py` if `oqs` imports, else falls back
-  to plaintext `/verify`. `crypto/kem.py`/`crypto/signature.py`/
-  `crypto/channel.py` make no assumption about which process calls them, so
-  moving signing to a real client is a caller-side change.
+- **ML-DSA signing runs only on the client.** `client_demo/device.py` owns
+  the device keypair; the server (`server/device_registry.py`) stores public
+  keys and imports only `verify`. Never add a server endpoint that signs.
+- **The sealed envelope is header-first** (`crypto/channel.py`, PQB1). The
+  server checks nonce/freshness/signature from the header before it reads the
+  frames (`server/main.py: verify_evidence_sealed`). Don't move anything that
+  touches frame bytes ahead of `credential_checks`.
+- **The binding gate is cost-ordered and short-circuits**
+  (`binding/session_binding.py`): nonce, timestamp, signature, extra checks
+  (evidence hash), then the liveness challenge. Frames are decoded inside the
+  liveness stage. Keep anything expensive after the signature check.
+- **Thresholds come from development data** (`evaluation/benchmark_*.py`,
+  `train_injection.py`) and fusion normalises each score to its threshold
+  (`detection/fusion.py`). Don't hand-tune thresholds on test sets.
 - **Demo samples and the self-check share one scenario list.**
   `scripts/make_demo_assets.py` builds `demo_assets/attacks/` (gitignored);
   `scripts/demo_check.py: SCENARIOS` is also imported by

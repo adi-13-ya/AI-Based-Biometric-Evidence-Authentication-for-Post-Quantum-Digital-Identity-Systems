@@ -1,0 +1,254 @@
+{
+  "integrated": {
+    "flood": {
+      "seconds": 20,
+      "attack_threads": 4,
+      "forged_requests": 107,
+      "forged_per_second": 5.35,
+      "genuine_completed": 11,
+      "genuine_verify_ms": {
+        "median": 822.0347081078216,
+        "p95": 1376.6961250221357,
+        "mean": 952.1243143720891,
+        "n": 11
+      }
+    },
+    "rss_mb_start": 454.703125,
+    "rss_mb_after_genuine": 888.203125,
+    "genuine_accept_rate": 0.9,
+    "genuine_verify_http_ms": {
+      "median": 512.9537504399195,
+      "p95": 986.6770840017125,
+      "mean": 650.4660832734468,
+      "n": 30
+    },
+    "reject": {
+      "forged_signature": {
+        "verify_http_ms": {
+          "median": 4.300187458284199,
+          "p95": 6.4825419103726745,
+          "mean": 4.709780608148624,
+          "n": 30
+        },
+        "server_total_ms": {
+          "median": 0.2618954749777913,
+          "p95": 0.44720806181430817,
+          "mean": 0.2819347311742604,
+          "n": 30
+        },
+        "server_cpu_ms": {
+          "median": 6.463488000001405,
+          "p95": 9.50323200000014,
+          "mean": 6.369638399999644,
+          "n": 30
+        },
+        "detection_ran": false,
+        "all_rejected": true,
+        "failed_check": [
+          "signature_valid"
+        ]
+      },
+      "reused_nonce": {
+        "verify_http_ms": {
+          "median": 3.7563334917649627,
+          "p95": 6.902416003867984,
+          "mean": 4.2122262956885,
+          "n": 30
+        },
+        "server_total_ms": {
+          "median": 0.19018753664568067,
+          "p95": 0.22420799359679222,
+          "mean": 0.19245280030493936,
+          "n": 30
+        },
+        "server_cpu_ms": {
+          "median": 1839.032832000001,
+          "p95": 2890.940415999992,
+          "mean": 2023.9259135999996,
+          "n": 30
+        },
+        "detection_ran": false,
+        "all_rejected": true,
+        "failed_check": [
+          "nonce_unused"
+        ]
+      },
+      "stale_timestamp": {
+        "verify_http_ms": {
+          "median": 3.8258954300545156,
+          "p95": 6.9913329789415,
+          "mean": 4.355540231335908,
+          "n": 30
+        },
+        "server_total_ms": {
+          "median": 0.17025001579895616,
+          "p95": 0.19724993035197258,
+          "mean": 0.17241690463076034,
+          "n": 30
+        },
+        "server_cpu_ms": {
+          "median": 4.85478400000261,
+          "p95": 11.431935999993925,
+          "mean": 5.219874133333728,
+          "n": 30
+        },
+        "detection_ran": false,
+        "all_rejected": true,
+        "failed_check": [
+          "timestamp_fresh"
+        ]
+      },
+      "substituted_frames": {
+        "verify_http_ms": {
+          "median": 15.622875012923032,
+          "p95": 85.14245809055865,
+          "mean": 29.444969558001805,
+          "n": 30
+        },
+        "server_total_ms": {
+          "median": 6.082687526941299,
+          "p95": 18.86216609273106,
+          "mean": 8.745142992120236,
+          "n": 30
+        },
+        "server_cpu_ms": {
+          "median": 19.103231999999082,
+          "p95": 85.56441600001108,
+          "mean": 31.01265919999984,
+          "n": 30
+        },
+        "detection_ran": false,
+        "all_rejected": true,
+        "failed_check": [
+          "evidence_matches_hash"
+        ]
+      }
+    }
+  },
+  "layered": {
+    "flood": {
+      "seconds": 20,
+      "attack_threads": 4,
+      "forged_requests": 29,
+      "forged_per_second": 1.45,
+      "genuine_completed": 8,
+      "genuine_verify_ms": {
+        "median": 1876.7500210087746,
+        "p95": 2515.7711249776185,
+        "mean": 1813.1647917325608,
+        "n": 8
+      }
+    },
+    "rss_mb_start": 459.21875,
+    "rss_mb_after_genuine": 889.09375,
+    "genuine_accept_rate": 0.9,
+    "genuine_verify_http_ms": {
+      "median": 508.348582952749,
+      "p95": 1013.1200000178069,
+      "mean": 643.6134263562659,
+      "n": 30
+    },
+    "reject": {
+      "forged_signature": {
+        "verify_http_ms": {
+          "median": 509.5378329860978,
+          "p95": 998.8795421086252,
+          "mean": 635.2657861697177,
+          "n": 30
+        },
+        "server_total_ms": {
+          "median": 498.2006040518172,
+          "p95": 940.3655410278589,
+          "mean": 612.3785278294235,
+          "n": 30
+        },
+        "server_cpu_ms": {
+          "median": 1801.1376640000021,
+          "p95": 2834.2067199999974,
+          "mean": 1994.4668501333338,
+          "n": 30
+        },
+        "detection_ran": false,
+        "all_rejected": true,
+        "failed_check": [
+          "signature_valid"
+        ]
+      },
+      "reused_nonce": {
+        "verify_http_ms": {
+          "median": 504.3327290331945,
+          "p95": 984.0934589738026,
+          "mean": 631.3887598342262,
+          "n": 30
+        },
+        "server_total_ms": {
+          "median": 493.2790830498561,
+          "p95": 917.4294989788905,
+          "mean": 608.8787385689405,
+          "n": 30
+        },
+        "server_cpu_ms": {
+          "median": 3638.8080639999885,
+          "p95": 5288.529920000002,
+          "mean": 3992.5100202666627,
+          "n": 30
+        },
+        "detection_ran": false,
+        "all_rejected": true,
+        "failed_check": [
+          "nonce_unused"
+        ]
+      },
+      "stale_timestamp": {
+        "verify_http_ms": {
+          "median": 520.8298750221729,
+          "p95": 1033.789874985814,
+          "mean": 652.2390889353119,
+          "n": 30
+        },
+        "server_total_ms": {
+          "median": 508.1605419400148,
+          "p95": 976.4109599636868,
+          "mean": 629.114543289567,
+          "n": 30
+        },
+        "server_cpu_ms": {
+          "median": 1802.6711039999982,
+          "p95": 2862.458879999963,
+          "mean": 2017.9587071999986,
+          "n": 30
+        },
+        "detection_ran": false,
+        "all_rejected": true,
+        "failed_check": [
+          "timestamp_fresh"
+        ]
+      },
+      "substituted_frames": {
+        "verify_http_ms": {
+          "median": 514.0038125682622,
+          "p95": 1041.2992080673575,
+          "mean": 654.6516611046778,
+          "n": 30
+        },
+        "server_total_ms": {
+          "median": 500.1818335731514,
+          "p95": 985.3600020287558,
+          "mean": 632.3797431269971,
+          "n": 30
+        },
+        "server_cpu_ms": {
+          "median": 1826.723840000028,
+          "p95": 2877.1164160000353,
+          "mean": 2033.6726698666705,
+          "n": 30
+        },
+        "detection_ran": false,
+        "all_rejected": true,
+        "failed_check": [
+          "evidence_matches_hash"
+        ]
+      }
+    }
+  }
+}

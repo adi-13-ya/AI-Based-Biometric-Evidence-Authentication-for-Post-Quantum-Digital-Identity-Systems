@@ -3,8 +3,10 @@
 A prototype-scale store (dict keyed by session_id) is sufficient for a
 single-process demo server; a production system would back this with Redis
 or similar so nonce single-use is enforced across replicas. Holds the native
-oqs keypair objects for the lifetime of the session, so sessions must be
-closed to free them.
+ML-KEM keypair for the lifetime of the session, so sessions must be closed
+to free it. A session is opened for one enrolled device and keeps only that
+device's ML-DSA *public* key (server/device_registry.py); no signing key
+exists on the server.
 """
 from __future__ import annotations
 
@@ -17,7 +19,6 @@ import uuid
 from dataclasses import dataclass, field
 
 from crypto.kem import ServerKemSession
-from crypto.signature import SignerIdentity
 from server.config import settings
 
 CHALLENGE_PROMPTS = [
@@ -43,7 +44,9 @@ class Session:
     challenge: str
     created_at: float
     kem: ServerKemSession
-    client_signer: SignerIdentity
+    device_id: str
+    device_public_key: bytes
+    sig_alg: str
     nonce_used: bool = False
     kem_established: bool = False
     used_evidence_hashes: set = field(default_factory=set)
@@ -54,7 +57,6 @@ class Session:
 
     def close(self) -> None:
         self.kem.close()
-        self.client_signer.close()
 
 
 class SessionStore:
@@ -62,7 +64,7 @@ class SessionStore:
         self._sessions: dict[str, Session] = {}
         self._lock = threading.Lock()
 
-    def create(self) -> Session:
+    def create(self, device_id: str, device_public_key: bytes, sig_alg: str) -> Session:
         session_id = str(uuid.uuid4())
         nonce = os.urandom(settings.nonce_bytes)
         challenge = _generate_challenge()
@@ -70,15 +72,15 @@ class SessionStore:
         kem = ServerKemSession(alg=settings.kem_alg)
         kem.generate_keypair()
 
-        client_signer = SignerIdentity(alg=settings.sig_alg)
-
         session = Session(
             session_id=session_id,
             nonce=nonce,
             challenge=challenge,
             created_at=time.time(),
             kem=kem,
-            client_signer=client_signer,
+            device_id=device_id,
+            device_public_key=device_public_key,
+            sig_alg=sig_alg,
         )
         with self._lock:
             self._sessions[session_id] = session

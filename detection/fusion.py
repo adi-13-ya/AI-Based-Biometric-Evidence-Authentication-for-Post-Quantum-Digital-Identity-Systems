@@ -14,6 +14,16 @@ A submission is only ACCEPTed if BOTH:
     (a single strong "this is an attack" signal from one module can veto an
     otherwise-good weighted average - e.g. a confident replay-hash match
     shouldn't be washed out by four unrelated modules scoring well).
+
+Per-module thresholds are calibrated on development data and differ between
+modules (a model's operating point is rarely 0.5). Averaging raw scores
+would then mix scales: a PAD score of 0.4 above a 0.3 threshold is a pass,
+yet would pull the average down as if it were a weak result. Each score is
+therefore first mapped piecewise-linearly so that its own threshold lands
+at 0.5 (0 -> 0, threshold -> 0.5, 1 -> 1). The mapping is monotonic, so a
+module is below its threshold exactly when its normalised score is below
+0.5, and with accept_threshold = 0.5 the fused check can never accept what
+the veto rejects or vice versa.
 """
 from __future__ import annotations
 
@@ -28,7 +38,13 @@ DEFAULT_WEIGHTS = {
     "replay": 0.15,
     "injection": 0.15,
 }
-DEFAULT_ACCEPT_THRESHOLD = 0.6
+DEFAULT_ACCEPT_THRESHOLD = 0.5
+
+
+def normalise(score: float, threshold: float) -> float:
+    """Monotonic map of [0, 1] onto [0, 1] that sends `threshold` to 0.5."""
+    t = min(max(threshold, 1e-6), 1 - 1e-6)
+    return clip01(0.5 * score / t if score < t else 0.5 + 0.5 * (score - t) / (1 - t))
 
 
 @dataclass
@@ -56,8 +72,9 @@ def fuse(
     scores = {r.module: r.score for r in results}
     is_mock = {r.module: r.is_mock for r in results}
 
+    normalised = {m: normalise(s, per_module_thresholds.get(m, 0.5)) for m, s in scores.items()}
     weight_sum = sum(weights.get(m, 0.0) for m in scores) or 1.0
-    fused_score = clip01(sum(scores[m] * weights.get(m, 0.0) for m in scores) / weight_sum)
+    fused_score = clip01(sum(normalised[m] * weights.get(m, 0.0) for m in scores) / weight_sum)
 
     below_threshold = sorted(
         m for m, s in scores.items() if m in per_module_thresholds and s < per_module_thresholds[m]

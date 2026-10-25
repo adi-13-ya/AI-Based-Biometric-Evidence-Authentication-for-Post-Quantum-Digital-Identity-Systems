@@ -1,0 +1,61 @@
+// Sections 1-2: Introduction, Background and related work.
+const { AlignmentType } = require("docx");
+const { P, H1, H2, bullets, table, tableCaption } = require("./lib");
+
+module.exports = (N) => [
+  H1("1. Introduction"),
+  H2("1.1 Remote identity verification and the quantum threat"),
+  P("Banks, telecom operators and national ID schemes now enrol and re-authenticate people through a phone or laptop camera. The person shows their face, the client sends the capture to a verification server, and the server decides whether it is a live, genuine presentation of the claimed person. Two independent mechanisms usually protect this exchange. TLS, keyed with elliptic-curve Diffie-Hellman or RSA, protects the channel, and a liveness or anti-spoofing component, often a vendor SDK, judges the content of the capture."),
+  P("Both mechanisms have a known weakness. Shor's algorithm factors integers and computes discrete logarithms in polynomial time [1], so RSA and elliptic-curve cryptography will not survive a cryptographically relevant quantum computer. Published resource estimates for factoring RSA-2048 have fallen from 20 million noisy qubits [6] to under one million [7]. A face capture cannot be revoked the way a password can, and encrypted sessions recorded today can be decrypted later (harvest now, decrypt later), so biometric traffic is exactly the long-lived data that Mosca's argument says must move to post-quantum protection first [9]. NIST has standardised the lattice-based ML-KEM and ML-DSA for this purpose [3], [4] and set a deprecation schedule for RSA and ECC [30]."),
+  P("Channel security also says nothing about the content. A printed photo, a phone screen held up to the camera, a face swap or a recording pushed through a virtual camera driver travels over an authenticated channel exactly as well as a live face does. Presentation attack detection (PAD) is standardised and measured with APCER and BPCER under ISO/IEC 30107-3 [11], but PAD models are known to lose much of their accuracy on data from other cameras and capture conditions [35], [36]. Injection attacks, which bypass the camera altogether, only received a European technical specification in 2024 [23]."),
+  H2("1.2 Problem statement"),
+  P("Our assigned problem is to build and evaluate a remote face-verification pipeline in which (i) every public-key primitive resists a quantum adversary, (ii) each capture is cryptographically tied to one verification session and one capture device, and (iii) the content of the capture is checked for presentation, deepfake, morphing, replay and injection attacks by trained models whose error rates are measured on public data. Quantum computing enters the problem twice. As a threat, Shor's and Grover's algorithms [1], [2] decide which primitives must be replaced and how large symmetric keys and hashes must be; we simulate both circuits, with noise, so the threat model rests on measurements. As a resource, measuring qubits prepared in superposition gives physically unpredictable bits [31], a candidate source for the session nonces on which the binding depends."),
+  P("A first version of this prototype treated the two layers as separate and relied on hand-tuned signal-processing rules for every detector. A review of that version identified four concrete problems: the \"AI\" detectors were heuristics with no measured accuracy, the replay detector's linear interpolation of a Hamming distance rejected genuine users, the injection check accepted virtual-camera streams, and the server signed evidence on the client's behalf, so there was no real separation of trust. This report describes the revised system and its evaluation."),
+  H2("1.3 Objectives"),
+  ...bullets([
+    "**O1.** Use only NIST-standardised post-quantum public-key primitives on the verification path (ML-KEM-768, ML-DSA-65), with AES-256-GCM and SHA-256 sized for Grover.",
+    "**O2.** Specify a transaction-binding protocol in which cryptographic checks are ordered by cost and gate all image decoding and model inference, and measure what this ordering saves under a flood of forged requests.",
+    "**O3.** Separate the trust domains: the capture device generates and keeps its ML-DSA signing key, and the server holds only enrolled public keys.",
+    "**O4.** Replace the heuristic detectors with trained models (MiniFASNet for PAD, a fine-tuned EfficientNet-B0 for deepfakes, a learned classifier for injection) and report ISO/IEC 30107-3 APCER and BPCER on public datasets, with thresholds fixed on development data.",
+    "**O5.** Find and fix logic errors in score interpolation and fusion, and compare every change against the previous version on the same data.",
+    "**O6.** Simulate the Shor, Grover and QRNG circuits on ideal and noisy back-ends to quantify the threat that motivates O1.",
+  ]),
+  H2("1.4 Contributions"),
+  P("The central idea, which the review identified as the work's novelty, is to treat post-quantum cryptography and biometric attack detection as one protocol rather than two stacked layers. The ML-DSA signature covers SHA-256(evidence) ‖ nonce ‖ timestamp ‖ challenge response; the server rebuilds this payload from the nonce it issued and verifies it with the key of the enrolled device before it decodes a single image. Forged, replayed, stale and substituted submissions therefore cost the server one signature verification instead of a pass through five neural and signal-processing detectors. Concretely, this report contributes:"),
+  ...bullets([
+    "an ordered, short-circuiting binding gate and a measured comparison against a layered pipeline in a two-process deployment, including server CPU per rejected request and throughput under a forged-request flood (Section 5.3);",
+    "a distributed trust model with device-held ML-DSA keys and public-key enrollment, in which the server has no signing capability (Section 3.3);",
+    "trained detectors evaluated on CASIA-FASD [13], CelebA-Spoof [12], a public webcam liveness sample and DeepFakeFace [16], with per-species APCER, BPCER, EER and AUC, and a like-for-like comparison with the heuristics they replace (Section 4);",
+    "a content-based injection classifier that does not trust client-reported timestamps, evaluated against an attacker who forges plausible timing (Section 4.3);",
+    "corrections to two scoring errors, the replay interpolation and the averaging of scores with different operating points (Section 3.5).",
+  ]),
+  H2("1.5 Organisation"),
+  P("Section 2 reviews post-quantum cryptography, face anti-spoofing and injection detection, gives the quantum background needed for the threat model and states the gap. Section 3 formulates the problem and describes the protocol, the trust model, the detectors, the quantum circuits and the evaluation protocol. Section 4 reports detection accuracy on public benchmarks. Section 5 reports system latency, the cost of rejected requests, the comparison of post-quantum and classical primitives and the quantum simulations. Section 6 discusses the findings and limitations, and the last section concludes."),
+
+  H1("2. Background and Related Work"),
+  H2("2.1 Quantum attacks and post-quantum cryptography"),
+  P("Shor's algorithm finds the period of a^{x} mod N with the quantum Fourier transform and recovers factors or discrete logarithms in polynomial time [1]; the N = 15 instance was first run on NMR hardware by Vandersypen et al. [37]. Grover's algorithm finds a marked item among 2^{n} with about (π/4)·2^{n/2} oracle calls [2], which halves the effective security of symmetric keys and hash pre-images. Grassl et al. built concrete Grover circuits for AES [27]. Bernstein and Lange survey the candidate families (lattices, codes, hashes, multivariate equations, isogenies) [8]. The NIST schemes ML-KEM (from CRYSTALS-Kyber [33]) and ML-DSA (from CRYSTALS-Dilithium [34]) rest on module learning with errors, a structured form of Regev's LWE problem [10] that has no periodic structure for the quantum Fourier transform to exploit. The Open Quantum Safe project provides the liboqs implementations used here [5]. In TLS, post-quantum key exchange has been shown to cost little latency on good networks [32]; our setting differs in that the signature must also cover application data, the biometric evidence."),
+  H2("2.2 Quantum computing prerequisites"),
+  P("An n-qubit state is a unit vector |ψ⟩ = Σ_{x} α_{x}|x⟩ in ℂ^{2^n}; measuring in the computational basis returns x with probability |α_{x}|^{2} [28]. Computation applies unitary gates: the Hadamard H maps |0⟩ to (|0⟩ + |1⟩)/√2 and creates superposition, CNOT and multi-controlled X entangle and implement oracles, and controlled phase rotations build the inverse quantum Fourier transform. In Shor's order finding, controlled powers of U|y⟩ = |a·y mod N⟩ kick the phase s/r back onto a counting register, and the inverse QFT turns it into an integer near 2^{n}·s/r. Grover's oracle flips the sign of the marked state and the diffuser 2|s⟩⟨s| − I reflects amplitudes about their mean; after k iterations the success probability is sin^{2}((2k + 1)θ) with sin θ = 2^{−n/2}. Real devices suffer gate errors (modelled as depolarising channels ρ → (1 − p)ρ + p·I/d), decoherence and readout errors, and these accumulate with the number of two-qubit gates."),
+  H2("2.3 Face presentation attack detection"),
+  P("ISO/IEC 30107-3 defines the attack presentation classification error rate (APCER, the share of attack presentations accepted, computed per presentation attack instrument species) and the bona fide presentation classification error rate (BPCER, the share of genuine presentations rejected) [11]. Public benchmarks include CASIA-FASD, with printed, cut and video-replay attacks recorded at three image qualities [13], and CelebA-Spoof, with over 600,000 images of 10,177 subjects [12]. MiniFASNet, released by Minivision as Silent-Face-Anti-Spoofing [14], is a family of sub-megabyte CNNs that classify a face crop taken at several context scales into real, print and replay. Surveys report that PAD models lose much of their accuracy across datasets [35], a problem visible as early as distortion-based detectors [36]."),
+  H2("2.4 Deepfake, morphing and injection attacks"),
+  P("FaceForensics++ established face-manipulation benchmarks [18]; compact CNNs such as MesoNet [19] and spectral cues from GAN up-sampling [20] were early detectors. DeepFakeFace (DFF) adds face swaps and diffusion-model fakes of IMDB-WIKI celebrities and was built to test generalisation across generators [16]. Morphing attacks blend two identities so one passport photo matches both [21]. Injection attacks replace the camera stream itself, for example with a virtual camera driver; CEN/TS 18099 now defines them as a separate attack class from presentation attacks [23]. Video forensics has long used double compression as evidence of re-encoding [22], and it is this idea, together with frame-rate conversion artefacts, that our injection classifier builds on."),
+  H2("2.5 Gap analysis"),
+  P("Table 1 places this work against the usual deployment pattern and against post-quantum migration alone. The rows marked as new in this revision are the ones the review asked for."),
+  tableCaption("**Table 1.** Capabilities of related approaches."),
+  table(
+    ["Capability", "Classical e-KYC (TLS + liveness SDK)", "PQC migration only", "This work (v0.2)", "This work (v1.0)"],
+    [
+      ["Quantum-safe key establishment and signatures", "no", "yes", "yes", "yes"],
+      ["Evidence bound to session, device and challenge", "rarely", "no", "yes", "yes"],
+      ["Crypto checks gate all decoding and inference", "no", "no", "partly (liveness model ran first)", "yes, cost-ordered"],
+      ["Signing key held only by the capture device", "n/a", "n/a", "no (server signed)", "yes"],
+      ["PAD by a trained model", "vendor-specific", "no", "no (heuristic)", "MiniFASNet"],
+      ["Injection check that does not trust client timing", "rarely", "no", "no", "yes"],
+      ["APCER/BPCER on public datasets", "rarely published", "n/a", "no", "yes"],
+      ["Quantum threat simulated with noise", "no", "no", "yes", "yes"],
+    ],
+    [2526, 1700, 1300, 1700, 1800],
+  ),
+];

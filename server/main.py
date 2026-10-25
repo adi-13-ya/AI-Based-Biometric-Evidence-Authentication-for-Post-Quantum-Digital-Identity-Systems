@@ -1,17 +1,16 @@
-"""FastAPI server: session lifecycle, crypto (ML-KEM/ML-DSA), Section 7
-transaction-binding enforcement, and the AI attack-detection + fusion
-pipeline (spec Section 3's full server-side flow: KEM decap -> DSA verify ->
-AI detection pipeline -> decision engine).
+"""FastAPI server: device enrollment, session lifecycle, ML-KEM decapsulation,
+Section 7 transaction-binding enforcement, and the AI attack-detection +
+fusion pipeline (KEM decap -> binding gate -> liveness -> detectors ->
+decision engine).
 
-See README.md "Assumptions" #2 for why both the "client" ML-DSA signer and
-the "server" ML-DSA verifier live in this one process: the Streamlit demo
-client has no native liboqs build available on Windows, so this server
-exposes distinct client-role and server-role endpoints instead.
+Trust split: the server holds ML-KEM decapsulation keys and the *public*
+ML-DSA keys of enrolled devices, nothing else. Evidence is signed on the
+capture device (client_demo/device.py); there is no endpoint that signs on
+a client's behalf.
 """
 from __future__ import annotations
 
 import base64
-import hashlib
 import hmac
 import io
 import logging
@@ -19,14 +18,15 @@ import time
 
 import numpy as np
 from cryptography.exceptions import InvalidTag
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.concurrency import run_in_threadpool
 from PIL import Image
 from pydantic import BaseModel, Field
 
-from binding.session_binding import check_transaction_binding
-from crypto.channel import evidence_hash_of, open_payload
-from crypto.kem import client_encapsulate, derive_channel_key, kem_details
-from crypto.signature import build_binding_payload, sig_details
+from binding.session_binding import check_transaction_binding, complete_binding, credential_checks
+from crypto.channel import evidence_hash_of, open_envelope_frames, open_envelope_header, parse_envelope_head
+from crypto.kem import kem_details
+from crypto.signature import sig_details
 from detection.deepfake_detector import DeepfakeDetector
 from detection.fusion import fuse
 from detection.injection_detector import InjectionDetector
@@ -35,6 +35,7 @@ from detection.morph_detector import MorphDetector
 from detection.presentation_attack import PresentationAttackDetector
 from detection.replay_detector import store as replay_store
 from server.config import settings
+from server.device_registry import registry as device_registry
 from server.explain import explain
 from server.session_store import Session, nonce_b64, store
 
@@ -47,7 +48,9 @@ app = FastAPI(title="PQ-Biometric-Auth Server", version="0.1.0")
 # is unavailable - see detection/README-models.md). Instantiated once at
 # import time rather than per-request since loading a real checkpoint would
 # be too slow to redo on every submission.
-_pad_detector = PresentationAttackDetector(mode=settings.detection_mode, device=settings.detector_device)
+_pad_detector = PresentationAttackDetector(
+    mode=settings.detection_mode, device=settings.detector_device, weights=settings.pad_weights
+)
 _morph_detector = MorphDetector(mode=settings.detection_mode, device=settings.detector_device)
 _deepfake_detector = DeepfakeDetector(mode=settings.detection_mode, device=settings.detector_device)
 _injection_detector = InjectionDetector(mode=settings.detection_mode, device=settings.detector_device)
@@ -71,6 +74,20 @@ _FUSION_THRESHOLDS = {
 # --------------------------------------------------------------------------
 # Schemas
 # --------------------------------------------------------------------------
+class DeviceEnrollRequest(BaseModel):
+    sig_alg: str = Field(description="ML-DSA parameter set of the device key")
+    public_key: str = Field(description="hex-encoded ML-DSA public key generated on the device")
+
+
+class DeviceEnrollResponse(BaseModel):
+    device_id: str
+    sig_alg: str
+
+
+class SessionStartRequest(BaseModel):
+    device_id: str = Field(description="id returned by POST /device/enroll")
+
+
 class SessionStartResponse(BaseModel):
     session_id: str
     nonce: str = Field(description="base64-encoded session nonce")
@@ -78,30 +95,9 @@ class SessionStartResponse(BaseModel):
     kem_alg: str
     sig_alg: str
     kem_public_key: str = Field(description="hex-encoded ML-KEM public key")
-    client_public_key: str = Field(description="hex-encoded ML-DSA public key of the demo client identity")
+    device_id: str
     issued_at: float
     freshness_window_seconds: int
-
-
-class ChannelEstablishResponse(BaseModel):
-    session_id: str
-    kem_ciphertext: str = Field(description="hex-encoded ML-KEM ciphertext")
-    shared_secret_established: bool
-    channel_key_fingerprint: str = Field(description="first 8 bytes of the derived AES-256 key, hex, for demo display only")
-    timing_ms: dict[str, float]
-
-
-class EvidenceSignRequest(BaseModel):
-    evidence_hash: str = Field(description="hex-encoded SHA-256 of the captured frame/video bytes")
-    timestamp: str = Field(description="ISO-8601 capture timestamp")
-    challenge_response: str = Field(default="", description="what the client claims it did to fulfil the liveness challenge")
-
-
-class EvidenceSignResponse(BaseModel):
-    session_id: str
-    signature: str = Field(description="hex-encoded ML-DSA signature over the Section 7 binding payload")
-    binding_payload_sha256: str
-    timing_ms: dict[str, float]
 
 
 class VerifyRequest(BaseModel):
@@ -114,14 +110,11 @@ class VerifyRequest(BaseModel):
         description="base64-encoded JPEG/PNG frames in temporal order; required only if binding checks pass",
     )
     frame_timestamps: list[float] | None = Field(
-        default=None, description="unix timestamps per frame, for the injection detector's timing heuristic"
+        default=None, description="capture timestamps of the recording (client-reported; used only by the fallback heuristic)"
     )
-
-
-class SealedVerifyRequest(BaseModel):
-    kem_ciphertext: str = Field(description="hex-encoded ML-KEM ciphertext from the client's encapsulation")
-    aead_nonce: str = Field(description="base64-encoded 12-byte AES-GCM nonce")
-    ciphertext: str = Field(description="base64-encoded AES-256-GCM ciphertext+tag of a VerifyRequest JSON")
+    burst_frames: int = Field(
+        default=0, ge=0, description="how many trailing frames of frames_b64 are consecutive captures (injection classifier input)"
+    )
 
 
 class VerifyResponse(BaseModel):
@@ -212,69 +205,33 @@ def health() -> dict:
     return payload
 
 
+@app.post("/device/enroll", response_model=DeviceEnrollResponse)
+def enroll_device(req: DeviceEnrollRequest) -> DeviceEnrollResponse:
+    """Register a capture device's ML-DSA public key. The secret key never
+    leaves the device."""
+    try:
+        device = device_registry.enroll(req.sig_alg, bytes.fromhex(req.public_key))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return DeviceEnrollResponse(device_id=device.device_id, sig_alg=device.sig_alg)
+
+
 @app.post("/session/start", response_model=SessionStartResponse)
-def session_start() -> SessionStartResponse:
-    session = store.create()
+def session_start(req: SessionStartRequest) -> SessionStartResponse:
+    device = device_registry.get(req.device_id)
+    if device is None:
+        raise HTTPException(status_code=404, detail=f"Unknown device_id {req.device_id!r}; enroll first")
+    session = store.create(device.device_id, device.public_key, device.sig_alg)
     return SessionStartResponse(
         session_id=session.session_id,
         nonce=nonce_b64(session.nonce),
         challenge=session.challenge,
         kem_alg=settings.kem_alg,
-        sig_alg=settings.sig_alg,
+        sig_alg=device.sig_alg,
         kem_public_key=session.kem.public_key.hex(),
-        client_public_key=session.client_signer.public_key.hex(),
+        device_id=device.device_id,
         issued_at=session.created_at,
         freshness_window_seconds=settings.freshness_window_seconds,
-    )
-
-
-@app.post("/session/{session_id}/channel", response_model=ChannelEstablishResponse)
-def establish_channel(session_id: str) -> ChannelEstablishResponse:
-    session = _get_session_or_404(session_id)
-
-    t0 = time.perf_counter()
-    ciphertext, client_secret = client_encapsulate(session.kem.public_key, alg=settings.kem_alg)
-    t1 = time.perf_counter()
-    server_secret = session.kem.decapsulate(ciphertext)
-    t2 = time.perf_counter()
-
-    established = client_secret == server_secret
-    session.kem_established = established
-    channel_key = derive_channel_key(server_secret, salt=session.nonce)
-
-    return ChannelEstablishResponse(
-        session_id=session_id,
-        kem_ciphertext=ciphertext.hex(),
-        shared_secret_established=established,
-        channel_key_fingerprint=channel_key[:8].hex(),
-        timing_ms={
-            "encapsulate_ms": (t1 - t0) * 1000,
-            "decapsulate_ms": (t2 - t1) * 1000,
-            "total_ms": (t2 - t0) * 1000,
-        },
-    )
-
-
-@app.post("/session/{session_id}/evidence", response_model=EvidenceSignResponse)
-def sign_evidence(session_id: str, req: EvidenceSignRequest) -> EvidenceSignResponse:
-    session = _get_session_or_404(session_id)
-
-    try:
-        evidence_hash = bytes.fromhex(req.evidence_hash)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail="evidence_hash must be hex-encoded") from exc
-
-    payload = build_binding_payload(evidence_hash, session.nonce, req.timestamp, req.challenge_response)
-
-    t0 = time.perf_counter()
-    signature = session.client_signer.sign(payload)
-    t1 = time.perf_counter()
-
-    return EvidenceSignResponse(
-        session_id=session_id,
-        signature=signature.hex(),
-        binding_payload_sha256=hashlib.sha256(payload).hexdigest(),
-        timing_ms={"sign_ms": (t1 - t0) * 1000},
     )
 
 
@@ -286,121 +243,240 @@ def verify_evidence(session_id: str, req: VerifyRequest) -> VerifyResponse:
     return _verify_core(session_id, session, req, timing_ms={}, channel="plaintext")
 
 
-@app.post("/session/{session_id}/verify-sealed", response_model=VerifyResponse)
-def verify_evidence_sealed(session_id: str, req: SealedVerifyRequest) -> VerifyResponse:
-    """Verification over the post-quantum channel: the client encapsulated
-    against this session's ML-KEM public key and encrypted the VerifyRequest
-    JSON with AES-256-GCM under k = HKDF-SHA256(K, salt=session nonce), with
-    the session_id as associated data. The server decapsulates, derives the
-    same k and decrypts. Any tampering with the KEM ciphertext, the AEAD
-    nonce/ciphertext, or a submission under another session's id fails GCM
-    authentication and is rejected without running any further checks."""
-    session = _get_session_or_404(session_id)
+def _channel_reject(session_id: str, session: Session, timing_ms: dict, reason: str) -> VerifyResponse:
+    session.nonce_used = True
+    timing_ms["total_ms"] = sum(timing_ms.values())
+    return VerifyResponse(
+        session_id=session_id,
+        channel=f"{settings.kem_alg} + AES-256-GCM",
+        binding_accepted=False,
+        binding_checks={"channel_authentic": False},
+        binding_reasons=[reason],
+        detection_ran=False,
+        accepted=False,
+        reason="rejected at channel stage: " + reason,
+        explanations=explain(accepted=False, binding_checks={"channel_authentic": False}, binding_reasons=[reason]),
+        timing_ms=timing_ms,
+    )
 
-    try:
-        kem_ciphertext = bytes.fromhex(req.kem_ciphertext)
-        aead_nonce = base64.b64decode(req.aead_nonce)
-        ciphertext = base64.b64decode(req.ciphertext)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail="kem_ciphertext must be hex; aead_nonce/ciphertext base64") from exc
 
+def _sealed_head(session_id: str, session: Session, head: tuple) -> tuple:
+    """Decapsulate, open the small signed header and - in the integrated
+    pipeline - run the credential checks (nonce, freshness, signature).
+    Returns (response or None, shared_secret, request, credentials, timing_ms)."""
+    kem_ct, nonce_h, header_ct, _ = head
+    timing_ms: dict = {}
     t0 = time.perf_counter()
     try:
-        shared_secret = session.kem.decapsulate(kem_ciphertext)
+        shared_secret = session.kem.decapsulate(kem_ct)
     except Exception:
         shared_secret = None
     t1 = time.perf_counter()
-
-    plaintext = None
+    header = None
     if shared_secret is not None:
         try:
-            plaintext = open_payload(shared_secret, session.nonce, session_id, aead_nonce, ciphertext)
-        except InvalidTag:
-            plaintext = None
-    t2 = time.perf_counter()
-    timing_ms = {"kem_decapsulate_ms": (t1 - t0) * 1000, "aead_decrypt_ms": (t2 - t1) * 1000}
-
-    if plaintext is None:
-        session.nonce_used = True
-        reason = "sealed payload failed ML-KEM decapsulation / AES-256-GCM authentication (tampered or wrong session)"
-        timing_ms["total_ms"] = sum(timing_ms.values())
-        return VerifyResponse(
-            session_id=session_id,
-            channel="ML-KEM-768 + AES-256-GCM",
-            binding_accepted=False,
-            binding_checks={"channel_authentic": False},
-            binding_reasons=[reason],
-            detection_ran=False,
-            accepted=False,
-            reason="rejected at channel stage: " + reason,
-            explanations=explain(accepted=False, binding_checks={"channel_authentic": False}, binding_reasons=[reason]),
-            timing_ms=timing_ms,
-        )
-
+            header = open_envelope_header(shared_secret, session.nonce, session_id, nonce_h, header_ct)
+        except (InvalidTag, ValueError):
+            header = None
+    timing_ms["kem_decapsulate_ms"] = (t1 - t0) * 1000
+    timing_ms["aead_decrypt_ms"] = (time.perf_counter() - t1) * 1000
+    reason = "sealed payload failed ML-KEM decapsulation / AES-256-GCM authentication (tampered or wrong session)"
+    if header is None:
+        return _channel_reject(session_id, session, timing_ms, reason), None, None, None, timing_ms
     try:
-        inner = VerifyRequest.model_validate_json(plaintext)
+        req = VerifyRequest(**{**header, "frames_b64": []})
+        evidence_hash, signature = bytes.fromhex(req.evidence_hash), bytes.fromhex(req.signature)
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=f"decrypted payload is not a valid VerifyRequest: {exc}") from exc
-    return _verify_core(session_id, session, inner, timing_ms=timing_ms, channel=f"{settings.kem_alg} + AES-256-GCM")
+        raise HTTPException(status_code=400, detail=f"invalid sealed header: {exc}") from exc
+    if settings.pipeline_mode == "layered":
+        return None, shared_secret, req, None, timing_ms
+    t2 = time.perf_counter()
+    credentials = credential_checks(
+        session_nonce=session.nonce, client_public_key=session.device_public_key, sig_alg=session.sig_alg,
+        evidence_hash=evidence_hash, timestamp=req.timestamp, challenge_response=req.challenge_response,
+        signature=signature, nonce_already_used=session.nonce_used,
+        freshness_window_seconds=settings.freshness_window_seconds,
+    )
+    session.nonce_used = True  # consumed now, so a concurrent duplicate cannot pass phase 1 as well
+    timing_ms["credential_check_ms"] = (time.perf_counter() - t2) * 1000
+    if not credentials.accepted:
+        timing_ms["total_ms"] = sum(timing_ms.values())
+        return _binding_reject(session_id, session, credentials, timing_ms, f"{settings.kem_alg} + AES-256-GCM", {}), None, None, None, timing_ms
+    return None, shared_secret, req, credentials, timing_ms
 
 
-def _verify_core(session_id: str, session: Session, req: VerifyRequest, timing_ms: dict, channel: str) -> VerifyResponse:
-    """Full spec Section 3 server-side pipeline: Section 7 step-6 transaction
-    binding (signature, nonce single-use, timestamp freshness, challenge
-    fulfilment, plus that the submitted frames are the evidence that was
-    signed) - only if ALL of those pass does the submission proceed to the
-    AI attack-detection pipeline (5 detectors) and the fusion decision
-    engine, per Section 7 step 7 ("Only if all four checks pass does the
-    evidence proceed to the AI attack-detection pipeline")."""
+def _sealed_tail(session_id: str, session: Session, shared_secret: bytes, req: VerifyRequest, credentials, timing_ms: dict, tail: bytes) -> VerifyResponse:
+    t0 = time.perf_counter()
+    try:
+        frame_bytes = open_envelope_frames(shared_secret, session.nonce, session_id, tail)
+    except (InvalidTag, ValueError):
+        timing_ms["aead_decrypt_ms"] += (time.perf_counter() - t0) * 1000
+        return _channel_reject(session_id, session, timing_ms, "sealed frames failed AES-256-GCM authentication (tampered in transit)")
+    timing_ms["aead_decrypt_ms"] += (time.perf_counter() - t0) * 1000
+    return _verify_core(session_id, session, req, timing_ms=timing_ms, channel=f"{settings.kem_alg} + AES-256-GCM",
+                        frame_bytes=frame_bytes, credentials=credentials)
+
+
+@app.post("/session/{session_id}/verify-sealed", response_model=VerifyResponse)
+async def verify_evidence_sealed(session_id: str, request: Request) -> VerifyResponse:
+    """Verification over the post-quantum channel, header first.
+
+    Body: the PQB1 envelope (crypto/channel.py): ML-KEM ciphertext, then a
+    small AES-256-GCM-sealed header (evidence hash, timestamp, challenge
+    response, ML-DSA signature), then the sealed frames. The header is read
+    and checked while the frames are still arriving. If the nonce, freshness
+    or signature check fails, the server answers without decrypting,
+    hashing or decoding the frames (the remaining body is drained unread so
+    the client still receives the response). Tampering with any part, or a
+    submission under another session's id, fails GCM authentication."""
+    session = _get_session_or_404(session_id)
+    stream = request.stream()
+    buf = bytearray()
+    head = None
+    try:
+        async for chunk in stream:
+            buf += chunk
+            head = parse_envelope_head(buf)
+            if head is not None:
+                break
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=f"malformed envelope: {exc}") from exc
+    if head is None:
+        raise HTTPException(status_code=400, detail="truncated envelope")
+
+    response, shared_secret, req, credentials, timing_ms = await run_in_threadpool(_sealed_head, session_id, session, head)
+    if response is not None:
+        async for _ in stream:  # drain without processing
+            pass
+        return response
+    tail = bytes(buf[head[3]:])
+    async for chunk in stream:
+        tail += chunk
+    return await run_in_threadpool(_sealed_tail, session_id, session, shared_secret, req, credentials, timing_ms, tail)
+
+
+def _binding_reject(session_id: str, session: Session, result, timing_ms: dict, channel: str, liveness: dict) -> VerifyResponse:
+    logger.info("session=%s binding_rejected reasons=%s", session_id, result.reasons)
+    return VerifyResponse(
+        session_id=session_id,
+        channel=channel,
+        binding_accepted=False,
+        binding_checks=result.checks,
+        binding_reasons=result.reasons,
+        detection_ran=False,
+        accepted=False,
+        reason="rejected at transaction-binding stage: " + "; ".join(result.reasons),
+        explanations=explain(
+            accepted=False,
+            binding_checks=result.checks,
+            binding_reasons=result.reasons,
+            liveness=liveness,
+            challenge=session.challenge,
+        ),
+        liveness=_json_safe(liveness),
+        timing_ms=timing_ms,
+    )
+
+
+def _verify_core(session_id: str, session: Session, req: VerifyRequest, timing_ms: dict, channel: str,
+                 frame_bytes: list[bytes] | None = None, credentials=None) -> VerifyResponse:
+    """Server-side pipeline, cheapest stage first, stopping at the first
+    rejection: binding gate (nonce single-use, timestamp freshness, ML-DSA
+    signature against the enrolled device key, frames hash to the signed
+    evidence_hash) -> image decoding + liveness challenge (MediaPipe) -> the
+    five detectors -> fusion. Image decoding and every model run only after
+    the cryptographic checks pass, so forged traffic costs the server one
+    signature verification (see binding/session_binding.py)."""
     try:
         evidence_hash = bytes.fromhex(req.evidence_hash)
         signature = bytes.fromhex(req.signature)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail="evidence_hash and signature must be hex-encoded") from exc
 
-    frame_bytes = _decode_frame_bytes(req.frames_b64)
-    frames = _decode_frames(frame_bytes)
-
+    if frame_bytes is None:
+        frame_bytes = _decode_frame_bytes(req.frames_b64)  # base64 only; pixels are decoded lazily below
+    frames: list[np.ndarray] = []
     liveness_ms = 0.0
     liveness: dict = {}
 
-    def timed_challenge_check(challenge: str, response: str) -> bool:
-        # The liveness check is AI (MediaPipe head-motion), not cryptography;
-        # timed separately so binding_check_ms reports only the crypto and
-        # bookkeeping checks. Its measurements are kept for the explanation.
-        nonlocal liveness_ms
-        start = time.perf_counter()
-        try:
-            ok, measured = evaluate_challenge(challenge, response, frames)
-            liveness.update(measured)
-            return ok
-        finally:
-            liveness_ms = (time.perf_counter() - start) * 1000
+    liveness_ok: bool | None = None
+    detection: tuple | None = None
 
-    t0 = time.perf_counter()
-    binding_result = check_transaction_binding(
-        session_nonce=session.nonce,
-        session_challenge=session.challenge,
-        client_public_key=session.client_signer.public_key,
-        sig_alg=settings.sig_alg,
-        evidence_hash=evidence_hash,
-        timestamp=req.timestamp,
-        challenge_response=req.challenge_response,
-        signature=signature,
-        nonce_already_used=session.nonce_used,
-        freshness_window_seconds=settings.freshness_window_seconds,
-        challenge_check=timed_challenge_check,
-    )
+    def run_liveness(challenge: str, response: str) -> bool:
+        # Decoding the images and the MediaPipe head-motion check are timed
+        # as liveness_check_ms so binding_check_ms is crypto + bookkeeping only.
+        nonlocal liveness_ms, frames, liveness_ok
+        if liveness_ok is None:
+            start = time.perf_counter()
+            frames = _decode_frames(frame_bytes)
+            liveness_ok, measured = evaluate_challenge(challenge, response, frames)
+            liveness.update(measured)
+            liveness_ms = (time.perf_counter() - start) * 1000
+        return liveness_ok
+
+    def run_detection():
+        nonlocal detection
+        if detection is None:
+            t2 = time.perf_counter()
+            primary_frame = frames[0]
+            burst = req.burst_frames if 2 <= req.burst_frames <= len(frames) else 0
+            spread = frames[: len(frames) - burst] or frames
+            results = [
+                _pad_detector.predict(primary_frame),
+                _morph_detector.predict(primary_frame),
+                _deepfake_detector.predict_video(spread),
+                replay_store.check_and_record(primary_frame, session_id=session_id),
+                _injection_detector.predict_sequence(frames[-burst:] if burst else frames, frame_timestamps=req.frame_timestamps),
+            ]
+            t3 = time.perf_counter()
+            fused = fuse(
+                results,
+                weights=_FUSION_WEIGHTS,
+                per_module_thresholds=_FUSION_THRESHOLDS,
+                accept_threshold=settings.fusion_accept_threshold,
+            )
+            detection = (results, fused, (t3 - t2) * 1000, (time.perf_counter() - t3) * 1000)
+        return detection
+
+    if settings.pipeline_mode == "layered":
+        # Ablation baseline only (PIPELINE_MODE=layered): the AI layer runs on
+        # every request before, and independently of, the cryptographic
+        # checks - the "two separate layers" design. Used to measure what the
+        # integrated ordering saves; never the default.
+        run_liveness(session.challenge, req.challenge_response)
+        if frames:
+            run_detection()
+
     # The signature covers evidence_hash, so the frames actually analysed
     # must be the ones that hash describes - otherwise an attacker could get
     # a genuine capture's hash signed and then submit different frames.
-    # (Without frames there is nothing to compare; that case is a 400 below
-    # once the remaining checks pass.)
+    # (Without frames there is nothing to compare; that case is a 400 below.)
+    extra_checks = []
     if frame_bytes:
-        binding_result._fail(
+        extra_checks.append((
             "evidence_matches_hash",
-            hmac.compare_digest(evidence_hash_of(frame_bytes), evidence_hash),
+            lambda: hmac.compare_digest(evidence_hash_of(frame_bytes), evidence_hash),
             "submitted frames do not match the signed evidence_hash (evidence substituted after signing)",
+        ))
+
+    t0 = time.perf_counter()
+    if credentials is not None:  # sealed path: phase 1 already ran on the header
+        binding_result = complete_binding(credentials, session_challenge=session.challenge, challenge_response=req.challenge_response,
+                                          challenge_check=run_liveness, extra_checks=extra_checks)
+    else:
+        binding_result = check_transaction_binding(
+            session_nonce=session.nonce,
+            session_challenge=session.challenge,
+            client_public_key=session.device_public_key,
+            sig_alg=session.sig_alg,
+            evidence_hash=evidence_hash,
+            timestamp=req.timestamp,
+            challenge_response=req.challenge_response,
+            signature=signature,
+            nonce_already_used=session.nonce_used,
+            freshness_window_seconds=settings.freshness_window_seconds,
+            challenge_check=run_liveness,
+            extra_checks=extra_checks,
         )
     t1 = time.perf_counter()
 
@@ -409,56 +485,22 @@ def _verify_core(session_id: str, session: Session, req: VerifyRequest, timing_m
     # nonce (spec Section 7: "prevents replay ... nonce ... unique").
     session.nonce_used = True
 
-    timing_ms["binding_check_ms"] = (t1 - t0) * 1000 - liveness_ms
+    timing_ms["binding_check_ms"] = (t1 - t0) * 1000 - (0.0 if settings.pipeline_mode == "layered" else liveness_ms) + timing_ms.pop("credential_check_ms", 0.0)
     timing_ms["liveness_check_ms"] = liveness_ms
+    if detection is not None and not binding_result.accepted:
+        timing_ms["detection_ms"] = detection[2]  # spent on a request that is rejected anyway (layered mode)
+        timing_ms["fusion_ms"] = detection[3]
 
     if not binding_result.accepted:
-        logger.info("session=%s binding_rejected reasons=%s", session_id, binding_result.reasons)
         timing_ms["total_ms"] = sum(timing_ms.values())
-        return VerifyResponse(
-            session_id=session_id,
-            channel=channel,
-            binding_accepted=False,
-            binding_checks=binding_result.checks,
-            binding_reasons=binding_result.reasons,
-            detection_ran=False,
-            accepted=False,
-            reason="rejected at transaction-binding stage: " + "; ".join(binding_result.reasons),
-            explanations=explain(
-                accepted=False,
-                binding_checks=binding_result.checks,
-                binding_reasons=binding_result.reasons,
-                liveness=liveness,
-                challenge=session.challenge,
-            ),
-            liveness=_json_safe(liveness),
-            timing_ms=timing_ms,
-        )
+        return _binding_reject(session_id, session, binding_result, timing_ms, channel, liveness)
 
     if not frames:
         raise HTTPException(status_code=400, detail="frames_b64 must contain at least one frame once binding checks pass")
 
-    t2 = time.perf_counter()
-    primary_frame = frames[0]
-    detection_results = [
-        _pad_detector.predict(primary_frame),
-        _morph_detector.predict(primary_frame),
-        _deepfake_detector.predict_video(frames),
-        replay_store.check_and_record(primary_frame, session_id=session_id),
-        _injection_detector.predict(primary_frame, frame_timestamps=req.frame_timestamps),
-    ]
-    t3 = time.perf_counter()
-
-    fusion_result = fuse(
-        detection_results,
-        weights=_FUSION_WEIGHTS,
-        per_module_thresholds=_FUSION_THRESHOLDS,
-        accept_threshold=settings.fusion_accept_threshold,
-    )
-    t4 = time.perf_counter()
-
-    timing_ms["detection_ms"] = (t3 - t2) * 1000
-    timing_ms["fusion_ms"] = (t4 - t3) * 1000
+    detection_results, fusion_result, detection_ms, fusion_ms = run_detection()
+    timing_ms["detection_ms"] = detection_ms
+    timing_ms["fusion_ms"] = fusion_ms
     timing_ms["total_ms"] = sum(timing_ms.values())
     detection_details = {r.module: _json_safe(r.details) for r in detection_results}
 

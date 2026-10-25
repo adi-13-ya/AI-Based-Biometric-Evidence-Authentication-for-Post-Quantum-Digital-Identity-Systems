@@ -51,11 +51,24 @@ def test_detection_result_clips_out_of_range_score():
 
 
 class TestPresentationAttackDetector:
-    def test_mock_mode_used_without_checkpoint(self):
-        from detection.presentation_attack import PresentationAttackDetector
+    def test_mock_mode_used_without_checkpoint(self, monkeypatch, tmp_path):
+        import detection.presentation_attack as pad
 
-        detector = PresentationAttackDetector(mode="pretrained")
+        monkeypatch.setattr(pad, "WEIGHTS_DIR", tmp_path)
+        monkeypatch.setattr(pad, "FINETUNED_DIR", tmp_path)
+        detector = pad.PresentationAttackDetector(mode="pretrained")
         assert detector.mode == "mock"
+
+    def test_minifasnet_scores_a_frame_when_weights_present(self):
+        import detection.presentation_attack as pad
+
+        if not all((pad.WEIGHTS_DIR / f).exists() for f, _, _ in pad.CHECKPOINTS):
+            pytest.skip("MiniFASNet checkpoints not downloaded (see detection/README-models.md)")
+        detector = pad.PresentationAttackDetector(mode="pretrained", weights="released")
+        result = detector.predict(_natural_frame(np.random.default_rng(0)).astype(np.uint8))
+        assert result.is_mock is False
+        assert 0.0 <= result.score <= 1.0
+        assert result.details["p_real"] + result.details["p_print"] + result.details["p_replay"] == pytest.approx(1.0, abs=1e-4)
 
     def test_predict_returns_valid_score(self):
         from detection.presentation_attack import PresentationAttackDetector
@@ -114,10 +127,11 @@ class TestMorphDetector:
 
 
 class TestDeepfakeDetector:
-    def test_mock_mode_used_without_checkpoint(self):
-        from detection.deepfake_detector import DeepfakeDetector
+    def test_mock_mode_used_without_checkpoint(self, monkeypatch, tmp_path):
+        import detection.deepfake_detector as df
 
-        detector = DeepfakeDetector(mode="pretrained")
+        monkeypatch.setattr(df, "WEIGHTS_PATH", tmp_path / "missing.pth")
+        detector = df.DeepfakeDetector(mode="pretrained")
         assert detector.mode == "mock"
 
     def test_predict_returns_valid_score(self):
@@ -178,12 +192,12 @@ class TestReplayDetector:
         rng = np.random.default_rng(8)
         detector.check_and_record(_synthetic_frame(rng), session_id="s1")
         result = detector.check_and_record(_synthetic_frame(rng), session_id="s2")
-        assert result.score > 0.0
+        assert result.score == 1.0
 
-    def test_non_matching_capture_never_trips_the_veto(self):
-        """Anything farther than the Hamming threshold must stay >= 0.5 (the
-        fusion engine's per-module veto), so unrelated captures that happen
-        to be ~10-20 bits apart are not rejected as replays."""
+    def test_non_matching_capture_scores_one(self):
+        """Distance to an unrelated stored capture is not evidence: anything
+        that is not a confirmed replay scores exactly 1.0 (the old linear
+        interpolation put near misses under, or just above, the veto)."""
         from detection.replay_detector import ReplayDetector
 
         detector = ReplayDetector()
@@ -194,7 +208,7 @@ class TestReplayDetector:
         near_miss[:100] = _synthetic_frame(rng)[:100]  # half the image differs
         result = detector.check_and_record(near_miss, session_id="s2")
         assert result.details["best_match_hamming_distance"] > detector.hamming_threshold
-        assert result.score >= 0.5
+        assert result.score == 1.0
 
     def test_new_capture_of_the_same_scene_is_not_a_replay(self):
         """Two genuine recordings of the same person in the same spot match on
@@ -222,7 +236,7 @@ class TestReplayDetector:
         result = detector.check_and_record(second, session_id="s2")
         assert result.details["best_match_hamming_distance"] <= detector.hamming_threshold
         assert result.details["same_scene_new_capture"] is True
-        assert result.score >= 0.5
+        assert result.score == 1.0
 
         resent = camera(first, quality=85)  # the first capture sent again, re-encoded on the way
         assert detector.check_and_record(resent, session_id="s3").score == 0.0
@@ -240,11 +254,45 @@ class TestReplayDetector:
 
 
 class TestInjectionDetector:
-    def test_mock_mode_used_without_checkpoint(self):
-        from detection.injection_detector import InjectionDetector
+    def test_mock_mode_used_without_checkpoint(self, monkeypatch, tmp_path):
+        import detection.injection_detector as inj
 
-        detector = InjectionDetector(mode="pretrained")
+        monkeypatch.setattr(inj, "WEIGHTS_PATH", tmp_path / "missing.json")
+        detector = inj.InjectionDetector(mode="pretrained")
         assert detector.mode == "mock"
+
+    def test_repeated_frames_are_flagged_by_the_features(self):
+        """Frame-rate conversion repeats frames; a sensor never does."""
+        from detection.injection_detector import sequence_features
+
+        rng = np.random.default_rng(14)
+        scene = _natural_frame(rng)
+        live = [np.clip(np.roll(scene, i, axis=1) + rng.normal(0, 2, scene.shape), 0, 255).astype(np.uint8) for i in range(8)]
+        injected = [live[k * 25 // 30] for k in range(8)]  # 25 fps file in a 30 fps virtual camera
+        assert sequence_features(live)["dup_rate"] == 0.0
+        assert sequence_features(injected)["dup_rate"] > 0.0
+
+    def test_classifier_loads_from_json_and_scores_sequence(self, monkeypatch, tmp_path):
+        import json
+
+        import detection.injection_detector as inj
+
+        params = {
+            "features": inj.FEATURE_NAMES,
+            "mean": [0.0] * len(inj.FEATURE_NAMES),
+            "scale": [1.0] * len(inj.FEATURE_NAMES),
+            "coef": [-5.0] + [0.0] * (len(inj.FEATURE_NAMES) - 1),  # duplicates => injected
+            "intercept": 2.0,
+        }
+        path = tmp_path / "w.json"
+        path.write_text(json.dumps(params))
+        monkeypatch.setattr(inj, "WEIGHTS_PATH", path)
+        detector = inj.InjectionDetector(mode="pretrained")
+        assert detector.mode == "pretrained"
+        rng = np.random.default_rng(15)
+        frame = _natural_frame(rng).astype(np.uint8)
+        frozen = detector.predict_sequence([frame] * 8)
+        assert frozen.is_mock is False and frozen.score < 0.5
 
     def test_predict_without_timestamps_uses_compression_heuristic_only(self):
         from detection.injection_detector import InjectionDetector

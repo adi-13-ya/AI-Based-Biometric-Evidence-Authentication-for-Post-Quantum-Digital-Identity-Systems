@@ -42,7 +42,7 @@ from client_demo.api_client import (  # noqa: E402
     session_start,
 )
 from client_demo.frame_utils import load_attack_file, quality_check  # noqa: E402
-from client_demo.recorder import LOOK_STRAIGHT_SECONDS, RECORD_SECONDS, ClipRecorder, sample_frames  # noqa: E402
+from client_demo.recorder import LOOK_STRAIGHT_SECONDS, RECORD_SECONDS, ClipRecorder, select_frames  # noqa: E402
 
 load_dotenv()
 
@@ -224,11 +224,13 @@ def _live_tab() -> None:
     clip = st.session_state.get("live_clip")
     if not clip:
         return
-    frames, timestamps = clip
+    frames, burst, timestamps = clip
+    spread = frames[: len(frames) - burst]
     st.markdown(f"**Recorded clip:** {len(timestamps)} frames over {timestamps[-1] - timestamps[0]:.1f} s; "
-                f"{len(frames)} evenly spaced frames will be sent (the first one is the frontal frame).")
-    st.image(frames, width=110, caption=[f"frame {i + 1}" for i in range(len(frames))])
-    _verify_live(session, frames, timestamps, key="clip")
+                f"{len(spread)} evenly spaced frames (the first one is the frontal frame) plus {burst} consecutive "
+                "frames for the injection check will be sent, all covered by the device signature.")
+    st.image(spread, width=110, caption=[f"frame {i + 1}" for i in range(len(spread))])
+    _verify_live(session, frames, timestamps, key="clip", burst=burst)
 
 
 def _record_clip(challenge: str) -> None:
@@ -279,7 +281,7 @@ def _record_clip(challenge: str) -> None:
         if len(frames) < 10:
             st.error(f"Only {len(frames)} frames arrived while recording. Check that the video above is moving, then record again.")
             return
-        st.session_state.live_clip = (sample_frames(frames), timestamps)
+        st.session_state.live_clip = (*select_frames(frames), timestamps)
 
 
 def _photo_fallback(session: dict) -> None:
@@ -293,7 +295,7 @@ def _photo_fallback(session: dict) -> None:
     _verify_live(session, frames, None, key="photos")
 
 
-def _verify_live(session: dict, frames: list, timestamps: list[float] | None, key: str) -> None:
+def _verify_live(session: dict, frames: list, timestamps: list[float] | None, key: str, burst: int = 0) -> None:
     challenge = session["challenge"]
     if "number" in challenge.lower():
         response = st.text_input("Type the number you said", key=f"resp-{key}-{session['session_id']}")
@@ -306,7 +308,7 @@ def _verify_live(session: dict, frames: list, timestamps: list[float] | None, ke
     submit_anyway = (not ok) and st.checkbox("Submit anyway", key=f"anyway-{key}")
     if st.button("Verify", type="primary", key=f"verify-{key}", disabled=not ok and not submit_anyway):
         try:
-            _, result = run_verification(frames, timestamps, response, session=session)
+            _, result = run_verification(frames, timestamps, response, session=session, burst_frames=burst)
         except ApiError as exc:
             st.error(str(exc))
             return
@@ -338,8 +340,8 @@ def _attack_tab() -> None:
         return
 
     try:
-        frames, frame_timestamps = load_attack_file(path)
-        session, result = run_verification(frames, frame_timestamps)
+        frames, frame_timestamps, burst = load_attack_file(path)
+        session, result = run_verification(frames, frame_timestamps, burst_frames=burst)
     except (ApiError, ValueError) as exc:
         st.error(str(exc))
         return
@@ -366,7 +368,7 @@ def _tamper_tab() -> None:
         st.error("`genuine_sample.jpg` not found. Run `python scripts/make_demo_assets.py` first.")
         return
     try:
-        frames, _ = load_attack_file(path)
+        frames, _, _ = load_attack_file(path)
         session, result = run_verification(frames, tamper=mode)
     except ApiError as exc:
         st.error(str(exc))

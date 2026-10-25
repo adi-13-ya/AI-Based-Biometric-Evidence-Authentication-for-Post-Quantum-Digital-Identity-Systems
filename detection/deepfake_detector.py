@@ -1,23 +1,22 @@
 """Deepfake Detection - spec Section 6.3.
 
-Pretrained model (per spec): Xception/EfficientNet-B4 on FaceForensics++, or
-the lighter MesoNet/Meso4 if GPU time is limited. Meso4's architecture
-(Afchar et al., 2018 - four conv+pool blocks, a small dense head) is simple
-enough to define here directly in PyTorch, so `Meso4` below is a real,
-correct-shape network definition - but with **no trained weights** (this
-environment doesn't download FaceForensics++ or any checkpoint), running it
-with random initialization would produce meaningless scores that look
-plausible, which is worse than an honest mock. So `mode="pretrained"` only
-actually runs Meso4 if a real checkpoint file is found at WEIGHTS_PATH;
-otherwise it logs why and falls back to the mock heuristic below. See
-detection/README-models.md for exactly what checkpoint to add.
+Model: EfficientNet-B0 (torchvision, ImageNet-1k pretrained) with a single
+logit head, fine-tuned on DeepFakeFace face-swap data by
+evaluation/train_deepfake.py (identity-disjoint split; see that file for the
+full protocol). The logit is the log-odds that the face is real, so
+sigmoid(logit) is directly the module score (0 = fake, 1 = real).
 
-Mock-mode heuristic: high-frequency energy ratio in the 2D FFT spectrum.
-GAN/autoencoder-based face synthesis is documented in the deepfake-detection
-literature (e.g. Frank et al. 2020, "Leveraging Frequency Analysis for Deep
-Fake Image Recognition") to leave characteristic high-frequency artifacts
-from upsampling operations. This is a real, if much weaker, signal-based
-proxy - not a placeholder that returns a constant.
+Preprocessing: RetinaFace box (detection/face_detector.py) enlarged 1.3x,
+square crop, resized to 160x160, ImageNet mean/std normalisation. A clip is
+scored as the mean of its frames' scores: the per-frame threshold is
+calibrated on single images, and the minimum of several frames would bias
+bona fide clips downward as the number of frames grows.
+
+Fallback (`mode="mock"`, or no weights / torchvision): the earlier 2-D FFT
+high-frequency-energy heuristic (Frank et al., ICML 2020 motivate the cue).
+It is kept so the server starts without the checkpoint; its results are
+flagged is_mock=True, and evaluation shows it is not a usable detector on
+real faces.
 """
 from __future__ import annotations
 
@@ -31,50 +30,45 @@ from detection.base import DetectionResult, clip01
 
 logger = logging.getLogger(__name__)
 
-WEIGHTS_PATH = Path(__file__).parent / "weights" / "deepfake_meso4.pth"
+WEIGHTS_PATH = Path(__file__).parent / "weights" / "deepfake_effb0_dff.pth"
+INPUT_SIZE = 160
+FACE_SCALE = 1.3
+_MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)
+_STD = np.array([0.229, 0.224, 0.225], dtype=np.float32)
 
 
-def _build_meso4():
-    """Meso4 architecture (Afchar et al. 2018). Imports torch lazily so this
-    module stays importable without torch installed (mock mode never calls
-    this)."""
+def build_model(pretrained: bool = False):
+    """EfficientNet-B0 with a 1-logit head (log-odds of bona fide)."""
     import torch.nn as nn
+    import torchvision
 
-    class Meso4(nn.Module):
-        def __init__(self, num_classes: int = 2):
-            super().__init__()
-            self.conv1 = nn.Conv2d(3, 8, 3, padding=1)
-            self.bn1 = nn.BatchNorm2d(8)
-            self.conv2 = nn.Conv2d(8, 8, 5, padding=2)
-            self.bn2 = nn.BatchNorm2d(8)
-            self.conv3 = nn.Conv2d(8, 16, 5, padding=2)
-            self.bn3 = nn.BatchNorm2d(16)
-            self.conv4 = nn.Conv2d(16, 16, 5, padding=2)
-            self.bn4 = nn.BatchNorm2d(16)
-            self.pool = nn.MaxPool2d(2, 2)
-            self.pool4 = nn.MaxPool2d(4, 4)
-            self.leaky_relu = nn.LeakyReLU(0.1)
-            self.dropout = nn.Dropout(0.5)
-            self.fc1 = nn.Linear(16 * 8 * 8, 16)
-            self.fc2 = nn.Linear(16, num_classes)
+    model = torchvision.models.efficientnet_b0(weights="IMAGENET1K_V1" if pretrained else None)
+    model.classifier = nn.Sequential(nn.Dropout(0.2), nn.Linear(model.classifier[1].in_features, 1))
+    return model
 
-        def forward(self, x):
-            x = self.pool(self.leaky_relu(self.bn1(self.conv1(x))))
-            x = self.pool(self.leaky_relu(self.bn2(self.conv2(x))))
-            x = self.pool(self.leaky_relu(self.bn3(self.conv3(x))))
-            x = self.pool4(self.leaky_relu(self.bn4(self.conv4(x))))
-            x = x.flatten(1)
-            x = self.dropout(x)
-            x = self.leaky_relu(self.fc1(x))
-            x = self.dropout(x)
-            return self.fc2(x)
 
-    return Meso4()
+def face_crop(detector, rgb: np.ndarray) -> tuple[np.ndarray, float]:
+    """Square face crop (RGB uint8, INPUT_SIZE x INPUT_SIZE) and the face
+    detector's confidence."""
+    from detection.face_detector import crop_scaled
+
+    bgr = np.ascontiguousarray(rgb[..., ::-1])
+    (x, y, w, h), conf = detector.get_bbox(bgr)
+    side = max(w, h)
+    square = [int(x + w / 2 - side / 2), int(y + h / 2 - side / 2), side, side]
+    return crop_scaled(rgb, square, FACE_SCALE, INPUT_SIZE, INPUT_SIZE), conf
+
+
+def to_tensor(crops: np.ndarray):
+    """uint8 (N, H, W, 3) RGB -> normalised float tensor (N, 3, H, W)."""
+    import torch
+
+    x = (np.asarray(crops, dtype=np.float32) / 255.0 - _MEAN) / _STD
+    return torch.from_numpy(np.ascontiguousarray(x.transpose(0, 3, 1, 2)))
 
 
 class DeepfakeDetector:
     module_name = "deepfake"
-    INPUT_SIZE = 256  # Meso4's native input resolution
 
     def __init__(self, mode: str = "pretrained", device: str = "cpu"):
         self.device = device
@@ -89,34 +83,57 @@ class DeepfakeDetector:
         try:
             # Check for weights first: importing torch is slow, and pointless with no checkpoint.
             if not WEIGHTS_PATH.exists():
-                raise FileNotFoundError(f"{WEIGHTS_PATH} not found - see detection/README-models.md")
+                raise FileNotFoundError(f"{WEIGHTS_PATH} not found - run evaluation/train_deepfake.py")
             import torch
-            model = _build_meso4()
-            state_dict = torch.load(WEIGHTS_PATH, map_location=self.device)
-            model.load_state_dict(state_dict)
-            model.eval()
+
+            from detection.face_detector import shared_detector
+
+            self._face_detector = shared_detector()
+            model = build_model(pretrained=False)
+            model.load_state_dict(torch.load(WEIGHTS_PATH, map_location=self.device, weights_only=True))
+            model.to(self.device).eval()
             return model
         except Exception as exc:
-            logger.warning("Deepfake: pretrained Meso4 unavailable (%s); using mock FFT heuristic.", exc)
+            logger.warning("Deepfake: pretrained EfficientNet-B0 unavailable (%s); using mock FFT heuristic.", exc)
             return None
 
     def predict(self, frame: np.ndarray) -> DetectionResult:
         if self.mode == "mock" or self._model is None:
             return self._predict_mock(frame)
-        return self._predict_pretrained(frame)
+        return self._predict_pretrained([frame])
 
     def predict_video(self, frames: list[np.ndarray]) -> DetectionResult:
-        """Aggregate per-frame scores across sampled frames (min, since a
-        deepfake only needs to be detected in some frames to be caught)."""
+        """Score a clip: mean per-frame score for the model, minimum for the
+        mock heuristic (its historical behaviour)."""
         if not frames:
             raise ValueError("predict_video requires at least one frame")
-        results = [self.predict(f) for f in frames]
+        if self.mode != "mock" and self._model is not None:
+            return self._predict_pretrained(frames)
+        results = [self._predict_mock(f) for f in frames]
         worst = min(results, key=lambda r: r.score)
         return DetectionResult(
             module=self.module_name,
             score=worst.score,
-            is_mock=results[0].is_mock,
+            is_mock=True,
             details={**worst.details, "num_frames": len(results), "per_frame_scores": [r.score for r in results]},
+        )
+
+    def _predict_pretrained(self, frames: list[np.ndarray]) -> DetectionResult:
+        import torch
+
+        crops, confs = zip(*(face_crop(self._face_detector, np.asarray(f)[..., :3]) for f in frames))
+        with torch.no_grad():
+            probs = torch.sigmoid(self._model(to_tensor(np.stack(crops)).to(self.device))).squeeze(1).cpu().numpy()
+        return DetectionResult(
+            module=self.module_name,
+            score=float(probs.mean()),
+            is_mock=False,
+            details={
+                "p_real": float(probs.mean()),
+                "num_frames": len(frames),
+                "per_frame_scores": [float(p) for p in probs],
+                "face_confidence": float(min(confs)),
+            },
         )
 
     def _predict_mock(self, frame: np.ndarray) -> DetectionResult:
@@ -135,28 +152,10 @@ class DeepfakeDetector:
         total = low_freq_energy + high_freq_energy or 1.0
         high_freq_ratio = high_freq_energy / total
 
-        # Elevated high-frequency ratio => more likely a GAN upsampling
-        # artifact => lower "genuine" score. Calibration is a rough proxy,
-        # not fit to any labeled dataset - see module docstring.
         score = clip01(1.0 - (high_freq_ratio - 0.35) / 0.25)
-
         return DetectionResult(
             module=self.module_name,
             score=score,
             is_mock=True,
             details={"high_freq_ratio": high_freq_ratio},
         )
-
-    def _predict_pretrained(self, frame: np.ndarray) -> DetectionResult:
-        import torch
-
-        img = Image.fromarray(frame).convert("RGB").resize((self.INPUT_SIZE, self.INPUT_SIZE))
-        arr = np.asarray(img, dtype=np.float32) / 255.0
-        tensor = torch.from_numpy(arr).permute(2, 0, 1).unsqueeze(0).to(self.device)
-
-        with torch.no_grad():
-            logits = self._model(tensor)
-            probs = torch.softmax(logits, dim=1).squeeze(0)
-            genuine_score = float(probs[0])  # class 0 == real, class 1 == fake, per training convention
-
-        return DetectionResult(module=self.module_name, score=genuine_score, is_mock=False, details={})

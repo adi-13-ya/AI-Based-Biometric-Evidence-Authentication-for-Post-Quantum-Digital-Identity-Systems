@@ -70,8 +70,8 @@ def main() -> int:
         if tamper == "corrupt_channel" and not can_seal():
             print(f"{label:36s} skipped (needs liboqs on the client)")
             continue
-        frames, frame_timestamps = load_attack_file(path)
-        _, result = run_verification(frames, frame_timestamps, tamper=tamper)
+        frames, frame_timestamps, burst = load_attack_file(path)
+        _, result = run_verification(frames, frame_timestamps, tamper=tamper, burst_frames=burst)
         decision = "ACCEPT" if result["accepted"] else "REJECT"
         triggers = fired(result)
         ok = decision == expected and (expected_trigger is None or expected_trigger in triggers)

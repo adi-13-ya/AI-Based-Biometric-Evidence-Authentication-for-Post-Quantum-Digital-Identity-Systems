@@ -17,6 +17,7 @@ import numpy as np
 RECORD_SECONDS = 4.0
 LOOK_STRAIGHT_SECONDS = 1.2  # first part of the clip: frontal frame for the detectors
 MAX_FRAMES_SENT = 8
+BURST_FRAMES = 8
 
 
 class ClipRecorder:
@@ -66,6 +67,18 @@ def sample_frames(frames: list[np.ndarray], n: int = MAX_FRAMES_SENT) -> list[np
         return list(frames)
     idx = np.linspace(0, len(frames) - 1, n).round().astype(int)
     return [frames[i] for i in idx]
+
+
+def select_frames(frames: list[np.ndarray], burst: int = BURST_FRAMES) -> tuple[list[np.ndarray], int]:
+    """What a live recording submits: the evenly spaced sample (liveness
+    motion, PAD, deepfake) followed by `burst` consecutive frames from the
+    "look straight" part of the clip, which the injection classifier needs
+    (frame duplication and sensor-noise cues only exist between adjacent
+    frames). Returns (frames, number of trailing burst frames)."""
+    spread = sample_frames(frames)
+    start = min(3, max(0, len(frames) - burst))
+    run = list(frames[start: start + burst])
+    return (spread + run, len(run)) if len(run) >= 2 else (spread, 0)
 
 
 def _draw_overlay(frame: np.ndarray, prompt: str, remaining: float) -> np.ndarray:

@@ -5,7 +5,64 @@ follows [Keep a Changelog](https://keepachangelog.com/); dates are when the
 change was made, not a formal release schedule (this is a prototype, not a
 versioned package).
 
-## [Unreleased]
+## [1.0.0] - trained models, distributed trust, public-benchmark evaluation
+
+Review feedback addressed: detectors were hand-tuned heuristics, the
+injection check accepted virtual-camera streams, the replay score's linear
+interpolation was wrong, and the server signed on the client's behalf.
+
+### Changed (breaking)
+
+- **Clients sign their own evidence.** The capture device generates an
+  ML-DSA-65 keypair (`client_demo/device.py`, key file mode 0600) and
+  enrolls only the public key (`POST /device/enroll`). `POST /session/start`
+  now takes `{"device_id"}`. Removed `POST /session/{id}/evidence` (server-
+  side signing) and `POST /session/{id}/channel`. The server stores public
+  keys only (`server/device_registry.py`) and cannot sign. liboqs is now
+  required on the client.
+- **`/verify-sealed` takes a binary, header-first envelope** (`PQB1`,
+  `crypto/channel.py`): ML-KEM ciphertext, a small AES-GCM-sealed header
+  (evidence hash, timestamp, challenge response, signature), then the sealed
+  frames as raw bytes. The server streams the body, checks nonce, freshness
+  and signature on the header, and rejects without decrypting, hashing or
+  decoding the frames. Replaces the JSON body with base64 frames, whose
+  parsing (~60 ms CPU per 7 MB request) happened before any check.
+- **Binding checks short-circuit in cost order** (`binding/session_binding.py`):
+  nonce, timestamp, ML-DSA signature, evidence hash, then the liveness
+  challenge. Frames are decoded and MediaPipe runs only after every
+  cryptographic check passes; before, a forged request still paid for the
+  liveness model. Checks that were not reached are absent from
+  `binding_checks`.
+- **Presentation attack detection uses MiniFASNet** (Silent-Face-Anti-Spoofing,
+  V2 at 2.7x + V1SE at 4.0x, RetinaFace crops), fine-tuned on CelebA-Spoof
+  train (`evaluation/finetune_pad.py`); `PAD_WEIGHTS=released` selects the
+  original checkpoints.
+- **Deepfake detection uses EfficientNet-B0** fine-tuned on DeepFakeFace
+  face swaps (`evaluation/train_deepfake.py`); clips are scored by mean frame
+  probability.
+- **Injection detection is a trained classifier** over content features
+  (repeated frames, temporal sensor noise, 8/16-px blocking, static blocks)
+  instead of client-reported frame timing, which an attacker controls
+  (`evaluation/train_injection.py`, weights stored as JSON). Clients send an
+  8-frame consecutive burst after the spread frames (`burst_frames`).
+- **Replay score is binary.** The old score linearly interpolated the
+  Hamming distance to the nearest *unrelated* capture; it was non-monotonic
+  (d = 8 scored 0.75, d = 9 scored 0.52) and sat just above the veto.
+- **Fusion normalises each score to its own calibrated threshold** before
+  averaging; `FUSION_ACCEPT_THRESHOLD` default 0.5. Per-module thresholds
+  come from development data (`.env.example`).
+
+### Added
+
+- `evaluation/metrics.py`: per-species APCER, BPCER, EER, BPCER@APCER,
+  thresholds fixed on development data, Wilson intervals.
+- `evaluation/fetch_data.py` (reproducible public subsets via HTTP range
+  requests), `pad_data.py`, `benchmark_pad.py`, `benchmark_deepfake.py`.
+- `report/scripts/distributed_experiments.py`: two-process deployment,
+  integrated vs layered pipeline (`PIPELINE_MODE`, ablation only) under a
+  forged-request flood.
+
+## [0.3.0] - live webcam fixes
 
 ### Fixed (live webcam use)
 

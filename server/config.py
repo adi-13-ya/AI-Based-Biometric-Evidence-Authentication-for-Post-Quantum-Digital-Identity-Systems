@@ -21,11 +21,11 @@ class Settings(BaseSettings):
     nonce_bytes: int = 32
 
     # --- Detection thresholds (Section 6.6 fusion) ---
-    threshold_presentation_attack: float = 0.5
+    threshold_presentation_attack: float = 0.57  # dev EER point, evaluation/benchmark_pad.py
     threshold_morph: float = 0.5
-    threshold_deepfake: float = 0.5
+    threshold_deepfake: float = 0.48  # dev EER point, evaluation/benchmark_deepfake.py
     threshold_replay: float = 0.5
-    threshold_injection: float = 0.5
+    threshold_injection: float = 0.35  # BPCER = 5% point, evaluation/train_injection.py
 
     weight_presentation_attack: float = 0.25
     weight_morph: float = 0.20
@@ -33,16 +33,22 @@ class Settings(BaseSettings):
     weight_replay: float = 0.15
     weight_injection: float = 0.15
 
-    fusion_accept_threshold: float = 0.6
+    fusion_accept_threshold: float = 0.5
 
     # --- Detection model mode ---
     detection_mode: str = "pretrained"  # "pretrained" | "mock"
     detector_device: str = "cpu"
+    # "released" MiniFASNet checkpoints generalise better across datasets than the
+    # CASIA-fine-tuned ones (evaluation/results/pad_benchmark.json)
+    pad_weights: str = "released"  # "released" | "finetuned"
 
     # --- Server ---
     server_host: str = "0.0.0.0"
     server_port: int = 8000
-    demo_mode: bool = False  # enables POST /demo/reset-replay-store for rehearsals
+    demo_mode: bool = False
+    # "integrated" (default): crypto gate first, AI only for authentic requests.
+    # "layered": ablation baseline that runs the AI stage before the crypto checks.
+    pipeline_mode: str = "integrated"  # enables POST /demo/reset-replay-store for rehearsals
 
     # --- Replay detector store ---
     replay_hash_window_seconds: int = 86400

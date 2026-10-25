@@ -54,13 +54,13 @@ def architecture() -> None:
     # --- Client ---------------------------------------------------------------
     ax.add_patch(FancyBboxPatch((0.3, 0.4), 7.4, 11.7, boxstyle="round,pad=0.02,rounding_size=0.2",
                                 lw=1.2, ec=BLUE, fc="#fbfdff"))
-    ax.text(4.0, 11.65, "CLIENT (Streamlit, webcam)", ha="center", fontsize=9.5, fontweight="bold", color=BLUE)
+    ax.text(4.0, 11.65, "CAPTURE DEVICE (holds sk_dev)", ha="center", fontsize=9.5, fontweight="bold", color=BLUE)
     cy = [9.9, 8.0, 6.1, 4.2, 2.3]
     labels = [
-        "1. Receive session: nonce N (32 B),\nchallenge C, ML-KEM pk",
-        "2. Capture frames while\nperforming challenge C",
+        "0. Enrol once: send pk_dev only\n1. Receive session: nonce N (32 B),\nchallenge C, ML-KEM pk",
+        "2. Capture 8 spread frames +\n8-frame burst while\nperforming challenge C",
         "3. h = SHA-256(frames)\n(Grover-resistant: 128-bit PQ)",
-        "4. σ = ML-DSA-65.Sign(\nh ‖ N ‖ ts ‖ resp)",
+        "4. σ = ML-DSA-65.Sign(sk_dev,\nh ‖ N ‖ ts ‖ resp)\n(on the device, never on the server)",
         "5. (ct, K) = ML-KEM-768.Encaps(pk)\nk = HKDF(K, salt=N); seal payload\nwith AES-256-GCM (AAD = session id)",
     ]
     for y, t in zip(cy, labels):
@@ -70,7 +70,8 @@ def architecture() -> None:
 
     # --- Channel --------------------------------------------------------------
     box(ax, 8.4, 5.2, 3.6, 3.0, "Quantum-safe\nchannel\n\nML-KEM-768 (FIPS 203)\nMLWE hardness\nIND-CCA2", GREY, GREY_L, fs=8, bold=False)
-    arrow(ax, 7.2, 3.0, 10.2, 5.2, BLUE, text="ct, Enc_k(payload)", rad=0.15)
+    arrow(ax, 7.2, 3.0, 10.2, 5.2, BLUE, rad=0.15)
+    ax.text(10.0, 4.3, "ct, Enc_k(payload)", ha="left", fontsize=7.5, color=BLUE)
     arrow(ax, 12.0, 7.4, 13.2, 10.2, GREY, rad=0.25)
 
     # --- Server ---------------------------------------------------------------
@@ -79,21 +80,21 @@ def architecture() -> None:
     ax.text(18.2, 11.65, "SERVER (FastAPI + liboqs + PyTorch/MediaPipe)", ha="center", fontsize=9.5, fontweight="bold", color=ORANGE)
     box(ax, 13.2, 9.9, 4.9, 1.45, "6. K = ML-KEM.Decaps(sk, ct)\nk = HKDF(K); AES-GCM open (tag)", ORANGE, ORANGE_L, fs=8)
     box(ax, 13.2, 6.4, 4.9, 3.0,
-        "7. Transaction-binding gate\n(a) ML-DSA.Verify(σ) over stored N\n(b) nonce N unused\n(c) |now − ts| ≤ 30 s\n(d) challenge C fulfilled\n(e) SHA-256(frames) = h",
-        ORANGE, ORANGE_L, fs=8, bold=False)
+        "7. Binding gate, cheapest first,\nstop at first failure:\n(1) nonce N unused  (2) |now − ts| ≤ 30 s\n(3) ML-DSA.Verify(pk_dev, σ) over stored N\n(4) SHA-256(frames) = h\n(5) decode + liveness challenge C",
+        ORANGE, ORANGE_L, fs=7.6, bold=False)
     arrow(ax, 15.65, 9.9, 15.65, 9.4, ORANGE)
-    box(ax, 13.2, 4.3, 4.9, 1.5, "REJECT early\n(no AI cost, < 1 ms)", RED, RED_L, fs=8)
+    box(ax, 13.2, 4.3, 4.9, 1.5, "REJECT early: (1)-(4) need no\nimage decoding and no model", RED, RED_L, fs=8)
     arrow(ax, 15.65, 6.4, 15.65, 5.8, RED, text="any check fails", fs=7)
 
     box(ax, 18.6, 3.0, 4.7, 6.4, "", ORANGE, ORANGE_L)
     ax.text(20.95, 9.0, "8. AI attack-detection\npipeline", ha="center", va="top", fontsize=8.5, fontweight="bold")
-    dets = ["PAD (sharpness, gamut)", "Morph (ghosting, mirror\nsymmetry of fine detail)", "Deepfake (FFT HF ratio /\nMeso4)",
-            "Replay (pHash, Hamming ≤ 8)", "Injection (timing jitter,\n8×8 block energy)"]
+    dets = ["PAD: 2× MiniFASNet\n(CelebA-Spoof fine-tuned)", "Morph: ghosting, mirror\nsymmetry of fine detail", "Deepfake: EfficientNet-B0\n(DeepFakeFace fine-tuned)",
+            "Replay: pHash + residual\ncorrelation (binary)", "Injection: frame repeats,\ncodec features + LR"]
     for i, d in enumerate(dets):
         box(ax, 18.9, 7.25 - i * 0.92, 4.1, 0.78, d, GREY, "white", fs=7.2)
     arrow(ax, 18.1, 7.9, 18.6, 7.9, GREEN, text="all pass", fs=7)
 
-    box(ax, 18.6, 0.8, 4.7, 1.7, "9. Fusion: S = Σ wᵢsᵢ\nACCEPT iff S ≥ 0.6\nand ∀i: sᵢ ≥ τᵢ (veto)", GREEN, GREEN_L, fs=8)
+    box(ax, 18.6, 0.8, 4.7, 1.7, "9. Fusion over threshold-\nnormalised scores; ACCEPT\niff ∀i: sᵢ ≥ τᵢ (τ from dev data)", GREEN, GREEN_L, fs=8)
     arrow(ax, 20.95, 3.0, 20.95, 2.5, GREEN)
     box(ax, 13.2, 0.8, 4.9, 1.7, "10. Decision + per-stage\nlatency → client\n(nonce marked used)", GREY, GREY_L, fs=8)
     arrow(ax, 18.6, 1.65, 18.1, 1.65, GREY)
@@ -105,7 +106,7 @@ def architecture() -> None:
     arrow(ax, 9.4, 13.0, 4.0, 7.45, RED, ls=":", lw=1.0, rad=0.1)
     ax.text(9.6, 12.15, "Grover absorbed by 256-bit\nsymmetric / hash sizes", fontsize=7, color=RED, ha="center", bbox=WB)
     arrow(ax, 15.3, 13.0, 10.2, 8.25, RED, ls=":", lw=1.0, rad=0.15)
-    arrow(ax, 20.9, 13.0, 4.0, 11.35, GREEN, ls=":", lw=1.0, rad=0.12)
+    arrow(ax, 20.9, 13.0, 7.2, 10.6, GREEN, ls=":", lw=1.0, rad=0.12)
     ax.text(16.6, 12.2, "QRNG → nonce N", fontsize=7, color=GREEN, bbox=WB)
 
     fig.tight_layout()
@@ -114,38 +115,38 @@ def architecture() -> None:
 
 
 def sequence() -> None:
-    fig, ax = plt.subplots(figsize=(11, 7.6))
+    fig, ax = plt.subplots(figsize=(11, 8.2))
     ax.set_xlim(0, 22)
     ax.set_ylim(0, 16)
     ax.axis("off")
-    lanes = {"Client": 2.5, "Server API": 9.0, "Session store": 14.0, "Detectors + fusion": 19.2}
+    lanes = {"Capture device": 2.5, "Server API": 9.0, "Session / device store": 14.0, "Detectors + fusion": 19.2}
     for name, x in lanes.items():
         box(ax, x - 1.8, 14.8, 3.6, 0.9, name, GREY, GREY_L, fs=9, bold=True)
         ax.plot([x, x], [0.4, 14.8], color=GREY, lw=0.8, ls="--")
 
     C, S, ST, D = lanes.values()
     steps = [
-        (C, S, "POST /session/start"),
-        (S, ST, "UUID, N←{0,1}²⁵⁶, C←challenges, (pk,sk)←ML-KEM.KeyGen, ML-DSA keys"),
-        (S, C, "session_id, N, C, pk_KEM, pk_DSA, window=30 s"),
-        (C, C, "capture frames, h = SHA-256(frames), ts = now()"),
-        (C, S, "POST /evidence (h, ts, resp) → σ = ML-DSA.Sign(h‖N‖ts‖resp)"),
+        (C, S, "POST /device/enroll (pk_dev) → device_id   [once; sk_dev never leaves]"),
+        (C, S, "POST /session/start (device_id)"),
+        (S, ST, "UUID, N←{0,1}²⁵⁶, C←challenges, (pk,sk)←ML-KEM.KeyGen, look up pk_dev"),
+        (S, C, "session_id, N, C, pk_KEM, window = 30 s"),
+        (C, C, "capture; h = SHA-256(frames); σ = ML-DSA.Sign(sk_dev, h‖N‖ts‖resp)"),
         (C, C, "(ct, K) ← Encaps(pk); c = AES-GCM[HKDF(K, N)](payload)"),
         (C, S, "POST /verify-sealed (ct, GCM nonce, c)"),
         (S, S, "K = Decaps(sk, ct); open c (bad tag ⇒ REJECT)"),
-        (S, ST, "Verify(σ) over stored N; N unused?; |Δt| ≤ 30 s; C met?; SHA-256(frames) = h?"),
+        (S, ST, "N unused? → |Δt| ≤ 30 s? → Verify(pk_dev, σ)? → SHA-256(frames) = h?  (stop at first failure)"),
         (ST, S, "mark N used (consumed even on failure)"),
-        (S, D, "only if every check passes: PAD, Morph, Deepfake, Replay, Injection"),
+        (S, D, "only now: decode frames, liveness challenge, PAD, Morph, Deepfake, Replay, Injection"),
         (D, S, "scores s₁..s₅ → fused S, veto list"),
         (S, C, "ACCEPT / REJECT, reasons, timing_ms"),
     ]
-    y = 14.1
+    y = 14.2
     for a, b, t in steps:
-        y -= 0.95
+        y -= 0.98
         if a == b:
-            ax.add_patch(FancyBboxPatch((a - 1.6, y - 0.3), 7.0, 0.6, boxstyle="round,pad=0.02",
+            ax.add_patch(FancyBboxPatch((a - 2.1, y - 0.3), 8.6, 0.6, boxstyle="round,pad=0.02",
                                         fc=BLUE_L, ec=BLUE, lw=0.8))
-            ax.text(a + 1.9, y, t, ha="center", va="center", fontsize=7.5)
+            ax.text(a + 2.2, y, t, ha="center", va="center", fontsize=7.5)
             continue
         color = BLUE if a == C else ORANGE if a == S else GREEN
         arrow(ax, a, y, b, y, color)

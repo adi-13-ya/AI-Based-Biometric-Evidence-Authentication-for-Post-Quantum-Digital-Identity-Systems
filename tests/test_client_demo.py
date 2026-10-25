@@ -12,6 +12,8 @@ import pytest
 from PIL import Image
 
 from client_demo.api_client import now_iso, sha256_hex
+from conftest import skip_if_no_oqs
+
 from client_demo.frame_utils import frame_to_b64, frame_to_png_bytes, load_attack_file, load_image_frames
 
 
@@ -62,8 +64,9 @@ def test_load_attack_file_dispatches_by_suffix(tmp_path):
     frame = np.zeros((8, 8, 3), dtype=np.uint8)
     jpg_path = tmp_path / "a.jpg"
     Image.fromarray(frame).save(jpg_path)
-    frames, timestamps = load_attack_file(jpg_path)
+    frames, timestamps, burst = load_attack_file(jpg_path)
     assert len(frames) == 1
+    assert burst == 0
 
     with pytest.raises(ValueError):
         load_attack_file(tmp_path / "unsupported.txt")
@@ -114,3 +117,29 @@ def test_sample_frames_keeps_first_and_last():
     assert len(picked) == 8
     assert picked[0][0, 0, 0] == 0 and picked[-1][0, 0, 0] == 89
     assert sample_frames(frames[:5], n=8) == frames[:5]
+
+
+def test_select_frames_appends_a_consecutive_burst():
+    from client_demo.recorder import select_frames
+
+    frames = [np.full((4, 4, 3), i, dtype=np.uint8) for i in range(120)]
+    sent, burst = select_frames(frames)
+    assert burst == 8
+    assert len(sent) == 8 + 8
+    ids = [int(f[0, 0, 0]) for f in sent[-burst:]]
+    assert ids == list(range(ids[0], ids[0] + 8))  # consecutive captures
+
+
+@skip_if_no_oqs
+def test_device_key_persists_and_never_leaves_the_client(tmp_path):
+    from client_demo.device import DeviceIdentity
+    from crypto.signature import build_binding_payload, verify
+
+    path = tmp_path / "device.json"
+    first = DeviceIdentity(alg="ML-DSA-65", key_path=path)
+    sig = first.sign_binding(b"\x00" * 32, b"\x01" * 32, "2026-01-01T00:00:00+00:00", "7")
+    assert (path.stat().st_mode & 0o777) == 0o600
+    again = DeviceIdentity(alg="ML-DSA-65", key_path=path)
+    assert again.public_key == first.public_key
+    payload = build_binding_payload(b"\x00" * 32, b"\x01" * 32, "2026-01-01T00:00:00+00:00", "7")
+    assert verify(payload, sig, again.public_key, alg="ML-DSA-65")

@@ -5,23 +5,25 @@ AI detection pipeline (Section 6): it's what prevents replay of even a
 *genuine* previously-captured biometric sample, by making each session's
 required evidence unique (a fresh nonce + a fresh liveness challenge).
 
-Section 7 step 6 requires four checks before evidence proceeds to AI
+Section 7 step 6 requires these checks before evidence proceeds to AI
 detection:
-  (a) ML-DSA signature validity
-  (b) session_nonce matches the one issued, and hasn't been used before
+  (b) session_nonce hasn't been used before
   (c) timestamp is within an acceptable freshness window
-  (d) the liveness challenge was correctly fulfilled
+  (a) ML-DSA signature validity, over a payload rebuilt from the nonce the
+      server itself issued
+  (e) caller-supplied integrity checks, e.g. that the submitted frames hash
+      to the signed evidence_hash (server/main.py)
+  (d) the liveness challenge was fulfilled - the only check that runs a
+      model (MediaPipe head motion)
 
-(a)-(c) are self-contained cryptographic/bookkeeping checks and are fully
-implemented here. (d) is explicitly scoped by the spec as "checked by the AI
-pipeline (e.g. did the head actually turn left in the frames)" - i.e. it
-depends on detection modules that don't exist yet at this stage of the
-build. `check_transaction_binding` takes a `challenge_check` callable so
-detection/fusion.py can supply the real implementation once it exists,
-without this module needing to change; until then it defaults to
-`placeholder_challenge_check`, which only checks that some non-empty
-response was submitted (NOT a real liveness verdict) and is clearly labeled
-as such everywhere it's used.
+They run in that order - cheapest first - and stop at the first failure.
+The order is the point of the protocol: a forged, stale, replayed or
+substituted submission is rejected after O(1) bookkeeping or one ML-DSA
+verification (tens of microseconds) and never reaches the liveness model or
+the detectors. Checks that were not reached because an earlier one failed
+are absent from `checks`, not reported as passed. (An earlier version ran
+all four unconditionally, so a request with a bad signature still paid for
+the MediaPipe liveness pass.)
 """
 from __future__ import annotations
 
@@ -70,6 +72,89 @@ def parse_timestamp(timestamp: str) -> datetime:
     return dt
 
 
+ExtraCheck = tuple[str, Callable[[], bool], str]  # (name, check, reason if it fails)
+
+
+def credential_checks(
+    *,
+    session_nonce: bytes,
+    client_public_key: bytes,
+    sig_alg: str,
+    evidence_hash: bytes,
+    timestamp: str,
+    challenge_response: str,
+    signature: bytes,
+    nonce_already_used: bool,
+    freshness_window_seconds: int = DEFAULT_FRESHNESS_WINDOW_SECONDS,
+    now: datetime | None = None,
+) -> BindingCheckResult:
+    """Phase 1 of the gate: nonce unused, timestamp fresh, ML-DSA signature
+    valid. Needs only the small signed header, not the evidence itself, so
+    the sealed endpoint runs it before reading the frames.
+
+    The payload is always rebuilt server-side from `session_nonce` (the
+    value the server itself issued and stored) rather than trusting any
+    nonce the caller might send - this is what makes "matches the one it
+    issued" structural rather than a comparison that could be spoofed.
+    Whether the nonce was already used is the caller's (server/main.py's)
+    bookkeeping.
+    """
+    now = now or datetime.now(timezone.utc)
+
+    def fresh_enough() -> tuple[bool, str]:
+        try:
+            delta_seconds = abs((now - parse_timestamp(timestamp)).total_seconds())
+        except (ValueError, TypeError):
+            return False, "timestamp could not be parsed as ISO-8601"
+        return (
+            delta_seconds <= freshness_window_seconds,
+            f"timestamp is {delta_seconds:.1f}s old, outside the {freshness_window_seconds}s freshness window",
+        )
+
+    def signature_ok() -> bool:
+        payload = build_binding_payload(evidence_hash, session_nonce, timestamp, challenge_response)
+        try:
+            return bool(sig_verify(payload, signature, client_public_key, alg=sig_alg))
+        except Exception:
+            return False
+
+    return _run(BindingCheckResult(accepted=True), [
+        ("nonce_unused", lambda: (not nonce_already_used, "session nonce has already been used for a prior submission (possible replay)")),
+        ("timestamp_fresh", fresh_enough),
+        ("signature_valid", lambda: (signature_ok(), "ML-DSA signature verification failed")),
+    ])
+
+
+def complete_binding(
+    result: BindingCheckResult,
+    *,
+    session_challenge: str,
+    challenge_response: str,
+    challenge_check: ChallengeCheck = placeholder_challenge_check,
+    extra_checks: list[ExtraCheck] | None = None,
+) -> BindingCheckResult:
+    """Phase 2: caller-supplied evidence checks (e.g. the frames hash to the
+    signed evidence_hash), then the liveness challenge. Does nothing if
+    phase 1 already failed."""
+    if not result.accepted:
+        return result
+    stages = [(name, lambda check=check, reason=reason: (bool(check()), reason)) for name, check, reason in extra_checks or []]
+    stages.append((
+        "challenge_fulfilled",
+        lambda: (bool(challenge_check(session_challenge, challenge_response)), "liveness challenge was not fulfilled"),
+    ))
+    return _run(result, stages)
+
+
+def _run(result: BindingCheckResult, stages) -> BindingCheckResult:
+    for name, stage in stages:
+        ok, reason = stage()
+        result._fail(name, ok, reason)
+        if not ok:
+            break
+    return result
+
+
 def check_transaction_binding(
     *,
     session_nonce: bytes,
@@ -84,48 +169,15 @@ def check_transaction_binding(
     freshness_window_seconds: int = DEFAULT_FRESHNESS_WINDOW_SECONDS,
     now: datetime | None = None,
     challenge_check: ChallengeCheck = placeholder_challenge_check,
+    extra_checks: list[ExtraCheck] | None = None,
 ) -> BindingCheckResult:
-    """Run all four Section 7 step-6 checks and return a combined verdict.
-
-    The payload is always rebuilt server-side from `session_nonce` (the
-    value the server itself issued and stored) rather than trusting any
-    nonce the caller might send - this is what makes check (b)'s "matches
-    the one it issued" half structural rather than a comparison that could
-    be spoofed. Only "hasn't been used before" (`nonce_already_used`) is a
-    real runtime decision, and that's the caller's (server/main.py's)
-    responsibility to track per session.
-    """
-    result = BindingCheckResult(accepted=True)
-    now = now or datetime.now(timezone.utc)
-
-    # (a) ML-DSA signature validity
-    payload = build_binding_payload(evidence_hash, session_nonce, timestamp, challenge_response)
-    try:
-        sig_ok = sig_verify(payload, signature, client_public_key, alg=sig_alg)
-    except Exception:
-        sig_ok = False
-    result._fail("signature_valid", sig_ok, "ML-DSA signature verification failed")
-
-    # (b) nonce single-use
-    result._fail(
-        "nonce_unused",
-        not nonce_already_used,
-        "session nonce has already been used for a prior submission (possible replay)",
+    """Both phases in one call, cheapest check first, stopping at the first
+    failure (see module docstring)."""
+    result = credential_checks(
+        session_nonce=session_nonce, client_public_key=client_public_key, sig_alg=sig_alg,
+        evidence_hash=evidence_hash, timestamp=timestamp, challenge_response=challenge_response,
+        signature=signature, nonce_already_used=nonce_already_used,
+        freshness_window_seconds=freshness_window_seconds, now=now,
     )
-
-    # (c) timestamp freshness
-    try:
-        ts = parse_timestamp(timestamp)
-        delta_seconds = abs((now - ts).total_seconds())
-        fresh = delta_seconds <= freshness_window_seconds
-        reason = f"timestamp is {delta_seconds:.1f}s old, outside the {freshness_window_seconds}s freshness window"
-    except (ValueError, TypeError):
-        fresh = False
-        reason = "timestamp could not be parsed as ISO-8601"
-    result._fail("timestamp_fresh", fresh, reason)
-
-    # (d) challenge fulfilment - see module docstring re: AI-pipeline hook
-    challenge_ok = challenge_check(session_challenge, challenge_response)
-    result._fail("challenge_fulfilled", challenge_ok, "liveness challenge was not fulfilled")
-
-    return result
+    return complete_binding(result, session_challenge=session_challenge, challenge_response=challenge_response,
+                            challenge_check=challenge_check, extra_checks=extra_checks)

@@ -23,6 +23,17 @@ checks:
 
 A pHash match that fails check 2 is reported as "same scene, new capture"
 and does not veto.
+
+Scoring is deliberately binary: 0.0 for a confirmed replay, 1.0 otherwise.
+Earlier versions linearly interpolated the Hamming distance to the nearest
+*unrelated* stored capture into a score - first (d - 8) / 24, then
+0.5 + 0.5 * (d - 8) / 24. Both were wrong. The first put every capture
+closer than ~20 bits under the 0.5 veto (3/40 genuine sessions rejected).
+The second was non-monotonic (d = 8, same scene: 0.75; d = 9: 0.52) and
+left unrelated genuine captures sitting just above the veto, so any change
+to THRESHOLD_REPLAY would have rejected them again. Distance to someone
+else's capture is not evidence about this one, so it no longer affects the
+score; it is still reported in `details`.
 """
 from __future__ import annotations
 
@@ -41,7 +52,6 @@ DEFAULT_WINDOW_SECONDS = 86400
 SAME_CAPTURE_CORRELATION = 0.85
 _FINGERPRINT_SIZE = 256  # side of the native-resolution central crop
 _MAX_STORE = 5000
-_SAME_SCENE_SCORE = 0.75
 
 
 @dataclass
@@ -109,18 +119,7 @@ class ReplayDetector:
         hash_match = best_distance is not None and best_distance <= self.hamming_threshold
         is_replay = replay_of is not None
 
-        if is_replay:
-            score = 0.0
-        elif hash_match:
-            score = _SAME_SCENE_SCORE  # same scene, new capture: not a replay
-        elif best_distance is None:
-            score = 1.0
-        else:
-            # Non-matches always score >= 0.5 so that only a real replay can
-            # trip the fusion engine's per-module veto (THRESHOLD_REPLAY=0.5);
-            # confidence rises toward 1.0 at a "clearly different" 32 bits.
-            closeness = (best_distance - self.hamming_threshold) / (32 - self.hamming_threshold)
-            score = 0.5 + 0.5 * min(1.0, closeness)
+        score = 0.0 if is_replay else 1.0
 
         return DetectionResult(
             module=self.module_name,
