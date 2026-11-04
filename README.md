@@ -1,5 +1,8 @@
 # AI-Based Biometric Evidence Authentication for Post-Quantum Digital Identity Systems
 
+> This project was done as part of the **Quantum Computing** course project
+> under **Professor Aswani Kumar Cherukuri**, Vellore Institute of Technology (VIT), Vellore.
+
 Remote identity checks (bank onboarding, e-KYC, digital ID) ask a person to
 show their face to a camera and send it to a server. Two things can go
 wrong. The channel is protected by RSA and elliptic-curve cryptography,
