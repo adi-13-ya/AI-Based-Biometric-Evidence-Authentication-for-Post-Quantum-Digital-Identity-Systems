@@ -54,7 +54,7 @@ docs.
   genuine, for every module and the fused score (`detection/base.py`,
   `detection/fusion.py`). Keep new detectors on this same scale so
   `.env`'s per-module thresholds and the fusion weights stay meaningful.
-- **`server/main.py`'s `_verify_core` is a short-circuit pipeline** (`PIPELINE_MODE=layered` is an ablation for measurement only) (behind
+- **`server/main.py`'s `_verify_core` is a short-circuit pipeline** (`PIPELINE_MODE=buffered` and `layered` are measurement baselines only) (behind
   both `/verify` and `/verify-sealed`): the sealed channel must authenticate,
   then the Section 7 transaction-binding checks run (including
   `evidence_matches_hash`: the received frames must hash, via
@@ -63,9 +63,20 @@ docs.
   restructure this to run detection unconditionally - it's both spec-
   mandated (Section 7 step 7) and a real latency optimization since a
   binding-rejected request never needs to touch the 5 detectors.
-- **ML-DSA signing runs only on the client.** `client_demo/device.py` owns
+- **Evidence signing runs only on the client.** `client_demo/device.py` owns
   the device keypair; the server (`server/device_registry.py`) stores public
-  keys and imports only `verify`. Never add a server endpoint that signs.
+  keys. The server's own identity key (`server/identity.py`) signs session
+  offers and nothing else. Never add a server endpoint that signs evidence or
+  anything with the `PQBIO-EVIDENCE` tag.
+- **`docs/PROTOCOL.md` is the specification.** Any change to a signed field,
+  the PQB1 layout, the check order or the decision rule updates it in the
+  same commit. A new signed field goes into `build_binding_payload` (a new
+  length-prefixed field; bump the tag version if the layout changes).
+- **The nonce is consumed only through `Session.consume_nonce()`** (atomic).
+  Never read `session.nonce_used` and set it later.
+- **Fusion is veto-only.** Every module threshold is a separate veto; the
+  weighted mean is reported only. Do not reintroduce a fused accept
+  threshold.
 - **The sealed envelope is header-first** (`crypto/channel.py`, PQB1). The
   server checks nonce/freshness/signature from the header before it reads the
   frames (`server/main.py: verify_evidence_sealed`). Don't move anything that

@@ -87,6 +87,7 @@ def credential_checks(
     nonce_already_used: bool,
     freshness_window_seconds: int = DEFAULT_FRESHNESS_WINDOW_SECONDS,
     now: datetime | None = None,
+    binding_context: dict | None = None,
 ) -> BindingCheckResult:
     """Phase 1 of the gate: nonce unused, timestamp fresh, ML-DSA signature
     valid. Needs only the small signed header, not the evidence itself, so
@@ -97,7 +98,10 @@ def credential_checks(
     nonce the caller might send - this is what makes "matches the one it
     issued" structural rather than a comparison that could be spoofed.
     Whether the nonce was already used is the caller's (server/main.py's)
-    bookkeeping.
+    bookkeeping; it must come from an atomic consume (Session.consume_nonce)
+    so that concurrent copies of one submission cannot both pass.
+    `binding_context` holds the other signed fields (session_id, the ML-KEM
+    ciphertext, burst_frames, frame_timestamps; see build_binding_payload).
     """
     now = now or datetime.now(timezone.utc)
 
@@ -112,7 +116,7 @@ def credential_checks(
         )
 
     def signature_ok() -> bool:
-        payload = build_binding_payload(evidence_hash, session_nonce, timestamp, challenge_response)
+        payload = build_binding_payload(evidence_hash, session_nonce, timestamp, challenge_response, **(binding_context or {}))
         try:
             return bool(sig_verify(payload, signature, client_public_key, alg=sig_alg))
         except Exception:
@@ -170,6 +174,7 @@ def check_transaction_binding(
     now: datetime | None = None,
     challenge_check: ChallengeCheck = placeholder_challenge_check,
     extra_checks: list[ExtraCheck] | None = None,
+    binding_context: dict | None = None,
 ) -> BindingCheckResult:
     """Both phases in one call, cheapest check first, stopping at the first
     failure (see module docstring)."""
@@ -177,7 +182,7 @@ def check_transaction_binding(
         session_nonce=session_nonce, client_public_key=client_public_key, sig_alg=sig_alg,
         evidence_hash=evidence_hash, timestamp=timestamp, challenge_response=challenge_response,
         signature=signature, nonce_already_used=nonce_already_used,
-        freshness_window_seconds=freshness_window_seconds, now=now,
+        freshness_window_seconds=freshness_window_seconds, now=now, binding_context=binding_context,
     )
     return complete_binding(result, session_challenge=session_challenge, challenge_response=challenge_response,
                             challenge_check=challenge_check, extra_checks=extra_checks)

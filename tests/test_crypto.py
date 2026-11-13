@@ -92,9 +92,36 @@ class TestMlDsa:
             SignerIdentity(alg="not-a-real-alg")
 
 
-def test_build_binding_payload_is_concatenation_in_order():
+def test_build_binding_payload_is_tagged_and_length_prefixed():
     payload = build_binding_payload(b"HASH", b"NONCE", "ts-1", "chal-1")
-    assert payload == b"HASHNONCEts-1chal-1"
+    assert payload.startswith(b"PQBIO-EVIDENCE-v2")
+    assert b"\x00\x00\x00\x04HASH\x00\x00\x00\x05NONCE\x00\x00\x00\x04ts-1\x00\x00\x00\x06chal-1" in payload
+
+
+def test_binding_payload_field_boundaries_are_signed():
+    """v1 concatenation let a byte move between timestamp and challenge
+    response without changing the message; v2 does not."""
+    assert build_binding_payload(b"H", b"N", "ts-1", "7") != build_binding_payload(b"H", b"N", "ts-17", "")
+
+
+def test_binding_payload_covers_session_kem_and_metadata():
+    base = build_binding_payload(b"H", b"N", "t", "r", session_id="s", kem_ciphertext=b"ct", burst_frames=8, frame_timestamps=[0.0, 0.033])
+    for change in ({"session_id": "s2"}, {"kem_ciphertext": b"ct2"}, {"burst_frames": 7}, {"frame_timestamps": [0.0, 0.034]},
+                   {"frame_timestamps": None}):
+        kwargs = {"session_id": "s", "kem_ciphertext": b"ct", "burst_frames": 8, "frame_timestamps": [0.0, 0.033], **change}
+        assert build_binding_payload(b"H", b"N", "t", "r", **kwargs) != base
+
+
+def test_ecdsa_p256_baseline_round_trip():
+    from crypto.signature import SignerIdentity, verify
+
+    with SignerIdentity(alg="ECDSA-P256") as signer:
+        sig = signer.sign(b"msg")
+        assert len(signer.public_key) == 65
+        assert verify(b"msg", sig, signer.public_key, alg="ECDSA-P256") is True
+        assert verify(b"msh", sig, signer.public_key, alg="ECDSA-P256") is False
+        again = SignerIdentity(alg="ECDSA-P256", secret_key=signer.export_secret_key())
+        assert again.public_key == signer.public_key
 
 
 class TestClassicalBaseline:

@@ -1,12 +1,14 @@
 """HTTP client for the FastAPI server (server/main.py).
 
-Everything the client is trusted with happens in this process: it hashes
-the captured evidence (`evidence_hash = SHA-256(frame bytes)`), signs the
-binding payload with the device's own ML-DSA key (client_demo/device.py),
-encapsulates against the session's ML-KEM public key and seals the payload
-with AES-256-GCM (/verify-sealed). The server only ever sees the device's
-public key. liboqs is therefore required on the client; there is no longer
-a mode in which the server signs for it.
+Everything the client is trusted with happens in this process: it checks
+the server's signature on the session offer against the pinned server key,
+encapsulates to the session's ML-KEM public key, hashes the captured
+evidence, signs the binding payload (which covers the ML-KEM ciphertext)
+with the device's own key (client_demo/device.py), and seals header and
+frames with AES-256-GCM (/verify-sealed). The server only ever sees the
+device's public key. liboqs is therefore required on the client; there is
+no mode in which the server signs evidence for it. Message formats:
+docs/PROTOCOL.md.
 """
 from __future__ import annotations
 
@@ -57,24 +59,67 @@ def device():
 
 
 def enroll_device() -> str:
-    """Enroll this device's public key with the server once; returns device_id."""
+    """Enroll this device's public key with the server once; returns device_id.
+    Sends PQBIO_ENROLLMENT_TOKEN as X-Enrollment-Token if it is set."""
     dev = device()
     device_id = dev.device_id_for(API_BASE_URL)
     if device_id is None:
-        device_id = _request("POST", "/device/enroll", json={"sig_alg": dev.alg, "public_key": dev.public_key.hex()})["device_id"]
+        token = os.getenv("PQBIO_ENROLLMENT_TOKEN")
+        headers = {"X-Enrollment-Token": token} if token else {}
+        device_id = _request("POST", "/device/enroll", json={"sig_alg": dev.alg, "public_key": dev.public_key.hex()},
+                             headers=headers)["device_id"]
         dev.remember_enrollment(API_BASE_URL, device_id)
     return device_id
 
 
+def server_key() -> tuple[str, bytes]:
+    """The server identity key session offers must verify against: from
+    PQBIO_SERVER_PUBKEY ("<alg>:<hex>", distributed out of band) if set,
+    else the key pinned for this server, else - trust on first use - fetched
+    from GET /server/identity once and pinned."""
+    env = os.getenv("PQBIO_SERVER_PUBKEY")
+    if env:
+        alg, _, hex_key = env.partition(":")
+        return alg, bytes.fromhex(hex_key)
+    dev = device()
+    pinned = dev.pinned_server_key(API_BASE_URL)
+    if pinned is None:
+        ident = _request("GET", "/server/identity")
+        dev.pin_server_key(API_BASE_URL, ident["sig_alg"], bytes.fromhex(ident["public_key"]))
+        pinned = dev.pinned_server_key(API_BASE_URL)
+    return pinned["sig_alg"], bytes.fromhex(pinned["public_key"])
+
+
+def verify_session_offer(session: dict) -> None:
+    """Raise ApiError unless the server identity key signed this offer. Done
+    before anything is encapsulated to session["kem_public_key"]."""
+    from crypto.signature import build_session_offer, verify
+
+    alg, public_key = server_key()
+    offer = build_session_offer(
+        session_id=session["session_id"], session_nonce=base64.b64decode(session["nonce"]), challenge=session["challenge"],
+        kem_alg=session["kem_alg"], kem_public_key=bytes.fromhex(session["kem_public_key"]), device_id=session["device_id"],
+        issued_at=session["issued_at"], freshness_window_seconds=session["freshness_window_seconds"],
+    )
+    try:
+        ok = session.get("server_sig_alg") == alg and verify(offer, bytes.fromhex(session["server_signature"]), public_key, alg=alg)
+    except (KeyError, ValueError):
+        ok = False
+    if not ok:
+        raise ApiError("session offer is not signed by the pinned server key (possible man in the middle); refusing to send evidence")
+
+
 def session_start() -> dict:
     try:
-        return _request("POST", "/session/start", json={"device_id": enroll_device()})
+        session = _request("POST", "/session/start", json={"device_id": enroll_device()})
     except ApiError as exc:
         if "Unknown device_id" not in str(exc):
             raise
         # The server forgot us (in-memory registry restarted): enroll again.
         device().forget_enrollment(API_BASE_URL)
-        return _request("POST", "/session/start", json={"device_id": enroll_device()})
+        session = _request("POST", "/session/start", json={"device_id": enroll_device()})
+    verify_session_offer(session)
+    return session
 
 
 def end_session(session_id: str) -> dict:
@@ -149,11 +194,14 @@ def run_verification(
     if tamper == "wrong_challenge":
         challenge_response = "0000" if "number" in session["challenge"].lower() else ""
 
+    sealed = can_seal() if sealed is None else sealed
+    kem = encapsulate(session) if sealed else None
     frame_bytes = [frame_to_png_bytes(f) for f in frames]
     evidence_hash = evidence_hash_of(frame_bytes).hex()
     timestamp = now_iso(-120 if tamper == "stale_timestamp" else 0)
     signature = device().sign_binding(
-        bytes.fromhex(evidence_hash), base64.b64decode(session["nonce"]), timestamp, challenge_response
+        bytes.fromhex(evidence_hash), base64.b64decode(session["nonce"]), timestamp, challenge_response,
+        **binding_context(session, kem[0] if kem else b"", burst_frames, frame_timestamps),
     ).hex()
 
     if tamper == "swap_frames":
@@ -168,28 +216,44 @@ def run_verification(
         "burst_frames": burst_frames,
     }
 
-    sealed = can_seal() if sealed is None else sealed
-    submit = _submit_sealed if sealed else _submit_plain
+    if not sealed:
+        if tamper == "reuse_nonce":
+            _submit_plain(session, header, frame_bytes)  # first, legitimate use of the nonce
+        return session, _submit_plain(session, header, frame_bytes)
     if tamper == "reuse_nonce":
-        submit(session, header, frame_bytes)  # first, legitimate use of the nonce
-    return session, submit(session, header, frame_bytes, corrupt=(tamper == "corrupt_channel"))
+        _submit_sealed(session, header, frame_bytes, kem)  # first, legitimate use of the nonce
+    return session, _submit_sealed(session, header, frame_bytes, kem, corrupt=(tamper == "corrupt_channel"))
 
 
-def _submit_plain(session: dict, header: dict, frame_bytes: list[bytes], corrupt: bool = False) -> dict:
-    if corrupt:
-        raise ApiError("corrupt_channel needs the sealed channel")
+def binding_context(session: dict, kem_ciphertext: bytes, burst_frames: int = 0, frame_timestamps: list[float] | None = None) -> dict:
+    """The signed fields besides hash, nonce, timestamp and challenge answer
+    (crypto/signature.py: build_binding_payload)."""
+    return {"session_id": session["session_id"], "kem_ciphertext": kem_ciphertext,
+            "burst_frames": burst_frames, "frame_timestamps": frame_timestamps}
+
+
+def encapsulate(session: dict) -> tuple[bytes, bytes]:
+    """(ML-KEM ciphertext, shared secret) for this session's offered key.
+    Callers verify the offer first (session_start does)."""
+    from crypto.kem import client_encapsulate
+
+    return client_encapsulate(bytes.fromhex(session["kem_public_key"]), alg=session["kem_alg"])
+
+
+def _submit_plain(session: dict, header: dict, frame_bytes: list[bytes]) -> dict:
     payload = {**header, "frames_b64": [base64.b64encode(b).decode("ascii") for b in frame_bytes]}
     return _request("POST", f"/session/{session['session_id']}/verify", json=payload)
 
 
-def seal_submission(session: dict, header: dict, frame_bytes: list[bytes]) -> bytes:
+def seal_submission(session: dict, header: dict, frame_bytes: list[bytes], kem: tuple[bytes, bytes]) -> bytes:
     """The PQB1 envelope (crypto/channel.py): ML-KEM ciphertext, sealed
     header, sealed frames - header first so the server can reject a bad
-    signature before it reads the frames."""
+    signature before it reads the frames. `kem` is the (ciphertext, shared
+    secret) from encapsulate(), the same ciphertext the header's signature
+    covers."""
     from crypto.channel import seal_envelope
-    from crypto.kem import client_encapsulate
 
-    kem_ciphertext, shared_secret = client_encapsulate(bytes.fromhex(session["kem_public_key"]), alg=session["kem_alg"])
+    kem_ciphertext, shared_secret = kem
     return seal_envelope(shared_secret, base64.b64decode(session["nonce"]), session["session_id"], kem_ciphertext, header, frame_bytes)
 
 
@@ -200,8 +264,8 @@ def post_sealed(session: dict, envelope: bytes) -> dict:
     )
 
 
-def _submit_sealed(session: dict, header: dict, frame_bytes: list[bytes], corrupt: bool = False) -> dict:
-    envelope = bytearray(seal_submission(session, header, frame_bytes))
+def _submit_sealed(session: dict, header: dict, frame_bytes: list[bytes], kem: tuple[bytes, bytes], corrupt: bool = False) -> dict:
+    envelope = bytearray(seal_submission(session, header, frame_bytes, kem))
     if corrupt:
         envelope[-1] ^= 0x01  # one bit of the sealed frames
     result = post_sealed(session, bytes(envelope))

@@ -3,7 +3,7 @@
 How a verification flows through the code, and where each security property
 comes from. For the original design rationale see
 [`PQ-Biometric-Auth-Spec.md`](PQ-Biometric-Auth-Spec.md); for measurements
-see [`../report/FINAL_REPORT.md`](../report/FINAL_REPORT.md).
+see [`../report/final-report/QUANTUM-FINAL-REPORT-REVISED.docx`](../report/final-report/QUANTUM-FINAL-REPORT-REVISED.docx).
 
 ![Architecture](../report/figures/fig_a1_architecture.png)
 

@@ -11,16 +11,21 @@ to the server over HTTP on localhost. Nothing is routed in-process.
       issued: a public pre-recorded video cannot turn its head on cue, so a
       head-motion challenge would (correctly) reject it at binding and the
       detectors would never run.
-  D2. Cost of rejected requests, integrated vs layered pipeline
-      (PIPELINE_MODE): forged signature (attacker's own key; anyone can
-      encapsulate to the session's ML-KEM key, so the channel alone proves
-      nothing about the sender), reused nonce, stale timestamp, substituted
-      frames. Full-size payloads (16 frames).
-  D3. Flood: 4 attacker threads send forged-signature submissions while one
-      genuine client runs sessions; attacker throughput and genuine latency,
-      integrated vs layered.
+  D2. Cost of rejected requests under each check order (PIPELINE_MODE) and
+      device signature algorithm: forged signature (attacker's own key;
+      anyone can encapsulate to the session's ML-KEM key, so the channel
+      alone proves nothing about the sender), reused nonce, stale
+      timestamp, substituted frames. Full-size payloads (16 frames).
+      Configurations (CONFIGS):
+        integrated / ML-DSA-65   header-first gate (the protocol)
+        buffered   / ML-DSA-65   receive + decrypt everything, then the
+                                 same checks, then inference (baseline)
+        layered    / ML-DSA-65   inference before the checks (ablation)
+        integrated / ECDSA-P256  same protocol, classical signature
+        buffered   / ECDSA-P256  same baseline, classical signature
   D4. Per-module inference latency, in-process, single thread, and model
       sizes.
+  (D3, the flood at matched degradation, is report/scripts/flood_experiment.py.)
 
 Run from the repo root:  python report/scripts/distributed_experiments.py
 Outputs: report/data/v2/*.csv|json
@@ -35,7 +40,6 @@ import statistics
 import subprocess
 import sys
 import tempfile
-import threading
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -48,10 +52,18 @@ OUT = REPO / "report" / "data" / "v2"
 PORT = 8765
 N_GENUINE = 30
 N_REJECT = 30
-FLOOD_SECONDS = 20
-FLOOD_THREADS = 4
 
-os.environ["PQBIO_DEVICE_KEY"] = str(Path(tempfile.mkdtemp()) / "device.json")
+CONFIGS = [("integrated", "ML-DSA-65"), ("buffered", "ML-DSA-65"), ("layered", "ML-DSA-65"),
+           ("integrated", "ECDSA-P256"), ("buffered", "ECDSA-P256")]
+
+# One server identity for every run (so device files can pin it once per
+# config); a fresh device key per configuration.
+SERVER_KEY_PATH = str(Path(tempfile.mkdtemp()) / "server_identity.json")
+
+
+def fresh_device(sig_alg: str) -> None:
+    os.environ["PQBIO_DEVICE_KEY"] = str(Path(tempfile.mkdtemp()) / "device.json")
+    os.environ["SIG_ALG"] = sig_alg
 
 
 def write_csv(rows: list[dict], name: str) -> None:
@@ -79,7 +91,8 @@ class Server:
         # stale local .env cannot change what is measured.
         defaults = {name.upper(): str(f.default) for name, f in Settings.model_fields.items()
                     if name.startswith(("threshold_", "weight_", "fusion_", "pad_", "kem_", "sig_"))}
-        env = {**os.environ, **defaults, "PIPELINE_MODE": mode, "DEMO_MODE": "true", "DETECTION_MODE": "pretrained"}
+        env = {**os.environ, **defaults, "PIPELINE_MODE": mode, "DEMO_MODE": "true", "DETECTION_MODE": "pretrained",
+               "SERVER_KEY_PATH": SERVER_KEY_PATH}
         self.proc = subprocess.Popen(
             [sys.executable, "-m", "uvicorn", "server.main:app", "--port", str(PORT), "--log-level", "warning"],
             cwd=REPO, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
@@ -169,12 +182,16 @@ def genuine_submission(client, frames, burst, session=None, signer=None, tamper=
     ts = (datetime.now(timezone.utc) - (timedelta(seconds=120) if tamper == "stale" else timedelta())).isoformat()
     nonce = base64.b64decode(session["nonce"])
     t0 = time.perf_counter()
+    kem = client.encapsulate(session)
+    t["encaps_ms"] = (time.perf_counter() - t0) * 1000
+    context = client.binding_context(session, kem[0], burst, None)
+    t0 = time.perf_counter()
     if signer is None:
-        signature = client.device().sign_binding(evidence_hash, nonce, ts, response)
+        signature = client.device().sign_binding(evidence_hash, nonce, ts, response, **context)
     else:
         from crypto.signature import build_binding_payload
 
-        signature = signer.sign(build_binding_payload(evidence_hash, nonce, ts, response))
+        signature = signer.sign(build_binding_payload(evidence_hash, nonce, ts, response, **context))
     t["sign_ms"] = (time.perf_counter() - t0) * 1000
 
     if tamper == "swap":
@@ -182,8 +199,8 @@ def genuine_submission(client, frames, burst, session=None, signer=None, tamper=
     header = {"evidence_hash": evidence_hash.hex(), "timestamp": ts, "challenge_response": response,
               "signature": signature.hex(), "frame_timestamps": None, "burst_frames": burst}
     t0 = time.perf_counter()
-    envelope = client.seal_submission(session, header, frame_bytes)
-    t["encaps_seal_ms"] = (time.perf_counter() - t0) * 1000
+    envelope = client.seal_submission(session, header, frame_bytes, kem)
+    t["seal_ms"] = (time.perf_counter() - t0) * 1000
     t["payload_bytes"] = len(envelope)
 
     t0 = time.perf_counter()
@@ -197,15 +214,16 @@ def genuine_submission(client, frames, burst, session=None, signer=None, tamper=
 
 
 # --------------------------------------------------------------------------
-# D1 / D2 / D3
+# D1 / D2
 # --------------------------------------------------------------------------
-def run_mode(mode: str, clips) -> dict:
+def run_config(mode: str, sig_alg: str, clips) -> dict:
     from crypto.signature import SignerIdentity
 
+    fresh_device(sig_alg)
     server = Server(mode)
     client = api()
     client._device = None
-    out = {"mode": mode, "genuine": [], "reject": [], "flood": {}}
+    out = {"mode": mode, "sig_alg": sig_alg, "genuine": [], "reject": []}
     try:
         client.enroll_device()
         rss0 = server.rss_mb()
@@ -219,7 +237,7 @@ def run_mode(mode: str, clips) -> dict:
         out["rss_mb_after_genuine"] = server.rss_mb()
         out["rss_mb_start"] = rss0
 
-        attacker = SignerIdentity(alg="ML-DSA-65")
+        attacker = SignerIdentity(alg=sig_alg)
         for kind in ["forged_signature", "reused_nonce", "stale_timestamp", "substituted_frames"]:
             for i in range(N_REJECT):
                 frames, burst = clips[i % len(clips)]
@@ -231,53 +249,13 @@ def run_mode(mode: str, clips) -> dict:
                 )
                 out["reject"].append({"kind": kind, "i": i, "accepted": resp["accepted"], "detection_ran": resp["detection_ran"],
                                       "verify_http_ms": t["verify_http_ms"], "server_cpu_ms": (server.cpu_seconds() - cpu0) * 1000,
+                                      "payload_bytes": t["payload_bytes"],
                                       **{f"server_{k}": v for k, v in resp["timing_ms"].items()},
                                       "failed_check": next((k for k, v in resp["binding_checks"].items() if not v), "")})
-        out["flood"] = flood(client, clips, attacker)
         attacker.close()
     finally:
         server.stop()
     return out
-
-
-def flood(client, clips, attacker) -> dict:
-    """FLOOD_THREADS attackers send forged-signature submissions while one
-    genuine client keeps verifying; returns throughput and genuine latency."""
-    stop = threading.Event()
-    counts = [0] * FLOOD_THREADS
-    genuine_ms = []
-
-    def attack(k: int) -> None:
-        frames, burst = clips[k % len(clips)]
-        while not stop.is_set():
-            try:
-                genuine_submission(client, frames, burst, signer=attacker)
-                counts[k] += 1
-            except Exception:
-                pass
-
-    def victim() -> None:
-        i = 0
-        while not stop.is_set():
-            frames, burst = clips[i % len(clips)]
-            try:
-                client.reset_replay_store()
-                _, t = genuine_submission(client, frames, burst)
-                genuine_ms.append(t["verify_http_ms"])
-            except Exception:
-                pass
-            i += 1
-
-    threads = [threading.Thread(target=attack, args=(k,)) for k in range(FLOOD_THREADS)] + [threading.Thread(target=victim)]
-    for th in threads:
-        th.start()
-    time.sleep(FLOOD_SECONDS)
-    stop.set()
-    for th in threads:
-        th.join()
-    return {"seconds": FLOOD_SECONDS, "attack_threads": FLOOD_THREADS, "forged_requests": sum(counts),
-            "forged_per_second": sum(counts) / FLOOD_SECONDS,
-            "genuine_completed": len(genuine_ms), "genuine_verify_ms": stats(genuine_ms) if genuine_ms else None}
 
 
 # --------------------------------------------------------------------------
@@ -317,6 +295,29 @@ def module_latency(clips) -> list[dict]:
     return rows
 
 
+def tag(mode: str, sig_alg: str) -> str:
+    return f"{mode}_{sig_alg.replace('-', '').lower()}"
+
+
+def summarise(res: dict) -> dict:
+    rej = res["reject"]
+    return {
+        "mode": res["mode"], "sig_alg": res["sig_alg"],
+        "rss_mb_start": res["rss_mb_start"], "rss_mb_after_genuine": res["rss_mb_after_genuine"],
+        "genuine_accept_rate": float(np.mean([r["accepted"] for r in res["genuine"]])),
+        "genuine_verify_http_ms": stats([r["verify_http_ms"] for r in res["genuine"]]),
+        "genuine_sign_ms": stats([r["sign_ms"] for r in res["genuine"]]),
+        "genuine_server_total_ms": stats([r["server_total_ms"] for r in res["genuine"]]),
+        "reject": {k: {"verify_http_ms": stats([r["verify_http_ms"] for r in rej if r["kind"] == k]),
+                       "server_total_ms": stats([r["server_total_ms"] for r in rej if r["kind"] == k]),
+                       "server_cpu_ms": stats([r["server_cpu_ms"] for r in rej if r["kind"] == k]),
+                       "detection_ran": any(r["detection_ran"] for r in rej if r["kind"] == k),
+                       "all_rejected": not any(r["accepted"] for r in rej if r["kind"] == k),
+                       "failed_check": sorted({r["failed_check"] for r in rej if r["kind"] == k})}
+                   for k in sorted({r["kind"] for r in rej})},
+    }
+
+
 def main() -> None:
     sys.path.insert(0, str(REPO / "report" / "scripts"))
     from system_experiments import bench_primitives  # S1, unchanged from the first report
@@ -325,32 +326,27 @@ def main() -> None:
     clips = webcam_clips(max(N_GENUINE, 12))
     print(f"{len(clips)} clips, {len(clips[0][0])} frames each ({clips[0][1]} burst), {clips[0][0][0].shape}")
 
-    print("D4 module latency")
-    write_csv(module_latency(clips), "d4_module_latency.csv")
+    only = sys.argv[1:]
+    if not only or "d4" in only:
+        print("D4 module latency")
+        write_csv(module_latency(clips), "d4_module_latency.csv")
+        print("S1 primitives")
+        write_csv(bench_primitives(), "s1_primitives.csv")
 
-    print("S1 primitives")
-    write_csv(bench_primitives(), "s1_primitives.csv")
-
-    summary = {}
-    for mode in ["integrated", "layered"]:
-        print(f"mode {mode}")
-        res = run_mode(mode, clips)
-        write_csv(res["genuine"], f"d1_genuine_{mode}.csv")
-        write_csv(res["reject"], f"d2_reject_{mode}.csv")
-        summary[mode] = {
-            "flood": res["flood"], "rss_mb_start": res["rss_mb_start"], "rss_mb_after_genuine": res["rss_mb_after_genuine"],
-            "genuine_accept_rate": float(np.mean([r["accepted"] for r in res["genuine"]])),
-            "genuine_verify_http_ms": stats([r["verify_http_ms"] for r in res["genuine"]]),
-            "reject": {k: {"verify_http_ms": stats([r["verify_http_ms"] for r in res["reject"] if r["kind"] == k]),
-                           "server_total_ms": stats([r["server_total_ms"] for r in res["reject"] if r["kind"] == k]),
-                           "server_cpu_ms": stats([r["server_cpu_ms"] for r in res["reject"] if r["kind"] == k]),
-                           "detection_ran": any(r["detection_ran"] for r in res["reject"] if r["kind"] == k),
-                           "all_rejected": not any(r["accepted"] for r in res["reject"] if r["kind"] == k),
-                           "failed_check": sorted({r["failed_check"] for r in res["reject"] if r["kind"] == k})}
-                       for k in sorted({r["kind"] for r in res["reject"]})},
-        }
-        print(json.dumps(summary[mode], indent=1)[:2000])
-    (OUT / "d_summary.json").write_text(json.dumps(summary, indent=2))
+    summary_path = OUT / "d_summary.json"
+    summary = json.loads(summary_path.read_text()) if summary_path.exists() and only else {}
+    summary = {k: v for k, v in summary.items() if "_" in k}  # drop pre-v1.1 keys ("integrated", "layered")
+    for mode, sig_alg in CONFIGS:
+        name = tag(mode, sig_alg)
+        if only and name not in only and "d12" not in only:
+            continue
+        print(f"config {name}")
+        res = run_config(mode, sig_alg, clips)
+        write_csv(res["genuine"], f"d1_genuine_{name}.csv")
+        write_csv(res["reject"], f"d2_reject_{name}.csv")
+        summary[name] = summarise(res)
+        print(json.dumps(summary[name]["reject"]["forged_signature"]["server_total_ms"]))
+        summary_path.write_text(json.dumps(summary, indent=2))
 
 
 if __name__ == "__main__":

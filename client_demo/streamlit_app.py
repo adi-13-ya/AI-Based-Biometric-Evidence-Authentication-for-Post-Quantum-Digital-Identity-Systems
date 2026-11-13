@@ -89,7 +89,7 @@ def _sidebar() -> None:
         info = health()
     except ApiError as exc:
         st.sidebar.error(f"Server unreachable: {exc}")
-        st.sidebar.caption("Start it with `uvicorn server.main:app --port 8000` (see GUIDE.md).")
+        st.sidebar.caption("Start it with `uvicorn server.main:app --port 8000` (see docs/GUIDE.md).")
         return
     if info.get("liboqs_ready"):
         st.sidebar.success(f"Server online\n\n{info['kem_alg']} / {info['sig_alg']}")

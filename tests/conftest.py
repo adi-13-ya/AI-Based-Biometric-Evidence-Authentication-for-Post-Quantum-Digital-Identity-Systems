@@ -10,7 +10,14 @@ liboqs, never a substitute, per spec Section 11.
 """
 from __future__ import annotations
 
+import os
+import tempfile
+
 import pytest
+
+# Keep the server's identity key out of ~/.pqbio during tests. Set before any
+# test module imports server.config.
+os.environ.setdefault("SERVER_KEY_PATH", os.path.join(tempfile.mkdtemp(), "server_identity.json"))
 
 try:
     import oqs  # noqa: F401

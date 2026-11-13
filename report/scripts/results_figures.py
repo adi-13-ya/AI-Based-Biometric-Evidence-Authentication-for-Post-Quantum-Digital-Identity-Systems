@@ -191,35 +191,55 @@ def fig_latency() -> None:
     plt.close(fig)
 
 
+CONFIG_STYLE = [  # (summary key, label, colour, hatch)
+    ("integrated_mldsa65", "integrated, ML-DSA-65 (this work)", BLUE, ""),
+    ("integrated_ecdsap256", "integrated, ECDSA-P256", BLUE, "////"),
+    ("buffered_mldsa65", "buffered, ML-DSA-65", AQUA, ""),
+    ("buffered_ecdsap256", "buffered, ECDSA-P256", AQUA, "////"),
+    ("layered_mldsa65", "layered (inference first)", ORANGE, ""),
+]
+
+
 def fig_dos() -> None:
-    path, flood_path = V2 / "d_summary.json", V2 / "d3_flood.json"
+    """Fig. 11: (left) server time per rejected request for every check order
+    and signature algorithm; (right) genuine-user slowdown against the
+    forged-request rate, with the 2x line at which attacker effort is read
+    off (report/scripts/flood_experiment.py)."""
+    path, flood_path = V2 / "d_summary.json", V2 / "d3_flood_matched.json"
     if not (path.exists() and flood_path.exists()):
         return
     s = json.loads(path.read_text())
-    flood = {(r["mode"], r["flood"]): r for r in json.loads(flood_path.read_text())}
+    flood = json.loads(flood_path.read_text())
+    configs = [c for c in CONFIG_STYLE if c[0] in s]
     kinds = ["forged_signature", "reused_nonce", "stale_timestamp", "substituted_frames"]
     labels = ["forged\nsignature", "reused\nnonce", "stale\ntimestamp", "substituted\nframes"]
-    fig, axes = plt.subplots(1, 2, figsize=(7.2, 2.9), gridspec_kw={"width_ratios": [1.5, 1]})
+    fig, axes = plt.subplots(1, 2, figsize=(7.2, 2.9), gridspec_kw={"width_ratios": [1.35, 1]})
     x = np.arange(len(kinds))
-    for i, (mode, color, label) in enumerate([("integrated", BLUE, "integrated (this work)"), ("layered", ORANGE, "layered baseline")]):
-        vals = [s[mode]["reject"][k]["server_total_ms"]["median"] for k in kinds]
-        bars = axes[0].bar(x + (i - 0.5) * 0.38, vals, width=0.36, color=color, label=label, edgecolor="white")
-        for bar, v in zip(bars, vals):
-            axes[0].text(bar.get_x() + bar.get_width() / 2, v * 1.15, f"{v:.3g}", ha="center", va="bottom", fontsize=6.5, color=MUTED)
+    w = 0.8 / len(configs)
+    for i, (key, label, color, hatch) in enumerate(configs):
+        vals = [s[key]["reject"][k]["server_total_ms"]["median"] for k in kinds]
+        axes[0].bar(x + (i - (len(configs) - 1) / 2) * w, vals, width=w * 0.95, color=color, hatch=hatch,
+                    edgecolor="white", linewidth=0.4, label=label)
     axes[0].set_yscale("log")
-    axes[0].set_xticks(x, labels, fontsize=8)
+    axes[0].set_xticks(x, labels, fontsize=7.5)
     axes[0].set_ylabel("server time per rejected request (ms)")
-    axes[0].legend(loc="upper left", fontsize=7.5)
-    axes[0].set_ylim(top=axes[0].get_ylim()[1] * 4)
-    # genuine latency without / with a forged-request flood
-    xs = np.arange(2)
-    for i, (mode, color) in enumerate([("integrated", BLUE), ("layered", ORANGE)]):
-        vals = [flood[(mode, False)]["victim_ms_median"] / 1000, flood[(mode, True)]["victim_ms_median"] / 1000]
-        bars = axes[1].bar(xs + (i - 0.5) * 0.38, vals, width=0.36, color=color, edgecolor="white")
-        for bar, v in zip(bars, vals):
-            axes[1].text(bar.get_x() + bar.get_width() / 2, v, f"{v:.2f} s", ha="center", va="bottom", fontsize=7, color=MUTED)
-    axes[1].set_xticks(xs, ["no attack", f"{flood[('integrated', True)]['attackers']} flooding\nprocesses"], fontsize=8)
-    axes[1].set_ylabel("genuine verification latency (s)")
+    axes[0].set_ylim(top=axes[0].get_ylim()[1] * 8)
+    axes[0].legend(loc="upper left", fontsize=6, ncol=2, handlelength=1.6, columnspacing=0.8)
+    for key, label, color, hatch in [c for c in CONFIG_STYLE if c[0] in flood]:
+        pts = sorted((r["forged_per_s"], r["latency_ratio"]) for rep in flood[key]["repeats"] for r in rep["sweep"]
+                     if r["latency_ratio"] and r["forged_per_s"] > 0)
+        xs, ys = zip(*pts)
+        axes[1].plot(xs, ys, "o" if not hatch else "s", ms=3, color=color, alpha=0.85, mfc=color if not hatch else "white",
+                     ls="none", label=label)
+        m = flood[key]["forged_per_s_at_2x_mean"]
+        if m:
+            axes[1].plot([m], [2.0], marker="v", ms=6, color=color, mfc=color if not hatch else "white", ls="none")
+    axes[1].axhline(2.0, color=MUTED, ls="--", lw=0.8)
+    axes[1].set_xscale("log")
+    axes[1].set_xlabel("forged submissions per second (log scale)")
+    axes[1].set_ylabel("genuine median latency / no-attack")
+    axes[1].annotate("2× (matched degradation)", xy=(0.02, 2.0), xycoords=("axes fraction", "data"), xytext=(0, 3),
+                     textcoords="offset points", fontsize=6.5, color=MUTED)
     for ax in axes:
         bar_axes(ax)
     fig.tight_layout()
@@ -241,6 +261,11 @@ def fig_primitives() -> None:
 
 
 if __name__ == "__main__":
+    import sys
+
+    if sys.argv[1:] == ["dos"]:  # only the figure that v1.1 changed
+        fig_dos()
+        sys.exit()
     fig_primitives()
     fig_pad_roc()
     fig_pad_species()

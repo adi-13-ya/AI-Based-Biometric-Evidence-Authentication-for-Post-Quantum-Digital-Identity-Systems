@@ -1,0 +1,466 @@
+[
+  {
+    "cls": "bona fide",
+    "species": "webcam_real",
+    "n": 30,
+    "sources": 10,
+    "accepted": 28,
+    "accept_rate": 0.9333333333333333,
+    "accept_ci95": [
+      0.7867618227892791,
+      0.9815233646723066
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 0.0,
+      "deepfake": 0.0,
+      "injection": 0.06666666666666667,
+      "replay": 0.0,
+      "morph": 0.0
+    },
+    "sole_veto": {
+      "injection": 2
+    }
+  },
+  {
+    "cls": "injection",
+    "species": "inj_24fps_crf28",
+    "n": 10,
+    "sources": 10,
+    "accepted": 0,
+    "accept_rate": 0.0,
+    "accept_ci95": [
+      0.0,
+      0.2775401687666166
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 0.2,
+      "deepfake": 0.2,
+      "injection": 1.0,
+      "replay": 0.0,
+      "morph": 0.0
+    },
+    "sole_veto": {
+      "injection": 7
+    }
+  },
+  {
+    "cls": "injection",
+    "species": "inj_25fps_crf23",
+    "n": 10,
+    "sources": 10,
+    "accepted": 0,
+    "accept_rate": 0.0,
+    "accept_ci95": [
+      0.0,
+      0.2775401687666166
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 0.2,
+      "deepfake": 0.2,
+      "injection": 0.8,
+      "replay": 0.0,
+      "morph": 0.0
+    },
+    "sole_veto": {
+      "injection": 7,
+      "presentation_attack": 1,
+      "deepfake": 1
+    }
+  },
+  {
+    "cls": "injection",
+    "species": "inj_30fps_crf18",
+    "n": 10,
+    "sources": 10,
+    "accepted": 6,
+    "accept_rate": 0.6,
+    "accept_ci95": [
+      0.3126695474501864,
+      0.8318224187964902
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 0.2,
+      "deepfake": 0.0,
+      "injection": 0.3,
+      "replay": 0.0,
+      "morph": 0.0
+    },
+    "sole_veto": {
+      "injection": 2,
+      "presentation_attack": 1
+    }
+  },
+  {
+    "cls": "injection",
+    "species": "inj_30fps_crf23",
+    "n": 10,
+    "sources": 10,
+    "accepted": 4,
+    "accept_rate": 0.4,
+    "accept_ci95": [
+      0.16817758120350967,
+      0.6873304525498135
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 0.2,
+      "deepfake": 0.1,
+      "injection": 0.5,
+      "replay": 0.0,
+      "morph": 0.0
+    },
+    "sole_veto": {
+      "injection": 3,
+      "deepfake": 1
+    }
+  },
+  {
+    "cls": "injection",
+    "species": "inj_lossless_30",
+    "n": 10,
+    "sources": 10,
+    "accepted": 7,
+    "accept_rate": 0.7,
+    "accept_ci95": [
+      0.39677321997956516,
+      0.892210712513788
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 0.2,
+      "deepfake": 0.0,
+      "injection": 0.1,
+      "replay": 0.0,
+      "morph": 0.0
+    },
+    "sole_veto": {
+      "injection": 1,
+      "presentation_attack": 2
+    }
+  },
+  {
+    "cls": "morph (not benchmarked)",
+    "species": "demo_morph",
+    "n": 1,
+    "sources": 1,
+    "accepted": 0,
+    "accept_rate": 0.0,
+    "accept_ci95": [
+      0.0,
+      0.7934567085261071
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 0.0,
+      "deepfake": 0.0,
+      "injection": 1.0,
+      "replay": 0.0,
+      "morph": 1.0
+    },
+    "sole_veto": {}
+  },
+  {
+    "cls": "presentation",
+    "species": "mask",
+    "n": 10,
+    "sources": 10,
+    "accepted": 4,
+    "accept_rate": 0.4,
+    "accept_ci95": [
+      0.16817758120350967,
+      0.6873304525498135
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 0.2,
+      "deepfake": 0.5,
+      "injection": 0.0,
+      "replay": 0.0,
+      "morph": 0.0
+    },
+    "sole_veto": {
+      "deepfake": 4,
+      "presentation_attack": 1
+    }
+  },
+  {
+    "cls": "presentation",
+    "species": "monitor",
+    "n": 10,
+    "sources": 10,
+    "accepted": 3,
+    "accept_rate": 0.3,
+    "accept_ci95": [
+      0.10778928748621183,
+      0.6032267800204347
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 0.3,
+      "deepfake": 0.5,
+      "injection": 0.0,
+      "replay": 0.0,
+      "morph": 0.0
+    },
+    "sole_veto": {
+      "deepfake": 4,
+      "presentation_attack": 2
+    }
+  },
+  {
+    "cls": "presentation",
+    "species": "outline",
+    "n": 10,
+    "sources": 10,
+    "accepted": 5,
+    "accept_rate": 0.5,
+    "accept_ci95": [
+      0.23658959361548731,
+      0.7634104063845126
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 0.0,
+      "deepfake": 0.4,
+      "injection": 0.0,
+      "replay": 0.0,
+      "morph": 0.2
+    },
+    "sole_veto": {
+      "morph": 1,
+      "deepfake": 3
+    }
+  },
+  {
+    "cls": "presentation",
+    "species": "print",
+    "n": 10,
+    "sources": 10,
+    "accepted": 5,
+    "accept_rate": 0.5,
+    "accept_ci95": [
+      0.23658959361548731,
+      0.7634104063845126
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 0.0,
+      "deepfake": 0.4,
+      "injection": 0.2,
+      "replay": 0.0,
+      "morph": 0.0
+    },
+    "sole_veto": {
+      "injection": 1,
+      "deepfake": 3
+    }
+  },
+  {
+    "cls": "presentation",
+    "species": "print_cut",
+    "n": 10,
+    "sources": 10,
+    "accepted": 8,
+    "accept_rate": 0.8,
+    "accept_ci95": [
+      0.49015684672072335,
+      0.9433190520193067
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 0.2,
+      "deepfake": 0.0,
+      "injection": 0.0,
+      "replay": 0.0,
+      "morph": 0.0
+    },
+    "sole_veto": {
+      "presentation_attack": 2
+    }
+  },
+  {
+    "cls": "presentation",
+    "species": "silicone",
+    "n": 10,
+    "sources": 10,
+    "accepted": 6,
+    "accept_rate": 0.6,
+    "accept_ci95": [
+      0.3126695474501864,
+      0.8318224187964902
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 0.2,
+      "deepfake": 0.1,
+      "injection": 0.1,
+      "replay": 0.0,
+      "morph": 0.0
+    },
+    "sole_veto": {
+      "injection": 1,
+      "deepfake": 1,
+      "presentation_attack": 2
+    }
+  },
+  {
+    "cls": "replay",
+    "species": "resubmitted_genuine",
+    "n": 10,
+    "sources": 4,
+    "accepted": 0,
+    "accept_rate": 0.0,
+    "accept_ci95": [
+      0.0,
+      0.2775401687666166
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 0.0,
+      "deepfake": 0.0,
+      "injection": 0.0,
+      "replay": 1.0,
+      "morph": 0.0
+    },
+    "sole_veto": {
+      "replay": 10
+    }
+  },
+  {
+    "cls": "still image",
+    "species": "casia_cut_photo",
+    "n": 20,
+    "sources": 15,
+    "accepted": 0,
+    "accept_rate": 0.0,
+    "accept_ci95": [
+      0.0,
+      0.16113012549493322
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 1.0,
+      "deepfake": 0.0,
+      "injection": 1.0,
+      "replay": 0.0,
+      "morph": 0.9
+    },
+    "sole_veto": {}
+  },
+  {
+    "cls": "still image",
+    "species": "casia_video_replay",
+    "n": 20,
+    "sources": 14,
+    "accepted": 0,
+    "accept_rate": 0.0,
+    "accept_ci95": [
+      0.0,
+      0.16113012549493322
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 1.0,
+      "deepfake": 0.0,
+      "injection": 1.0,
+      "replay": 0.0,
+      "morph": 0.25
+    },
+    "sole_veto": {}
+  },
+  {
+    "cls": "still image",
+    "species": "casia_warped_photo",
+    "n": 20,
+    "sources": 13,
+    "accepted": 0,
+    "accept_rate": 0.0,
+    "accept_ci95": [
+      0.0,
+      0.16113012549493322
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 0.95,
+      "deepfake": 0.15,
+      "injection": 1.0,
+      "replay": 0.0,
+      "morph": 0.9
+    },
+    "sole_veto": {}
+  },
+  {
+    "cls": "still image",
+    "species": "dff_inpainting",
+    "n": 25,
+    "sources": 25,
+    "accepted": 0,
+    "accept_rate": 0.0,
+    "accept_ci95": [
+      0.0,
+      0.13319649395317873
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 0.48,
+      "deepfake": 0.72,
+      "injection": 0.96,
+      "replay": 0.0,
+      "morph": 0.0
+    },
+    "sole_veto": {
+      "injection": 3,
+      "deepfake": 1
+    }
+  },
+  {
+    "cls": "still image",
+    "species": "dff_insight",
+    "n": 25,
+    "sources": 25,
+    "accepted": 0,
+    "accept_rate": 0.0,
+    "accept_ci95": [
+      0.0,
+      0.13319649395317873
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 0.44,
+      "deepfake": 0.92,
+      "injection": 1.0,
+      "replay": 0.0,
+      "morph": 0.0
+    },
+    "sole_veto": {
+      "injection": 2
+    }
+  },
+  {
+    "cls": "still image",
+    "species": "dff_text2img",
+    "n": 25,
+    "sources": 25,
+    "accepted": 0,
+    "accept_rate": 0.0,
+    "accept_ci95": [
+      0.0,
+      0.13319649395317873
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 0.44,
+      "deepfake": 0.12,
+      "injection": 1.0,
+      "replay": 0.0,
+      "morph": 0.0
+    },
+    "sole_veto": {
+      "injection": 12
+    }
+  }
+]

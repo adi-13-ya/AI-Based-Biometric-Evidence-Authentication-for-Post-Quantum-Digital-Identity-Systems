@@ -6,8 +6,10 @@ key itself (first 16 bytes of SHA-256 over alg || public key, hex), so
 re-enrolling the same key is idempotent and an id cannot be pointed at a
 different key.
 
-In-memory like server/session_store.py; a deployment would persist this and
-gate enrollment on an onboarding/attestation step.
+In-memory like server/session_store.py; a deployment would persist this.
+Enrollment is trust-on-first-use unless ENROLLMENT_TOKEN is set (see
+server/main.py: enroll_device); what an enrolled key does and does not
+prove is in docs/PROTOCOL.md, Section 5.
 """
 from __future__ import annotations
 
@@ -30,8 +32,9 @@ def device_id_of(sig_alg: str, public_key: bytes) -> str:
 
 
 class DeviceRegistry:
-    # ML-DSA public key sizes (FIPS 204, Table 2)
-    _PK_LEN = {"ML-DSA-44": 1312, "ML-DSA-65": 1952, "ML-DSA-87": 2592}
+    # ML-DSA public key sizes (FIPS 204, Table 2); ECDSA-P256 uncompressed
+    # point (classical measurement baseline only)
+    _PK_LEN = {"ML-DSA-44": 1312, "ML-DSA-65": 1952, "ML-DSA-87": 2592, "ECDSA-P256": 65}
 
     def __init__(self):
         self._devices: dict[str, Device] = {}

@@ -131,7 +131,7 @@ streamlit run client_demo/streamlit_app.py
 
 The app reads `API_BASE_URL` from `.env` (default `http://localhost:8000`) to
 reach the Dockerized server. Confirm the sidebar shows a green "Server
-reachable" indicator before starting the demo — see GUIDE.md in the repo root.
+reachable" indicator before starting the demo — see docs/GUIDE.md.
 
 ## Troubleshooting
 

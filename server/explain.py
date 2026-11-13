@@ -23,14 +23,13 @@ def explain(
     detection_details: dict[str, dict] | None = None,
     below_threshold_modules: list[str] | None = None,
     fused_score: float | None = None,
-    accept_threshold: float = 0.5,
     liveness: dict | None = None,
     challenge: str = "",
 ) -> list[str]:
     if accepted:
         return ["Every check passed: the evidence was decrypted and authenticated, it belongs to this session "
                 "and was captured within the last 30 s, the liveness challenge was performed, and all five "
-                f"detectors judged it genuine (combined score {fused_score:.2f} ≥ {accept_threshold})."]
+                f"detectors scored it at or above their own thresholds (mean score {fused_score:.2f})."]
 
     reasons = [_explain_check(name, binding_reasons, liveness or {}, challenge)
                for name, ok in binding_checks.items() if not ok]
@@ -40,9 +39,6 @@ def explain(
     details = detection_details or {}
     vetoed = sorted(below_threshold_modules or [], key=lambda m: _DETECTOR_ORDER.index(m) if m in _DETECTOR_ORDER else 99)
     reasons = [_explain_detector(m, (detection_scores or {}).get(m, 0.0), details.get(m, {})) for m in vetoed]
-    if not reasons and fused_score is not None:
-        reasons.append(f"No single detector was certain it was an attack, but together they were not confident it "
-                       f"is genuine: combined score {fused_score:.2f}, below the {accept_threshold} needed to accept.")
     return reasons
 
 

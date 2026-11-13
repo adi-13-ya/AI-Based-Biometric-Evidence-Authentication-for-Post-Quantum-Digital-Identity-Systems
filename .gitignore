@@ -63,3 +63,9 @@ htmlcov/
 
 # Local quantum-experiment venv (report/requirements-report.txt)
 qvenv/
+
+# OS / editor junk
+.DS_Store
+~$*
+.pytest_cache/
+.env.bak*

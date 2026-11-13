@@ -5,6 +5,124 @@ follows [Keep a Changelog](https://keepachangelog.com/); dates are when the
 change was made, not a formal release schedule (this is a prototype, not a
 versioned package).
 
+## [1.2.1] - framing and attribution after the supervisor's answers
+
+- Report title now ends "for Biometric Evidence Screening"; the problem statement (1.2) says the system is a screening stage, and Section 6.3 maps the three parts of the problem statement onto the objectives.
+- Section 5.3 states that all five configurations used the same evidence (seeded clips, identical attack submissions and flood payloads), the same machine and the same workload, and credits each benefit to the comparison that measures it (buffered vs layered, integrated vs buffered, ML-DSA-65 vs ECDSA-P256, Sections 5.1-5.2 for PQC cost).
+- Pinned server verification key confirmed as sufficient for the prototype; a certificate or attestation chain remains future work.
+- Previous report kept as report/archive/QUANTUM-FINAL-REPORT-REVISED_v1.1.docx.
+
+## [1.2.0] - validly signed attacks, cluster-level intervals, related work, quantum material to an appendix
+
+Review feedback addressed (items 5-6).
+
+### Changed
+
+- **Injection threshold reconciled: 0.35 -> 0.39** (`server/config.py`,
+  `.env.example`). 0.39 is the BPCER = 5% point stored with the final
+  classifier (`detection/weights/injection_lr.json: threshold_bpcer5`) and the
+  value the report states; the configuration had been left at an earlier
+  0.35. A test now fails if the two drift apart.
+- `scripts/demo_check.py`: the printed-photo, deepfake and injection demo
+  samples (synthetic edits of one portrait, made for the v0.2 heuristics)
+  must be rejected by *a* detector rather than by the one they are named
+  after. Per-attack attribution is measured on public data instead
+  (`report/scripts/signed_attacks.py`).
+- Report: title, abstract and conclusions centred on rejecting invalid
+  submissions before inference; new Section 2.5 (signed capture, challenge
+  binding, attestation, early rejection) and rebuilt Table 1; new
+  Section 4.5 / Table 10 (validly signed attacks); injection claim limited to
+  re-encoded or rate-converted streams; Shor, Grover and QRNG moved to
+  Appendix A; figures, tables and sections renumbered.
+
+### Added
+
+- `report/scripts/signed_attacks.py`: public-data attacks (webcam
+  presentation attacks, emulated injections, CASIA-FASD and DeepFakeFace
+  stills, replays) signed by the *enrolled* device key and sent end to end;
+  records the binding check or detector vetoes that reject each one
+  (`report/data/v2/d5_signed_attacks.csv|json`).
+- `evaluation/cluster_ci.py`: 95% cluster-bootstrap intervals with subjects
+  (CASIA-FASD), videos (webcam), persons (DeepFakeFace) and source videos
+  (injection) as the resampling unit (`evaluation/results/cluster_ci.json`).
+
+### Not done (needs resources this prototype does not have)
+
+- No real virtual-camera driver (OBS Virtual Camera, v4l2loopback) was
+  tested; the injection evaluation remains an emulation on recorded footage,
+  and the claim is limited accordingly.
+- The morph detector is still not benchmarked (AMSL and similar datasets need
+  an access request); it is labelled as such everywhere.
+
+## [1.1.0] - protocol specification, server authentication, veto-only fusion, matched-degradation baselines
+
+Review feedback addressed (items 1-4): one exact protocol specification;
+how clients authenticate the server's ML-KEM key; enrollment, nonce
+consumption and concurrent replay; screening vs identification; the fusion
+rule; a buffered baseline and a classical-signature baseline under the same
+check order; attacker effort at matched degradation of genuine service.
+
+### Changed (breaking)
+
+- **Signed evidence message v2** (`crypto/signature.py: build_binding_payload`).
+  It is now domain-tagged (`PQBIO-EVIDENCE-v2`) and length-prefixed (v1 was a
+  bare concatenation, so field boundaries were not signed). It also covers
+  `session_id`, SHA-256 of the ML-KEM ciphertext, and `burst_frames` /
+  `frame_timestamps`, which steer the injection classifier and were
+  previously unsigned. Clients now encapsulate *before* signing.
+  `api_client.seal_submission` takes the `(ciphertext, shared_secret)` from
+  `encapsulate()`.
+- **Session offers are signed by a server identity key**
+  (`server/identity.py`, ML-DSA-65, `SERVER_KEY_PATH`). `POST /session/start`
+  returns `server_sig_alg`, `server_key_id`, `server_signature`. The client
+  verifies the signature against a pinned key (`PQBIO_SERVER_PUBKEY`, or
+  trust-on-first-use via the new `GET /server/identity`) and refuses to
+  encapsulate otherwise.
+- **Fusion is veto-only** (`detection/fusion.py`). Accept iff every module
+  scores at or above its own threshold. The threshold-normalised weighted
+  mean is reported only. `FUSION_ACCEPT_THRESHOLD` and `fuse(accept_threshold=)`
+  are removed. With all five thresholds set, this makes exactly the same
+  decisions as v1.0's "mean >= 0.5 and no veto" (proved in the module
+  docstring, tested on 5,000 random inputs), so no v1.0 result changes.
+- **Plaintext `POST /session/{id}/verify` is off by default**
+  (`ALLOW_PLAINTEXT_VERIFY=false`). It is a unit-test path; the evaluated
+  format is PQB1 on `/verify-sealed`.
+
+### Fixed
+
+- **Concurrent replay.** The nonce flag was read during the checks and set
+  afterwards, so two simultaneous copies of one submission could both pass
+  `nonce_unused`. `Session.consume_nonce()` now marks it under a lock and
+  returns True only to the first caller (`tests/test_server.py:
+  test_concurrent_duplicates_consume_the_nonce_once`).
+
+### Added
+
+- `docs/PROTOCOL.md`: keys, signed and encrypted fields, PQB1 byte layout,
+  how the header is bound to the body, when the server reads, buffers,
+  decrypts and decodes, what a valid submission does and does not prove.
+- `PIPELINE_MODE=buffered`: receive and decrypt the whole request, then
+  the same checks in the same order, then inference (baseline). `layered`
+  is kept as the inference-first ablation.
+- `ECDSA-P256` as a device signature algorithm, for the classical baseline
+  under the same protocol (never a default; flagged quantum-vulnerable).
+- `ENROLLMENT_TOKEN`: when set, `POST /device/enroll` requires a matching
+  `X-Enrollment-Token` header (stand-in for an onboarding or attestation
+  step). Off by default.
+- `report/scripts/distributed_experiments.py`: D1/D2 across the five
+  configurations (integrated, buffered, layered x ML-DSA-65; integrated,
+  buffered x ECDSA-P256). `report/scripts/flood_experiment.py` rewritten:
+  the forged-request rate needed to double genuine median latency,
+  rate-paced attackers, 3 repeats per configuration
+  (`report/data/v2/d3_flood_matched.json`).
+- 16 tests (133 total).
+
+### Corrected in the report
+
+- The v1.0 flood ratio was 3,306 / 41 = 80.6x, not 82.6x. It is replaced by
+  the matched-degradation result, because the two v1.0 runs degraded the
+  genuine user by different amounts.
+
 ## [1.0.0] - trained models, distributed trust, public-benchmark evaluation
 
 Review feedback addressed: detectors were hand-tuned heuristics, the

@@ -125,32 +125,36 @@ def sequence() -> None:
         ax.plot([x, x], [0.4, 14.8], color=GREY, lw=0.8, ls="--")
 
     C, S, ST, D = lanes.values()
+    # Exactly docs/PROTOCOL.md, Sections 2-7.
     steps = [
-        (C, S, "POST /device/enroll (pk_dev) → device_id   [once; sk_dev never leaves]"),
+        (C, S, "POST /device/enroll (alg, pk_dev) → device_id   [once; sk_dev never leaves; token if ENROLLMENT_TOKEN set]"),
         (C, S, "POST /session/start (device_id)"),
-        (S, ST, "UUID, N←{0,1}²⁵⁶, C←challenges, (pk,sk)←ML-KEM.KeyGen, look up pk_dev"),
-        (S, C, "session_id, N, C, pk_KEM, window = 30 s"),
-        (C, C, "capture; h = SHA-256(frames); σ = ML-DSA.Sign(sk_dev, h‖N‖ts‖resp)"),
-        (C, C, "(ct, K) ← Encaps(pk); c = AES-GCM[HKDF(K, N)](payload)"),
-        (C, S, "POST /verify-sealed (ct, GCM nonce, c)"),
-        (S, S, "K = Decaps(sk, ct); open c (bad tag ⇒ REJECT)"),
-        (S, ST, "N unused? → |Δt| ≤ 30 s? → Verify(pk_dev, σ)? → SHA-256(frames) = h?  (stop at first failure)"),
-        (ST, S, "mark N used (consumed even on failure)"),
-        (S, D, "only now: decode frames, liveness challenge, PAD, Morph, Deepfake, Replay, Injection"),
-        (D, S, "scores s₁..s₅ → fused S, veto list"),
-        (S, C, "ACCEPT / REJECT, reasons, timing_ms"),
+        (S, ST, "id, N←{0,1}²⁵⁶, C, (pk_KEM, sk_KEM)←ML-KEM-768.KeyGen; look up pk_dev"),
+        (S, C, "OFFER = (id, N, C, pk_KEM, device_id, t, 30 s),  σ_srv = ML-DSA.Sign(sk_srv, OFFER)"),
+        (C, C, "Verify(pk_srv pinned, OFFER, σ_srv), else abort  →  (ct, K) ← Encaps(pk_KEM)"),
+        (C, C, "h = SHA-256(len‖frame …);  σ_dev = Sign(sk_dev, tag‖h‖N‖ts‖r‖id‖SHA-256(ct)‖meta)"),
+        (C, C, "k = HKDF(K, salt N);  PQB1 = ct ‖ GCM_k(header: h, ts, r, σ_dev, meta) ‖ GCM_k(frames)"),
+        (C, S, "POST /verify-sealed  PQB1   (≈8 KB header first, then ≈5.7 MB of frames)"),
+        (S, S, "read head only; Decaps(ct); open header (bad tag ⇒ REJECT)"),
+        (S, ST, "consume N atomically? → |Δt| ≤ 30 s? → Verify(pk_dev, σ_dev)?   (stop at first failure)"),
+        (ST, S, "any failure ⇒ REJECT now; rest of body drained unread (no buffer, decrypt or decode)"),
+        (S, S, "all pass ⇒ buffer + open frames; recompute h (evidence_matches_hash)"),
+        (S, D, "first pixel decode → liveness challenge → PAD, morph, deepfake, replay, injection"),
+        (D, S, "s₁..s₅: ACCEPT iff every sᵢ ≥ τᵢ (separate vetoes; mean reported only)"),
+        (S, C, "ACCEPT / REJECT, failed check, reasons, timing_ms"),
     ]
-    y = 14.2
+    y = 14.25
     for a, b, t in steps:
-        y -= 0.98
+        y -= 0.9
         if a == b:
-            ax.add_patch(FancyBboxPatch((a - 2.1, y - 0.3), 8.6, 0.6, boxstyle="round,pad=0.02",
-                                        fc=BLUE_L, ec=BLUE, lw=0.8))
-            ax.text(a + 2.2, y, t, ha="center", va="center", fontsize=7.5)
+            x0 = a - 2.1 if a == C else a - 2.6
+            ax.add_patch(FancyBboxPatch((x0, y - 0.3), 11.4 if a == C else 10.6, 0.6, boxstyle="round,pad=0.02",
+                                        fc=BLUE_L if a == C else ORANGE_L, ec=BLUE if a == C else ORANGE, lw=0.8))
+            ax.text(x0 + (11.4 if a == C else 10.6) / 2, y, t, ha="center", va="center", fontsize=7.5)
             continue
         color = BLUE if a == C else ORANGE if a == S else GREEN
         arrow(ax, a, y, b, y, color)
-        ax.text((a + b) / 2, y + 0.1, t, ha="center", va="bottom", fontsize=7.5,
+        ax.text((a + b) / 2 if abs(a - b) > 8 else max(a, b) - abs(a - b) / 2, y + 0.1, t, ha="center", va="bottom", fontsize=7.5,
                 bbox=dict(boxstyle="round,pad=0.12", fc="white", ec="none"))
     fig.tight_layout()
     fig.savefig(FIG / "fig_a2_binding_sequence.png", dpi=300)
@@ -158,5 +162,8 @@ def sequence() -> None:
 
 
 if __name__ == "__main__":
-    architecture()
+    import sys
+
+    if "sequence" not in sys.argv[1:]:
+        architecture()
     sequence()

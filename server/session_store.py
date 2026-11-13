@@ -50,6 +50,17 @@ class Session:
     nonce_used: bool = False
     kem_established: bool = False
     used_evidence_hashes: set = field(default_factory=set)
+    _nonce_lock: threading.Lock = field(default_factory=threading.Lock, repr=False, compare=False)
+
+    def consume_nonce(self) -> bool:
+        """Atomically mark the nonce used. True only for the first caller:
+        of any number of concurrent submissions on one session, exactly one
+        can pass the nonce check (a read-then-set without the lock let two
+        simultaneous copies of the same submission both pass)."""
+        with self._nonce_lock:
+            first = not self.nonce_used
+            self.nonce_used = True
+            return first
 
     def is_fresh(self, timestamp: float, window_seconds: int | None = None) -> bool:
         window = settings.freshness_window_seconds if window_seconds is None else window_seconds

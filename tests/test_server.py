@@ -23,6 +23,7 @@ from datetime import datetime, timedelta, timezone
 from io import BytesIO
 
 import numpy as np
+import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
 
@@ -32,6 +33,15 @@ from crypto.channel import evidence_hash_of
 from server.main import app
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def _plaintext_endpoint_for_tests(monkeypatch):
+    """The plaintext /verify endpoint is off by default (the evaluated
+    format is /verify-sealed); these tests drive it directly."""
+    from server.config import settings
+
+    monkeypatch.setattr(settings, "allow_plaintext_verify", True)
 
 
 def _now_iso() -> str:
@@ -83,10 +93,13 @@ def _start() -> dict:
     return resp.json()
 
 
-def _sign(session: dict, evidence_hash_hex: str, timestamp: str, challenge_response: str, signer=None) -> str:
+def _sign(session: dict, evidence_hash_hex: str, timestamp: str, challenge_response: str, signer=None,
+          kem_ct: bytes = b"", burst_frames: int = 0, frame_timestamps=None) -> str:
     from crypto.signature import build_binding_payload
 
-    payload = build_binding_payload(bytes.fromhex(evidence_hash_hex), base64.b64decode(session["nonce"]), timestamp, challenge_response)
+    payload = build_binding_payload(bytes.fromhex(evidence_hash_hex), base64.b64decode(session["nonce"]), timestamp, challenge_response,
+                                    session_id=session["session_id"], kem_ciphertext=kem_ct,
+                                    burst_frames=burst_frames, frame_timestamps=frame_timestamps)
     return (signer or _device()).sign(payload).hex()
 
 
@@ -327,20 +340,29 @@ class TestSessionFlow:
 
 @skip_if_no_oqs
 class TestSealedChannel:
-    def _envelope(self, session: dict, aad_session_id: str | None = None, signer=None) -> bytearray:
+    def _envelope(self, session: dict, aad_session_id: str | None = None, signer=None, rewrap: bool = False,
+                  header_edit: dict | None = None) -> bytearray:
+        """A sealed submission. `rewrap`: sign over one encapsulation but seal
+        under another (what an interceptor re-wrapping the header would do).
+        `header_edit`: fields changed after signing."""
         from crypto.channel import seal_envelope
         from crypto.kem import client_encapsulate
 
         challenge_response = _challenge_response_for(session["challenge"])
         timestamp = _now_iso()
         frame = _frame_b64(seed=5)
+        kem_ct, shared_secret = client_encapsulate(bytes.fromhex(session["kem_public_key"]), alg=session["kem_alg"])
         header = {
             "evidence_hash": _hash_of(frame),
             "timestamp": timestamp,
             "challenge_response": challenge_response,
-            "signature": _sign(session, _hash_of(frame), timestamp, challenge_response, signer=signer),
+            "signature": _sign(session, _hash_of(frame), timestamp, challenge_response, signer=signer, kem_ct=kem_ct),
+            "burst_frames": 0,
+            "frame_timestamps": None,
+            **(header_edit or {}),
         }
-        kem_ct, shared_secret = client_encapsulate(bytes.fromhex(session["kem_public_key"]), alg=session["kem_alg"])
+        if rewrap:
+            kem_ct, shared_secret = client_encapsulate(bytes.fromhex(session["kem_public_key"]), alg=session["kem_alg"])
         return bytearray(seal_envelope(shared_secret, base64.b64decode(session["nonce"]), aad_session_id or session["session_id"],
                                        kem_ct, header, [base64.b64decode(frame)]))
 
@@ -385,6 +407,43 @@ class TestSealedChannel:
         assert body["binding_checks"] == {"nonce_unused": True, "timestamp_fresh": True, "signature_valid": False}
         assert body["detection_ran"] is False
 
+    def test_unsigned_header_edit_is_rejected(self):
+        """burst_frames and frame_timestamps steer the injection check, so they
+        are signed: changing them after signing breaks the signature."""
+        session = _start()
+        body = self._post(session, self._envelope(session, header_edit={"burst_frames": 1}))
+        assert body["binding_checks"]["signature_valid"] is False
+
+    def test_header_rewrapped_under_another_encapsulation_is_rejected(self):
+        session = _start()
+        body = self._post(session, self._envelope(session, rewrap=True))
+        assert body["binding_checks"]["signature_valid"] is False
+        assert body["detection_ran"] is False
+
+    def test_buffered_baseline_reads_the_frames_before_checking(self, monkeypatch):
+        """PIPELINE_MODE=buffered: same checks, but the whole body is received
+        and decrypted first. Corrupted frames therefore surface as a channel
+        failure even though the signature is forged; the integrated gate
+        (test above) stops at the signature without opening them."""
+        from crypto.signature import SignerIdentity
+        from server.config import settings
+
+        monkeypatch.setattr(settings, "pipeline_mode", "buffered")
+        session = _start()
+        with SignerIdentity(alg="ML-DSA-65") as attacker:
+            envelope = self._envelope(session, signer=attacker)
+        envelope[-1] ^= 0x01
+        assert self._post(session, envelope)["binding_checks"] == {"channel_authentic": False}
+
+        session = _start()
+        with SignerIdentity(alg="ML-DSA-65") as attacker:
+            body = self._post(session, self._envelope(session, signer=attacker))
+        assert body["binding_checks"]["signature_valid"] is False and body["detection_ran"] is False
+
+        session = _start()
+        body = self._post(session, self._envelope(session))
+        assert body["binding_accepted"] is True and body["detection_ran"] is True
+
     def test_malformed_envelope_is_400(self):
         session = _start()
         resp = client.post(f"/session/{session['session_id']}/verify-sealed", content=b"not an envelope",
@@ -417,3 +476,96 @@ def test_layered_ablation_pays_for_detection_on_forged_requests(monkeypatch):
     monkeypatch.setattr(settings, "pipeline_mode", "layered")
     body = forged(_start())
     assert body["accepted"] is False and body["timing_ms"]["detection_ms"] > 0
+
+
+@skip_if_no_oqs
+class TestServerAuthenticationAndEnrollment:
+    def test_session_offer_is_signed_by_the_server_identity(self):
+        from crypto.signature import build_session_offer, verify
+
+        ident = client.get("/server/identity").json()
+        session = _start()
+        offer = build_session_offer(
+            session_id=session["session_id"], session_nonce=base64.b64decode(session["nonce"]), challenge=session["challenge"],
+            kem_alg=session["kem_alg"], kem_public_key=bytes.fromhex(session["kem_public_key"]), device_id=session["device_id"],
+            issued_at=session["issued_at"], freshness_window_seconds=session["freshness_window_seconds"],
+        )
+        assert session["server_key_id"] == ident["key_id"]
+        assert verify(offer, bytes.fromhex(session["server_signature"]), bytes.fromhex(ident["public_key"]), alg=ident["sig_alg"])
+
+    def test_client_refuses_a_substituted_kem_key(self, monkeypatch, tmp_path):
+        """A man in the middle who swaps the ephemeral ML-KEM key cannot re-sign
+        the offer, so the client stops before encapsulating to it."""
+        import client_demo.api_client as api
+        from crypto.kem import ServerKemSession
+
+        ident = client.get("/server/identity").json()
+        monkeypatch.setenv("PQBIO_SERVER_PUBKEY", f"{ident['sig_alg']}:{ident['public_key']}")
+        session = _start()
+        api.verify_session_offer(session)  # genuine offer passes
+        with ServerKemSession(alg=session["kem_alg"]) as mitm:
+            mitm.generate_keypair()
+            forged = {**session, "kem_public_key": mitm.public_key.hex()}
+        with pytest.raises(api.ApiError):
+            api.verify_session_offer(forged)
+
+    def test_enrollment_token_gates_enrollment(self, monkeypatch):
+        from crypto.signature import SignerIdentity
+        from server.config import settings
+
+        monkeypatch.setattr(settings, "enrollment_token", "onboarding-secret")
+        with SignerIdentity(alg="ML-DSA-65") as dev:
+            body = {"sig_alg": dev.alg, "public_key": dev.public_key.hex()}
+            assert client.post("/device/enroll", json=body).status_code == 403
+            assert client.post("/device/enroll", json=body, headers={"X-Enrollment-Token": "wrong"}).status_code == 403
+            assert client.post("/device/enroll", json=body, headers={"X-Enrollment-Token": "onboarding-secret"}).status_code == 200
+
+    def test_plaintext_verify_is_off_by_default(self, monkeypatch):
+        from server.config import settings
+
+        monkeypatch.setattr(settings, "allow_plaintext_verify", False)
+        session = _start()
+        body = {"evidence_hash": "00" * 32, "timestamp": _now_iso(), "signature": "00"}
+        assert client.post(f"/session/{session['session_id']}/verify", json=body).status_code == 404
+
+    def test_classical_device_runs_the_same_protocol(self):
+        """ECDSA-P256 devices exist for the like-for-like classical baseline."""
+        from crypto.signature import SignerIdentity
+
+        with SignerIdentity(alg="ECDSA-P256") as dev:
+            device_id = client.post("/device/enroll", json={"sig_alg": dev.alg, "public_key": dev.public_key.hex()}).json()["device_id"]
+            session = client.post("/session/start", json={"device_id": device_id}).json()
+            assert session["sig_alg"] == "ECDSA-P256"
+            frame = _frame_b64(seed=31)
+            ts = _now_iso()
+            resp = _challenge_response_for(session["challenge"])
+            body = client.post(f"/session/{session['session_id']}/verify", json={
+                "evidence_hash": _hash_of(frame), "timestamp": ts, "challenge_response": resp,
+                "signature": _sign(session, _hash_of(frame), ts, resp, signer=dev), "frames_b64": [frame],
+            }).json()
+        assert body["binding_accepted"] is True
+
+
+@skip_if_no_oqs
+def test_concurrent_duplicates_consume_the_nonce_once():
+    """Of many simultaneous copies of one submission, exactly one gets past
+    the nonce check."""
+    import threading
+
+    session = _start()
+    from server.session_store import store
+
+    sess = store.get(session["session_id"])
+    barrier = threading.Barrier(16)
+    wins = []
+
+    def race():
+        barrier.wait()
+        wins.append(sess.consume_nonce())
+
+    threads = [threading.Thread(target=race) for _ in range(16)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert wins.count(True) == 1

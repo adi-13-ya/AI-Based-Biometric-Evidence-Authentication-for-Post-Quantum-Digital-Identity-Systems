@@ -101,7 +101,7 @@ The verification is the same - Docker Desktop forwards port 8000 to your Mac.
 
 ```bash
 source .venv/bin/activate
-python scripts/make_demo_assets.py          # once: builds demo_assets/attacks/ (see GUIDE.md)
+python scripts/make_demo_assets.py          # once: builds demo_assets/attacks/ (see docs/GUIDE.md)
 streamlit run client_demo/streamlit_app.py
 ```
 
@@ -117,7 +117,7 @@ python scripts/demo_check.py
 
 This runs every demo scenario through the real client code and prints the
 decision and the check/detector that made it; it should end with
-`12/12 scenarios behaved as expected`. Then follow `GUIDE.md`.
+`12/12 scenarios behaved as expected`. Then follow `docs/GUIDE.md`.
 
 ## Troubleshooting
 
@@ -132,6 +132,8 @@ decision and the check/detector that made it; it should end with
 | Webcam not detected | Browser permissions | Allow camera access for `localhost:8501` in the browser, and in System Settings → Privacy & Security → Camera for the browser |
 | `Address already in use` on port 8000 | The Docker container (`docker compose up`) is already serving port 8000 | Use one server: `docker compose down`, or keep Docker and skip the native `uvicorn` |
 | `ModuleNotFoundError: cv2` | Wrong requirements file installed | Ensure you ran `pip install -r requirements-client.txt` |
+| `session offer is not signed by the pinned server key` | The server's identity key changed since this client first pinned it (new `SERVER_KEY_PATH`, or `~/.pqbio/server_identity_*.json` deleted) | If you changed it on purpose, delete the `server_keys` entry for that URL in `~/.pqbio/device_ML-DSA-65.json`; otherwise treat it as a man in the middle |
+| `demo_check.py` says replay memory not reset, and the genuine sample is rejected as a replay | Server not started with `DEMO_MODE=true` | Start it with `DEMO_MODE=true uvicorn server.main:app --port 8000`, or restart the server before each check |
 
 ## Running tests
 

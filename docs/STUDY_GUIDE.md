@@ -383,7 +383,7 @@ This is the **novel integration point** of the project — what makes it more th
 
 ## 10. Results & Evaluation
 
-> Measured results (latency, PQC vs classical, the 12-scenario attack matrix and the quantum-circuit experiments) are in `report/FINAL_REPORT.md` §4.4; `python scripts/demo_check.py` reproduces the attack matrix against a running server.
+> Measured results (latency, PQC vs classical, the 12-scenario attack matrix and the quantum-circuit experiments) are in `report/final-report/QUANTUM-FINAL-REPORT-REVISED.docx`; `python scripts/demo_check.py` reproduces the attack matrix against a running server.
 
 ### What is Measured
 

@@ -10,27 +10,38 @@ which quantum computers will break, so sessions recorded today can be
 decrypted later. And even a perfectly secure channel says nothing about
 whether the face in it is real: a deepfake sent over TLS is still a deepfake.
 
-This project is a working prototype that addresses both. It checks that a
-face capture is **genuine, live, unaltered, fresh and bound to one
-session**, and sends it over a channel that stays secure against quantum
-computers.
+This project is a working prototype of **biometric evidence screening**
+that addresses both. It checks that a face capture came unaltered from an
+enrolled device, for one session, within the last 30 s, and shows none of
+five attack signatures. It sends the capture over a channel that stays
+secure against quantum computers. Invalid submissions are rejected
+cryptographically **before** any image is read or any model runs. It does
+not match the face against a trusted identity reference, so it does not
+by itself establish who the person is (see
+[`docs/PROTOCOL.md`](docs/PROTOCOL.md), Section 5).
 
 ![Architecture](report/figures/fig_a1_architecture.png)
 
 ## Key features
 
-- **Post-quantum channel.** The client runs **ML-KEM-768** (FIPS 203)
-  against the session's key and encrypts the evidence with **AES-256-GCM**.
+- **Post-quantum channel with an authenticated server key.** The server
+  signs each session offer, including its ephemeral **ML-KEM-768** (FIPS 203)
+  key, with its ML-DSA identity key. The client checks that signature
+  against the pinned server key before it encapsulates, then encrypts the
+  evidence with **AES-256-GCM**.
 - **Transaction binding with early rejection.** An **ML-DSA-65** (FIPS 204)
   signature, made on the capture device with a key that never leaves it,
-  over the evidence fingerprint, a single-use 256-bit nonce, a timestamp and
-  the liveness-challenge answer. The server checks nonce, freshness,
-  signature and frame fingerprint cheapest-first and stops at the first
-  failure, so forged or replayed submissions are rejected before any image
-  is decoded or any model runs.
+  over the evidence fingerprint, a single-use 256-bit nonce (consumed
+  atomically, so concurrent duplicates cannot both pass), a timestamp, the
+  liveness-challenge answer, the session id, the ML-KEM ciphertext and the
+  injection-check metadata. The server checks nonce, freshness, signature
+  and frame fingerprint cheapest-first and stops at the first failure, so
+  forged or replayed submissions are rejected before the frames are read,
+  decrypted or decoded. The exact format and check order are in
+  [`docs/PROTOCOL.md`](docs/PROTOCOL.md).
 - **Distributed trust.** Devices enrol only their public key
-  (`POST /device/enroll`); the server stores public keys and has no way to
-  sign on a client's behalf.
+  (`POST /device/enroll`, optionally gated by `ENROLLMENT_TOKEN`); the server
+  stores public keys and has no way to sign evidence on a client's behalf.
 - **Live recording with a liveness challenge.** The dashboard records a
   4 s clip from the browser camera while the person performs a randomly
   chosen task (turn head, nod, say a number).
@@ -53,7 +64,9 @@ computers.
 0. **Enrol (once).** The device generates an ML-DSA keypair and sends only
    the public key.
 1. **Session.** The server issues a session ID, a one-time nonce, a random
-   liveness challenge and an ML-KEM public key.
+   liveness challenge and an ephemeral ML-KEM public key, all signed with its
+   identity key. The client verifies that signature against the pinned
+   server key.
 2. **Capture.** The person records a short clip: looking at the camera,
    then performing the challenge.
 3. **Bind.** On the device, the frames' SHA-256 fingerprint is signed with
@@ -64,9 +77,10 @@ computers.
 5. **Gate.** The server decrypts, then checks nonce → freshness → ML-DSA
    signature → frame fingerprint, stopping at the first failure. Only then
    are frames decoded and the liveness challenge checked.
-6. **Detect and decide.** Five detectors score the evidence. Each score is
-   normalised to its own calibrated threshold; any detector below its
-   threshold rejects.
+6. **Detect and decide.** Five detectors score the evidence. Each threshold
+   is a separate veto: any detector below its own calibrated threshold
+   rejects. A threshold-normalised weighted mean is reported, but it does
+   not decide.
 7. **Explain.** The response says why.
 
 | Detector | What it checks |
@@ -88,11 +102,13 @@ Apple M3, CPU only; details in `report/final-report/QUANTUM-FINAL-REPORT-REVISED
 
 | | Result |
 |---|---|
-| Forged submission, server time: integrated vs layered pipeline | 0.26 ms vs 498 ms (≈1,900×) |
-| Forged-request flood (4 attacker processes, 20 s) | 3,306 vs 41 forged requests absorbed for the same genuine slowdown |
+| Forged submission, server time: integrated / buffered / layered | 0.29 ms / 3.2 ms / 538 ms |
+| Forged requests/s needed to double genuine latency (3 repeats) | 96 ± 18 integrated, 44 ± 2 buffered, 1.25 ± 0.06 layered (77× layered) |
+| Same protocol with ECDSA-P256 instead of ML-DSA-65 | 0.46 ms, 109 ± 1 requests/s: the gain is the check order, not the signature scheme |
+| Validly signed attacks (enrolled device key) accepted | 31/60 webcam presentation attacks, 10/40 re-encoded injections, 7/10 lossless injections, 0/135 still images, 0/10 replays |
 | All post-quantum work on the server per verification | 5.97 ms (1.2% of server time) |
 | ML-KEM-768 encaps + decaps vs RSA-3072 | 0.045 ms vs 3.70 ms |
-| PAD (MiniFASNet), CASIA-FASD test | worst-species APCER 0.7%, BPCER 14.4%, EER 6.3% (heuristic: 44.8%) |
+| PAD (MiniFASNet), CASIA-FASD test | worst-species APCER 0.7%, BPCER 14.4% [8.4, 21.4] by subject, EER 6.3% (heuristic: 44.8%) |
 | PAD cross-dataset AUC: CelebA-Spoof / webcam video | 0.782 / 0.782 |
 | Deepfake (EfficientNet-B0), DFF unseen identities | AUC 0.930 on the training generator; does not transfer to unseen diffusion generators |
 | Injection classifier vs timing heuristic (forged jitter) | APCER 4.0% vs 100% (25→30 fps file), BPCER 6.4% |
@@ -233,7 +249,7 @@ See [`docs/SETUP.md`](docs/SETUP.md).
 
 Each result shows the post-quantum channel used, every binding check, each
 detector's score and verdict, and a **"Why was this rejected?"** list. A
-step-by-step presenter's guide is in [`GUIDE.md`](GUIDE.md).
+step-by-step presenter's guide is in [`docs/GUIDE.md`](docs/GUIDE.md).
 
 ## Project structure
 
@@ -245,7 +261,7 @@ server/         FastAPI app: device registry, sessions, sealed verification pipe
 client_demo/    Device identity (ML-DSA key), Streamlit dashboard, clip recorder, API client
 evaluation/     Data fetch, training/fine-tuning, PAD/deepfake/injection benchmarks, ISO 30107-3 metrics
 scripts/        make_demo_assets.py (demo samples), demo_check.py (self-check)
-tests/          117 unit and API tests
+tests/          134 unit and API tests
 report/         Final report, figures, raw data, experiment scripts (incl. Qiskit circuits)
 docs/           Architecture, setup guides, study guide, original specification
 datasets/       Download instructions only (datasets are not committed)
@@ -257,22 +273,26 @@ demo_assets/    Generated demo samples (gitignored) and their description
 | Endpoint | Purpose |
 |---|---|
 | `GET /health` | Status, algorithms, liboqs readiness |
+| `GET /server/identity` | The server's ML-DSA identity public key, which clients pin |
 | `POST /device/enroll` | `{sig_alg, public_key}` → `device_id`; registers a device's ML-DSA public key |
-| `POST /session/start` | `{device_id}` → nonce, challenge, ML-KEM public key |
+| `POST /session/start` | `{device_id}` → nonce, challenge, ML-KEM public key, signed by the server identity key |
 | `POST /session/{id}/verify-sealed` | Binary PQB1 envelope (ML-KEM ct, sealed header, sealed frames). Header checked first; frames read only if the signature is valid → liveness → AI → decision + explanations |
-| `POST /session/{id}/verify` | Same pipeline without the sealed channel (still requires the device signature) |
+| `POST /session/{id}/verify` | Plaintext variant for unit tests only; 404 unless `ALLOW_PLAINTEXT_VERIFY=true` |
 | `POST /demo/reset-replay-store` | Clear replay memory between rehearsals (`DEMO_MODE=true` only) |
 | `DELETE /session/{id}` | Close a session and free its keys |
 
 ## Testing and reproducibility
 
 ```bash
-pytest tests/ -q                                 # 117 tests; liboqs-dependent ones skip without liboqs
+pytest tests/ -q                                 # 134 tests; liboqs-dependent ones skip without liboqs
 python evaluation/fetch_data.py                  # exact public subsets (HTTP range requests)
 python evaluation/finetune_pad.py && python evaluation/benchmark_pad.py
 python evaluation/train_deepfake.py && python evaluation/benchmark_deepfake.py
 python evaluation/train_injection.py             # injection classifier + its evaluation
-python report/scripts/distributed_experiments.py # two-process latency, integrated vs layered, flood
+python report/scripts/distributed_experiments.py # two-process latency and rejection cost: integrated / buffered / layered x ML-DSA / ECDSA
+python report/scripts/flood_experiment.py        # forged-request rate needed to double genuine latency (3 repeats)
+python report/scripts/signed_attacks.py          # public-data attacks signed by the enrolled device: which check rejects each
+python evaluation/cluster_ci.py                  # intervals by subject / video / person
 python report/scripts/results_figures.py         # figures from the saved results
 ```
 
@@ -293,9 +313,14 @@ The quantum experiments need Qiskit in a separate environment
   dataset exists.
 - **Morph detector** is still signal processing and is not benchmarked
   (public morph datasets require an access request).
-- **Enrollment is trust-on-first-use.** A deployment would tie
-  `POST /device/enroll` to onboarding or hardware key attestation and rate-
-  limit per device.
+- **Screening, not identification.** A valid device signature proves the
+  bytes came from an enrolled key. It does not prove that a real camera
+  captured them (no hardware attestation), and there is no face match
+  against a trusted identity reference.
+- **Enrollment is trust-on-first-use** (or a shared `ENROLLMENT_TOKEN`). A
+  deployment would tie `POST /device/enroll` to onboarding or hardware key
+  attestation and rate-limit per device. The server key is pinned on first
+  use unless `PQBIO_SERVER_PUBKEY` is distributed out of band.
 - **liboqs is required on the client** now that the client signs.
 - **In-memory state.** Sessions, devices and replay memory live in one
   process; a multi-server deployment would need a shared store.
@@ -313,9 +338,10 @@ The quantum experiments need Qiskit in a separate environment
 
 | Document | For |
 |---|---|
-| [`GUIDE.md`](GUIDE.md) | Presenter's guide: running the demo, showing each ACCEPT/REJECT |
+| [`docs/GUIDE.md`](docs/GUIDE.md) | Presenter's guide: running the demo, showing each ACCEPT/REJECT |
+| [`docs/PROTOCOL.md`](docs/PROTOCOL.md) | Exact protocol: keys, signed and encrypted fields, wire format, server check order, decision rule |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Verification flow, detectors, security properties |
 | [`docs/SETUP_MACOS.md`](docs/SETUP_MACOS.md), [`docs/SETUP.md`](docs/SETUP.md) | Detailed setup (macOS, Windows) |
 | [`docs/STUDY_GUIDE.md`](docs/STUDY_GUIDE.md) | Background: PQC, algorithms, detectors, terminology |
-| [`report/FINAL_REPORT.md`](report/FINAL_REPORT.md) | Full report with quantum circuits, results and references |
+| [`report/final-report/QUANTUM-FINAL-REPORT-REVISED.docx`](report/final-report/QUANTUM-FINAL-REPORT-REVISED.docx) | Current full report (older versions in `report/archive/`) |
 | [`CHANGELOG.md`](CHANGELOG.md), [`CLAUDE.md`](CLAUDE.md) | Change history, contributor conventions |

@@ -58,9 +58,9 @@ def test_injection_explains_machine_perfect_timing():
     assert "machine-perfect" in out[0] and "re-encoded" in out[0]
 
 
-def test_low_fused_score_without_veto_is_explained():
-    out = explain(accepted=False, binding_checks={}, binding_reasons=[], detection_scores={}, below_threshold_modules=[], fused_score=0.55)
-    assert "0.55" in out[0]
+def test_accept_quotes_the_reported_mean_not_a_fused_threshold():
+    out = explain(accepted=True, binding_checks={}, binding_reasons=[], fused_score=0.81)
+    assert "0.81" in out[0] and "own thresholds" in out[0]
 
 
 def test_multiple_vetoes_lead_with_the_most_specific_reason():

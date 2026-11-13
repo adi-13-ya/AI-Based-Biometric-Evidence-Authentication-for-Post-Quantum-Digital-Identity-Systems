@@ -4,7 +4,7 @@ Your hands-on guide: how the system works, how to run it on your Mac, and
 exactly what to click to show an **ACCEPT** and every kind of **REJECT**,
 with what you'll see on screen and what to say. (The public overview is in
 [`README.md`](README.md); the full write-up is in
-[`report/FINAL_REPORT.md`](report/FINAL_REPORT.md).)
+[`report/final-report/QUANTUM-FINAL-REPORT-REVISED.docx`](../report/final-report/QUANTUM-FINAL-REPORT-REVISED.docx).)
 
 ---
 

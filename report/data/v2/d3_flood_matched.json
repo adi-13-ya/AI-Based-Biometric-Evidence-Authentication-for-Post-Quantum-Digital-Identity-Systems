@@ -1,0 +1,1201 @@
+{
+  "integrated_mldsa65": {
+    "mode": "integrated",
+    "sig_alg": "ML-DSA-65",
+    "seconds": 15,
+    "attack_procs": 4,
+    "degradation": 2.0,
+    "server_key_path_shared": true,
+    "repeats": [
+      {
+        "repeat": 0,
+        "baseline": {
+          "target_rate": null,
+          "forged_requests": 0,
+          "forged_accepted": 0,
+          "forged_per_s": 0,
+          "victim_completed": 28,
+          "victim_accepted": 28,
+          "victim_ms_median": 508.14335397444665,
+          "server_cpu_s": 50.734387456,
+          "attacker_errors": []
+        },
+        "sweep": [
+          {
+            "target_rate": 10,
+            "forged_requests": 150,
+            "forged_accepted": 0,
+            "forged_per_s": 9.998143647871625,
+            "victim_completed": 30,
+            "victim_accepted": 30,
+            "victim_ms_median": 492.51037556678057,
+            "server_cpu_s": 53.364986880000004,
+            "attacker_errors": [],
+            "latency_ratio": 0.9692351020919734
+          },
+          {
+            "target_rate": 25,
+            "forged_requests": 375,
+            "forged_accepted": 0,
+            "forged_per_s": 24.997155977959107,
+            "victim_completed": 28,
+            "victim_accepted": 28,
+            "victim_ms_median": 540.9226664924063,
+            "server_cpu_s": 52.60594790400002,
+            "attacker_errors": [],
+            "latency_ratio": 1.0645080020462259
+          },
+          {
+            "target_rate": 50,
+            "forged_requests": 750,
+            "forged_accepted": 0,
+            "forged_per_s": 49.98720375895934,
+            "victim_completed": 25,
+            "victim_accepted": 25,
+            "victim_ms_median": 579.2586249299347,
+            "server_cpu_s": 51.92744959999999,
+            "attacker_errors": [],
+            "latency_ratio": 1.1399511976281094
+          },
+          {
+            "target_rate": 100,
+            "forged_requests": 1500,
+            "forged_accepted": 0,
+            "forged_per_s": 99.93704502120426,
+            "victim_completed": 17,
+            "victim_accepted": 17,
+            "victim_ms_median": 872.8925409959629,
+            "server_cpu_s": 48.60742860800002,
+            "attacker_errors": [],
+            "latency_ratio": 1.7178076504762447
+          },
+          {
+            "target_rate": 0,
+            "forged_requests": 2248,
+            "forged_accepted": 0,
+            "forged_per_s": 149.7695284568295,
+            "victim_completed": 9,
+            "victim_accepted": 9,
+            "victim_ms_median": 1751.051500090398,
+            "server_cpu_s": 39.25709619199995,
+            "attacker_errors": [],
+            "latency_ratio": 3.445979341055111
+          }
+        ],
+        "forged_per_s_at_2x": 106.76182236272787,
+        "is_lower_bound": false
+      },
+      {
+        "repeat": 1,
+        "baseline": {
+          "target_rate": null,
+          "forged_requests": 0,
+          "forged_accepted": 0,
+          "forged_per_s": 0,
+          "victim_completed": 30,
+          "victim_accepted": 30,
+          "victim_ms_median": 477.0311039756052,
+          "server_cpu_s": 52.56375500799999,
+          "attacker_errors": []
+        },
+        "sweep": [
+          {
+            "target_rate": 10,
+            "forged_requests": 150,
+            "forged_accepted": 0,
+            "forged_per_s": 9.997239343721493,
+            "victim_completed": 30,
+            "victim_accepted": 30,
+            "victim_ms_median": 491.84564605820924,
+            "server_cpu_s": 53.75413452799995,
+            "attacker_errors": [],
+            "latency_ratio": 1.0310557151496804
+          },
+          {
+            "target_rate": 25,
+            "forged_requests": 375,
+            "forged_accepted": 0,
+            "forged_per_s": 24.991636588078556,
+            "victim_completed": 28,
+            "victim_accepted": 28,
+            "victim_ms_median": 513.9700000290759,
+            "server_cpu_s": 52.15293440000005,
+            "attacker_errors": [],
+            "latency_ratio": 1.0774349843136428
+          },
+          {
+            "target_rate": 50,
+            "forged_requests": 750,
+            "forged_accepted": 0,
+            "forged_per_s": 49.986322351151316,
+            "victim_completed": 24,
+            "victim_accepted": 24,
+            "victim_ms_median": 594.1671039909124,
+            "server_cpu_s": 51.13766707199994,
+            "attacker_errors": [],
+            "latency_ratio": 1.2455521223649546
+          },
+          {
+            "target_rate": 100,
+            "forged_requests": 1500,
+            "forged_accepted": 0,
+            "forged_per_s": 99.9295124766704,
+            "victim_completed": 18,
+            "victim_accepted": 18,
+            "victim_ms_median": 842.7471250179224,
+            "server_cpu_s": 50.13803827200002,
+            "attacker_errors": [],
+            "latency_ratio": 1.7666502624135374
+          },
+          {
+            "target_rate": 0,
+            "forged_requests": 2313,
+            "forged_accepted": 0,
+            "forged_per_s": 154.1076793508289,
+            "victim_completed": 9,
+            "victim_accepted": 9,
+            "victim_ms_median": 1663.183958036825,
+            "server_cpu_s": 41.79784499200002,
+            "attacker_errors": [],
+            "latency_ratio": 3.486531473892902
+          }
+        ],
+        "forged_per_s_at_2x": 105.97877783026249,
+        "is_lower_bound": false
+      },
+      {
+        "repeat": 2,
+        "baseline": {
+          "target_rate": null,
+          "forged_requests": 0,
+          "forged_accepted": 0,
+          "forged_per_s": 0,
+          "victim_completed": 30,
+          "victim_accepted": 30,
+          "victim_ms_median": 477.8984164586291,
+          "server_cpu_s": 53.032402943999955,
+          "attacker_errors": []
+        },
+        "sweep": [
+          {
+            "target_rate": 10,
+            "forged_requests": 150,
+            "forged_accepted": 0,
+            "forged_per_s": 9.99757185340823,
+            "victim_completed": 25,
+            "victim_accepted": 25,
+            "victim_ms_median": 570.8411249797791,
+            "server_cpu_s": 49.57228236799995,
+            "attacker_errors": [],
+            "latency_ratio": 1.194482143736494
+          },
+          {
+            "target_rate": 25,
+            "forged_requests": 375,
+            "forged_accepted": 0,
+            "forged_per_s": 24.994590824110947,
+            "victim_completed": 27,
+            "victim_accepted": 27,
+            "victim_ms_median": 537.8695409744978,
+            "server_cpu_s": 51.43258726400006,
+            "attacker_errors": [],
+            "latency_ratio": 1.1254892723024126
+          },
+          {
+            "target_rate": 50,
+            "forged_requests": 750,
+            "forged_accepted": 0,
+            "forged_per_s": 49.993984114757424,
+            "victim_completed": 23,
+            "victim_accepted": 23,
+            "victim_ms_median": 658.3793329773471,
+            "server_cpu_s": 50.68477235199998,
+            "attacker_errors": [],
+            "latency_ratio": 1.3776553976808206
+          },
+          {
+            "target_rate": 100,
+            "forged_requests": 1444,
+            "forged_accepted": 0,
+            "forged_per_s": 96.21222013096686,
+            "victim_completed": 12,
+            "victim_accepted": 12,
+            "victim_ms_median": 1127.0791040733457,
+            "server_cpu_s": 40.36996300800001,
+            "attacker_errors": [],
+            "latency_ratio": 2.358407279156396
+          },
+          {
+            "target_rate": 0,
+            "forged_requests": 1931,
+            "forged_accepted": 0,
+            "forged_per_s": 128.4386347753932,
+            "victim_completed": 8,
+            "victim_accepted": 8,
+            "victim_ms_median": 2011.1895625013858,
+            "server_cpu_s": 35.77187532799985,
+            "attacker_errors": [],
+            "latency_ratio": 4.2084039060118785
+          }
+        ],
+        "forged_per_s_at_2x": 75.74094166710427,
+        "is_lower_bound": false
+      }
+    ],
+    "forged_per_s_at_2x_mean": 96.16051395336488,
+    "forged_per_s_at_2x_sd": 17.688201970531733,
+    "any_lower_bound": false
+  },
+  "buffered_mldsa65": {
+    "mode": "buffered",
+    "sig_alg": "ML-DSA-65",
+    "seconds": 15,
+    "attack_procs": 4,
+    "degradation": 2.0,
+    "server_key_path_shared": true,
+    "repeats": [
+      {
+        "repeat": 0,
+        "baseline": {
+          "target_rate": null,
+          "forged_requests": 0,
+          "forged_accepted": 0,
+          "forged_per_s": 0,
+          "victim_completed": 28,
+          "victim_accepted": 28,
+          "victim_ms_median": 509.6378540038131,
+          "server_cpu_s": 52.288179584,
+          "attacker_errors": []
+        },
+        "sweep": [
+          {
+            "target_rate": 5,
+            "forged_requests": 75,
+            "forged_accepted": 0,
+            "forged_per_s": 4.998427933935769,
+            "victim_completed": 28,
+            "victim_accepted": 28,
+            "victim_ms_median": 529.497875017114,
+            "server_cpu_s": 51.124319744,
+            "attacker_errors": [],
+            "latency_ratio": 1.0389688890989488
+          },
+          {
+            "target_rate": 10,
+            "forged_requests": 150,
+            "forged_accepted": 0,
+            "forged_per_s": 9.997540676625224,
+            "victim_completed": 27,
+            "victim_accepted": 27,
+            "victim_ms_median": 546.573750092648,
+            "server_cpu_s": 51.619780608,
+            "attacker_errors": [],
+            "latency_ratio": 1.072474789301186
+          },
+          {
+            "target_rate": 20,
+            "forged_requests": 300,
+            "forged_accepted": 0,
+            "forged_per_s": 19.99599255810397,
+            "victim_completed": 24,
+            "victim_accepted": 24,
+            "victim_ms_median": 611.5297499927692,
+            "server_cpu_s": 50.83304345600001,
+            "attacker_errors": [],
+            "latency_ratio": 1.1999299996820756
+          },
+          {
+            "target_rate": 40,
+            "forged_requests": 600,
+            "forged_accepted": 0,
+            "forged_per_s": 39.97685584509467,
+            "victim_completed": 18,
+            "victim_accepted": 18,
+            "victim_ms_median": 841.1219380213879,
+            "server_cpu_s": 48.908075008,
+            "attacker_errors": [],
+            "latency_ratio": 1.650430656618954
+          },
+          {
+            "target_rate": 0,
+            "forged_requests": 941,
+            "forged_accepted": 0,
+            "forged_per_s": 62.58297937596231,
+            "victim_completed": 8,
+            "victim_accepted": 8,
+            "victim_ms_median": 1710.1473124930635,
+            "server_cpu_s": 43.10438707199995,
+            "attacker_errors": [],
+            "latency_ratio": 3.3556128122309143
+          }
+        ],
+        "forged_per_s_at_2x": 43.824017816259854,
+        "is_lower_bound": false
+      },
+      {
+        "repeat": 1,
+        "baseline": {
+          "target_rate": null,
+          "forged_requests": 0,
+          "forged_accepted": 0,
+          "forged_per_s": 0,
+          "victim_completed": 30,
+          "victim_accepted": 30,
+          "victim_ms_median": 484.9868540186435,
+          "server_cpu_s": 52.960927744,
+          "attacker_errors": []
+        },
+        "sweep": [
+          {
+            "target_rate": 5,
+            "forged_requests": 75,
+            "forged_accepted": 0,
+            "forged_per_s": 4.999022291721987,
+            "victim_completed": 28,
+            "victim_accepted": 28,
+            "victim_ms_median": 530.242812470533,
+            "server_cpu_s": 51.872751616000016,
+            "attacker_errors": [],
+            "latency_ratio": 1.0933137838209317
+          },
+          {
+            "target_rate": 10,
+            "forged_requests": 150,
+            "forged_accepted": 0,
+            "forged_per_s": 9.99772360882136,
+            "victim_completed": 25,
+            "victim_accepted": 25,
+            "victim_ms_median": 556.7007079953328,
+            "server_cpu_s": 47.99816499199994,
+            "attacker_errors": [],
+            "latency_ratio": 1.1478676244159238
+          },
+          {
+            "target_rate": 20,
+            "forged_requests": 300,
+            "forged_accepted": 0,
+            "forged_per_s": 19.99635951452498,
+            "victim_completed": 23,
+            "victim_accepted": 23,
+            "victim_ms_median": 627.5559170171618,
+            "server_cpu_s": 49.984544768000035,
+            "attacker_errors": [],
+            "latency_ratio": 1.293964798874812
+          },
+          {
+            "target_rate": 40,
+            "forged_requests": 599,
+            "forged_accepted": 0,
+            "forged_per_s": 39.89738890262831,
+            "victim_completed": 16,
+            "victim_accepted": 16,
+            "victim_ms_median": 898.587187519297,
+            "server_cpu_s": 48.052649984000084,
+            "attacker_errors": [],
+            "latency_ratio": 1.8528073082260375
+          },
+          {
+            "target_rate": 0,
+            "forged_requests": 967,
+            "forged_accepted": 0,
+            "forged_per_s": 64.38196670206804,
+            "victim_completed": 9,
+            "victim_accepted": 9,
+            "victim_ms_median": 1678.8383750244975,
+            "server_cpu_s": 46.0096962560001,
+            "attacker_errors": [],
+            "latency_ratio": 3.461616250241622
+          }
+        ],
+        "forged_per_s_at_2x": 41.682932119646686,
+        "is_lower_bound": false
+      },
+      {
+        "repeat": 2,
+        "baseline": {
+          "target_rate": null,
+          "forged_requests": 0,
+          "forged_accepted": 0,
+          "forged_per_s": 0,
+          "victim_completed": 29,
+          "victim_accepted": 29,
+          "victim_ms_median": 500.7467909017578,
+          "server_cpu_s": 51.531677695999974,
+          "attacker_errors": []
+        },
+        "sweep": [
+          {
+            "target_rate": 5,
+            "forged_requests": 75,
+            "forged_accepted": 0,
+            "forged_per_s": 4.9991760268769845,
+            "victim_completed": 29,
+            "victim_accepted": 29,
+            "victim_ms_median": 504.11166599951684,
+            "server_cpu_s": 52.24054783999998,
+            "attacker_errors": [],
+            "latency_ratio": 1.0067197137533312
+          },
+          {
+            "target_rate": 10,
+            "forged_requests": 150,
+            "forged_accepted": 0,
+            "forged_per_s": 9.997004942285287,
+            "victim_completed": 27,
+            "victim_accepted": 27,
+            "victim_ms_median": 534.594958066009,
+            "server_cpu_s": 50.86194892800006,
+            "attacker_errors": [],
+            "latency_ratio": 1.067595375106242
+          },
+          {
+            "target_rate": 20,
+            "forged_requests": 300,
+            "forged_accepted": 0,
+            "forged_per_s": 19.994646794053914,
+            "victim_completed": 24,
+            "victim_accepted": 24,
+            "victim_ms_median": 606.633021030575,
+            "server_cpu_s": 51.06950144000007,
+            "attacker_errors": [],
+            "latency_ratio": 1.211456632479131
+          },
+          {
+            "target_rate": 40,
+            "forged_requests": 600,
+            "forged_accepted": 0,
+            "forged_per_s": 39.97987250751893,
+            "victim_completed": 18,
+            "victim_accepted": 18,
+            "victim_ms_median": 827.6364790508524,
+            "server_cpu_s": 49.48975615999984,
+            "attacker_errors": [],
+            "latency_ratio": 1.6528043595854567
+          },
+          {
+            "target_rate": 0,
+            "forged_requests": 1039,
+            "forged_accepted": 0,
+            "forged_per_s": 69.17451031222186,
+            "victim_completed": 9,
+            "victim_accepted": 9,
+            "victim_ms_median": 1609.8014590097591,
+            "server_cpu_s": 46.91255295999997,
+            "attacker_errors": [],
+            "latency_ratio": 3.2148013492224026
+          }
+        ],
+        "forged_per_s_at_2x": 45.161311465517144,
+        "is_lower_bound": false
+      }
+    ],
+    "forged_per_s_at_2x_mean": 43.55608713380789,
+    "forged_per_s_at_2x_sd": 1.7545999134828225,
+    "any_lower_bound": false
+  },
+  "layered_mldsa65": {
+    "mode": "layered",
+    "sig_alg": "ML-DSA-65",
+    "seconds": 15,
+    "attack_procs": 4,
+    "degradation": 2.0,
+    "server_key_path_shared": true,
+    "repeats": [
+      {
+        "repeat": 0,
+        "baseline": {
+          "target_rate": null,
+          "forged_requests": 0,
+          "forged_accepted": 0,
+          "forged_per_s": 0,
+          "victim_completed": 29,
+          "victim_accepted": 29,
+          "victim_ms_median": 512.5052909133956,
+          "server_cpu_s": 52.387044224,
+          "attacker_errors": []
+        },
+        "sweep": [
+          {
+            "target_rate": 0.5,
+            "forged_requests": 8,
+            "forged_accepted": 0,
+            "forged_per_s": 0.5282506428727066,
+            "victim_completed": 25,
+            "victim_accepted": 22,
+            "victim_ms_median": 544.4132499396801,
+            "server_cpu_s": 71.62916249599999,
+            "attacker_errors": [],
+            "latency_ratio": 1.0622587895032607
+          },
+          {
+            "target_rate": 1,
+            "forged_requests": 15,
+            "forged_accepted": 0,
+            "forged_per_s": 0.9996665488030698,
+            "victim_completed": 20,
+            "victim_accepted": 17,
+            "victim_ms_median": 740.6804580241442,
+            "server_cpu_s": 85.62531532800003,
+            "attacker_errors": [],
+            "latency_ratio": 1.445215241981387
+          },
+          {
+            "target_rate": 2,
+            "forged_requests": 29,
+            "forged_accepted": 0,
+            "forged_per_s": 1.8759704460386823,
+            "victim_completed": 12,
+            "victim_accepted": 5,
+            "victim_ms_median": 1378.216708486434,
+            "server_cpu_s": 115.38331238400002,
+            "attacker_errors": [],
+            "latency_ratio": 2.689175571300255
+          },
+          {
+            "target_rate": 4,
+            "forged_requests": 31,
+            "forged_accepted": 0,
+            "forged_per_s": 1.9283018212958316,
+            "victim_completed": 9,
+            "victim_accepted": 4,
+            "victim_ms_median": 1827.3736669216305,
+            "server_cpu_s": 116.56829337599999,
+            "attacker_errors": [],
+            "latency_ratio": 3.5655703449711793
+          }
+        ],
+        "forged_per_s_at_2x": 1.323651985836837,
+        "is_lower_bound": false
+      },
+      {
+        "repeat": 1,
+        "baseline": {
+          "target_rate": null,
+          "forged_requests": 0,
+          "forged_accepted": 0,
+          "forged_per_s": 0,
+          "victim_completed": 29,
+          "victim_accepted": 29,
+          "victim_ms_median": 504.9793750513345,
+          "server_cpu_s": 52.51689676799998,
+          "attacker_errors": []
+        },
+        "sweep": [
+          {
+            "target_rate": 0.5,
+            "forged_requests": 8,
+            "forged_accepted": 0,
+            "forged_per_s": 0.5296086200256698,
+            "victim_completed": 24,
+            "victim_accepted": 22,
+            "victim_ms_median": 596.2420835276134,
+            "server_cpu_s": 70.75196108799992,
+            "attacker_errors": [],
+            "latency_ratio": 1.1807256157085653
+          },
+          {
+            "target_rate": 1,
+            "forged_requests": 15,
+            "forged_accepted": 0,
+            "forged_per_s": 0.9997561856803036,
+            "victim_completed": 19,
+            "victim_accepted": 15,
+            "victim_ms_median": 735.3745000436902,
+            "server_cpu_s": 85.19783219200008,
+            "attacker_errors": [],
+            "latency_ratio": 1.456246604069591
+          },
+          {
+            "target_rate": 2,
+            "forged_requests": 29,
+            "forged_accepted": 0,
+            "forged_per_s": 1.824083921782416,
+            "victim_completed": 10,
+            "victim_accepted": 3,
+            "victim_ms_median": 1614.8429795284756,
+            "server_cpu_s": 111.4183270399999,
+            "attacker_errors": [],
+            "latency_ratio": 3.197839474858386
+          },
+          {
+            "target_rate": 4,
+            "forged_requests": 31,
+            "forged_accepted": 0,
+            "forged_per_s": 1.9225102374533654,
+            "victim_completed": 9,
+            "victim_accepted": 3,
+            "victim_ms_median": 1861.5393328946084,
+            "server_cpu_s": 114.95630438400008,
+            "attacker_errors": [],
+            "latency_ratio": 3.6863670574770913
+          }
+        ],
+        "forged_per_s_at_2x": 1.2062284488183197,
+        "is_lower_bound": false
+      },
+      {
+        "repeat": 2,
+        "baseline": {
+          "target_rate": null,
+          "forged_requests": 0,
+          "forged_accepted": 0,
+          "forged_per_s": 0,
+          "victim_completed": 27,
+          "victim_accepted": 27,
+          "victim_ms_median": 527.4614579975605,
+          "server_cpu_s": 50.352324608,
+          "attacker_errors": []
+        },
+        "sweep": [
+          {
+            "target_rate": 0.5,
+            "forged_requests": 8,
+            "forged_accepted": 0,
+            "forged_per_s": 0.5293231323673897,
+            "victim_completed": 23,
+            "victim_accepted": 22,
+            "victim_ms_median": 612.6419589854777,
+            "server_cpu_s": 70.46083379200002,
+            "attacker_errors": [],
+            "latency_ratio": 1.1614914221624724
+          },
+          {
+            "target_rate": 1,
+            "forged_requests": 15,
+            "forged_accepted": 0,
+            "forged_per_s": 0.9997775301012761,
+            "victim_completed": 18,
+            "victim_accepted": 12,
+            "victim_ms_median": 799.6772084734403,
+            "server_cpu_s": 85.07821260799994,
+            "attacker_errors": [],
+            "latency_ratio": 1.5160865241401937
+          },
+          {
+            "target_rate": 2,
+            "forged_requests": 29,
+            "forged_accepted": 0,
+            "forged_per_s": 1.8618771743068998,
+            "victim_completed": 10,
+            "victim_accepted": 4,
+            "victim_ms_median": 1573.7093959469348,
+            "server_cpu_s": 110.1755187199999,
+            "attacker_errors": [],
+            "latency_ratio": 2.98355334230736
+          },
+          {
+            "target_rate": 4,
+            "forged_requests": 30,
+            "forged_accepted": 0,
+            "forged_per_s": 1.8867109720774808,
+            "victim_completed": 9,
+            "victim_accepted": 2,
+            "victim_ms_median": 1760.0177919957787,
+            "server_cpu_s": 113.42440038400014,
+            "attacker_errors": [],
+            "latency_ratio": 3.3367704223877506
+          }
+        ],
+        "forged_per_s_at_2x": 1.2273108809474693,
+        "is_lower_bound": false
+      }
+    ],
+    "forged_per_s_at_2x_mean": 1.2523971052008753,
+    "forged_per_s_at_2x_sd": 0.06260240208613328,
+    "any_lower_bound": false
+  },
+  "integrated_ecdsap256": {
+    "mode": "integrated",
+    "sig_alg": "ECDSA-P256",
+    "seconds": 15,
+    "attack_procs": 4,
+    "degradation": 2.0,
+    "server_key_path_shared": true,
+    "repeats": [
+      {
+        "repeat": 0,
+        "baseline": {
+          "target_rate": null,
+          "forged_requests": 0,
+          "forged_accepted": 0,
+          "forged_per_s": 0,
+          "victim_completed": 27,
+          "victim_accepted": 27,
+          "victim_ms_median": 521.9314170535654,
+          "server_cpu_s": 50.238805888,
+          "attacker_errors": []
+        },
+        "sweep": [
+          {
+            "target_rate": 10,
+            "forged_requests": 150,
+            "forged_accepted": 0,
+            "forged_per_s": 9.99670403144942,
+            "victim_completed": 28,
+            "victim_accepted": 28,
+            "victim_ms_median": 539.3203330459073,
+            "server_cpu_s": 51.628071936000005,
+            "attacker_errors": [],
+            "latency_ratio": 1.0333164768859993
+          },
+          {
+            "target_rate": 25,
+            "forged_requests": 375,
+            "forged_accepted": 0,
+            "forged_per_s": 24.99526536075919,
+            "victim_completed": 24,
+            "victim_accepted": 24,
+            "victim_ms_median": 565.0160415098071,
+            "server_cpu_s": 47.166935039999984,
+            "attacker_errors": [],
+            "latency_ratio": 1.082548440366869
+          },
+          {
+            "target_rate": 50,
+            "forged_requests": 750,
+            "forged_accepted": 0,
+            "forged_per_s": 49.991828624056424,
+            "victim_completed": 23,
+            "victim_accepted": 23,
+            "victim_ms_median": 622.3352919332683,
+            "server_cpu_s": 50.02495999999999,
+            "attacker_errors": [],
+            "latency_ratio": 1.1923698623978378
+          },
+          {
+            "target_rate": 100,
+            "forged_requests": 1500,
+            "forged_accepted": 0,
+            "forged_per_s": 99.96042795766076,
+            "victim_completed": 17,
+            "victim_accepted": 17,
+            "victim_ms_median": 906.352458987385,
+            "server_cpu_s": 48.418091007999976,
+            "attacker_errors": [],
+            "latency_ratio": 1.7365355473406323
+          },
+          {
+            "target_rate": 0,
+            "forged_requests": 2276,
+            "forged_accepted": 0,
+            "forged_per_s": 151.62738308514562,
+            "victim_completed": 9,
+            "victim_accepted": 9,
+            "victim_ms_median": 1527.958624996245,
+            "server_cpu_s": 40.215371775999984,
+            "attacker_errors": [],
+            "latency_ratio": 2.927508433238139
+          }
+        ],
+        "forged_per_s_at_2x": 109.61181577049963,
+        "is_lower_bound": false
+      },
+      {
+        "repeat": 1,
+        "baseline": {
+          "target_rate": null,
+          "forged_requests": 0,
+          "forged_accepted": 0,
+          "forged_per_s": 0,
+          "victim_completed": 29,
+          "victim_accepted": 29,
+          "victim_ms_median": 485.4774579871446,
+          "server_cpu_s": 51.85769472000004,
+          "attacker_errors": []
+        },
+        "sweep": [
+          {
+            "target_rate": 10,
+            "forged_requests": 150,
+            "forged_accepted": 0,
+            "forged_per_s": 9.999320703703845,
+            "victim_completed": 29,
+            "victim_accepted": 29,
+            "victim_ms_median": 489.8164999904111,
+            "server_cpu_s": 51.997163520000015,
+            "attacker_errors": [],
+            "latency_ratio": 1.00893767966335
+          },
+          {
+            "target_rate": 25,
+            "forged_requests": 375,
+            "forged_accepted": 0,
+            "forged_per_s": 24.993472920975634,
+            "victim_completed": 27,
+            "victim_accepted": 27,
+            "victim_ms_median": 519.3669580621645,
+            "server_cpu_s": 51.341451264,
+            "attacker_errors": [],
+            "latency_ratio": 1.0698065368792413
+          },
+          {
+            "target_rate": 50,
+            "forged_requests": 750,
+            "forged_accepted": 0,
+            "forged_per_s": 49.99836234841603,
+            "victim_completed": 24,
+            "victim_accepted": 24,
+            "victim_ms_median": 591.5601664455608,
+            "server_cpu_s": 50.896248832000026,
+            "attacker_errors": [],
+            "latency_ratio": 1.2185121197969715
+          },
+          {
+            "target_rate": 100,
+            "forged_requests": 1497,
+            "forged_accepted": 0,
+            "forged_per_s": 99.7905852230261,
+            "victim_completed": 17,
+            "victim_accepted": 17,
+            "victim_ms_median": 849.3691670009866,
+            "server_cpu_s": 49.75779840000007,
+            "attacker_errors": [],
+            "latency_ratio": 1.7495542852238422
+          },
+          {
+            "target_rate": 0,
+            "forged_requests": 2390,
+            "forged_accepted": 0,
+            "forged_per_s": 159.20667345208807,
+            "victim_completed": 10,
+            "victim_accepted": 10,
+            "victim_ms_median": 1475.843396037817,
+            "server_cpu_s": 44.41184665600008,
+            "attacker_errors": [],
+            "latency_ratio": 3.039983364329343
+          }
+        ],
+        "forged_per_s_at_2x": 109.26040076932203,
+        "is_lower_bound": false
+      },
+      {
+        "repeat": 2,
+        "baseline": {
+          "target_rate": null,
+          "forged_requests": 0,
+          "forged_accepted": 0,
+          "forged_per_s": 0,
+          "victim_completed": 30,
+          "victim_accepted": 30,
+          "victim_ms_median": 477.0245829713531,
+          "server_cpu_s": 52.675280896000004,
+          "attacker_errors": []
+        },
+        "sweep": [
+          {
+            "target_rate": 10,
+            "forged_requests": 150,
+            "forged_accepted": 0,
+            "forged_per_s": 9.997982636749626,
+            "victim_completed": 29,
+            "victim_accepted": 29,
+            "victim_ms_median": 493.7446670373902,
+            "server_cpu_s": 53.39122892800003,
+            "attacker_errors": [],
+            "latency_ratio": 1.0350507807415057
+          },
+          {
+            "target_rate": 25,
+            "forged_requests": 375,
+            "forged_accepted": 0,
+            "forged_per_s": 24.99601984588397,
+            "victim_completed": 27,
+            "victim_accepted": 27,
+            "victim_ms_median": 542.6720840623602,
+            "server_cpu_s": 51.70375884800001,
+            "attacker_errors": [],
+            "latency_ratio": 1.1376186960472632
+          },
+          {
+            "target_rate": 50,
+            "forged_requests": 750,
+            "forged_accepted": 0,
+            "forged_per_s": 49.99006526462656,
+            "victim_completed": 24,
+            "victim_accepted": 24,
+            "victim_ms_median": 607.5370624894276,
+            "server_cpu_s": 51.407781888000045,
+            "attacker_errors": [],
+            "latency_ratio": 1.2735969679070234
+          },
+          {
+            "target_rate": 100,
+            "forged_requests": 1500,
+            "forged_accepted": 0,
+            "forged_per_s": 99.94570045392258,
+            "victim_completed": 17,
+            "victim_accepted": 17,
+            "victim_ms_median": 854.8241249518469,
+            "server_cpu_s": 49.80291993600008,
+            "attacker_errors": [],
+            "latency_ratio": 1.7919917661836349
+          },
+          {
+            "target_rate": 0,
+            "forged_requests": 2424,
+            "forged_accepted": 0,
+            "forged_per_s": 161.4321420808952,
+            "victim_completed": 10,
+            "victim_accepted": 10,
+            "victim_ms_median": 1492.6291040028445,
+            "server_cpu_s": 44.15317606400015,
+            "attacker_errors": [],
+            "latency_ratio": 3.1290402157166852
+          }
+        ],
+        "forged_per_s_at_2x": 107.68578540982061,
+        "is_lower_bound": false
+      }
+    ],
+    "forged_per_s_at_2x_mean": 108.85266731654743,
+    "forged_per_s_at_2x_sd": 1.0257110528545395,
+    "any_lower_bound": false
+  },
+  "buffered_ecdsap256": {
+    "mode": "buffered",
+    "sig_alg": "ECDSA-P256",
+    "seconds": 15,
+    "attack_procs": 4,
+    "degradation": 2.0,
+    "server_key_path_shared": true,
+    "repeats": [
+      {
+        "repeat": 0,
+        "baseline": {
+          "target_rate": null,
+          "forged_requests": 0,
+          "forged_accepted": 0,
+          "forged_per_s": 0,
+          "victim_completed": 29,
+          "victim_accepted": 29,
+          "victim_ms_median": 471.69287491124123,
+          "server_cpu_s": 51.33138726400001,
+          "attacker_errors": []
+        },
+        "sweep": [
+          {
+            "target_rate": 5,
+            "forged_requests": 75,
+            "forged_accepted": 0,
+            "forged_per_s": 4.998694840494707,
+            "victim_completed": 29,
+            "victim_accepted": 29,
+            "victim_ms_median": 497.06008296925575,
+            "server_cpu_s": 52.913831423999994,
+            "attacker_errors": [],
+            "latency_ratio": 1.053779078309775
+          },
+          {
+            "target_rate": 10,
+            "forged_requests": 150,
+            "forged_accepted": 0,
+            "forged_per_s": 9.998532790723766,
+            "victim_completed": 28,
+            "victim_accepted": 28,
+            "victim_ms_median": 522.8796455194242,
+            "server_cpu_s": 52.388767744000006,
+            "attacker_errors": [],
+            "latency_ratio": 1.1085171587928158
+          },
+          {
+            "target_rate": 20,
+            "forged_requests": 300,
+            "forged_accepted": 0,
+            "forged_per_s": 19.99702644417637,
+            "victim_completed": 25,
+            "victim_accepted": 25,
+            "victim_ms_median": 582.2085420368239,
+            "server_cpu_s": 51.31157503999998,
+            "attacker_errors": [],
+            "latency_ratio": 1.2342958162053614
+          },
+          {
+            "target_rate": 40,
+            "forged_requests": 600,
+            "forged_accepted": 0,
+            "forged_per_s": 39.9708872085512,
+            "victim_completed": 18,
+            "victim_accepted": 18,
+            "victim_ms_median": 809.5779789728113,
+            "server_cpu_s": 49.69621094399997,
+            "attacker_errors": [],
+            "latency_ratio": 1.7163243755275084
+          },
+          {
+            "target_rate": 0,
+            "forged_requests": 1047,
+            "forged_accepted": 0,
+            "forged_per_s": 69.6988946319415,
+            "victim_completed": 9,
+            "victim_accepted": 9,
+            "victim_ms_median": 1660.5017080437392,
+            "server_cpu_s": 46.653751295999996,
+            "attacker_errors": [],
+            "latency_ratio": 3.520302714676784
+          }
+        ],
+        "forged_per_s_at_2x": 43.623132958118916,
+        "is_lower_bound": false
+      },
+      {
+        "repeat": 1,
+        "baseline": {
+          "target_rate": null,
+          "forged_requests": 0,
+          "forged_accepted": 0,
+          "forged_per_s": 0,
+          "victim_completed": 30,
+          "victim_accepted": 30,
+          "victim_ms_median": 473.611437540967,
+          "server_cpu_s": 53.170806784000035,
+          "attacker_errors": []
+        },
+        "sweep": [
+          {
+            "target_rate": 5,
+            "forged_requests": 75,
+            "forged_accepted": 0,
+            "forged_per_s": 4.996668179464038,
+            "victim_completed": 29,
+            "victim_accepted": 29,
+            "victim_ms_median": 494.00554201565683,
+            "server_cpu_s": 52.73139609599997,
+            "attacker_errors": [],
+            "latency_ratio": 1.0430608360739297
+          },
+          {
+            "target_rate": 10,
+            "forged_requests": 150,
+            "forged_accepted": 0,
+            "forged_per_s": 9.995774534768186,
+            "victim_completed": 28,
+            "victim_accepted": 28,
+            "victim_ms_median": 522.8500414523296,
+            "server_cpu_s": 52.41285017599995,
+            "attacker_errors": [],
+            "latency_ratio": 1.1039641360162538
+          },
+          {
+            "target_rate": 20,
+            "forged_requests": 300,
+            "forged_accepted": 0,
+            "forged_per_s": 19.989338776613437,
+            "victim_completed": 25,
+            "victim_accepted": 25,
+            "victim_ms_median": 577.5855409447104,
+            "server_cpu_s": 51.37604607999998,
+            "attacker_errors": [],
+            "latency_ratio": 1.2195346124738589
+          },
+          {
+            "target_rate": 40,
+            "forged_requests": 600,
+            "forged_accepted": 0,
+            "forged_per_s": 39.96992302552742,
+            "victim_completed": 18,
+            "victim_accepted": 18,
+            "victim_ms_median": 746.3212499860674,
+            "server_cpu_s": 47.73555404800004,
+            "attacker_errors": [],
+            "latency_ratio": 1.5758091777956929
+          },
+          {
+            "target_rate": 0,
+            "forged_requests": 1035,
+            "forged_accepted": 0,
+            "forged_per_s": 68.93856311357885,
+            "victim_completed": 9,
+            "victim_accepted": 9,
+            "victim_ms_median": 1692.8374579874799,
+            "server_cpu_s": 46.10269183999992,
+            "attacker_errors": [],
+            "latency_ratio": 3.574317095838824
+          }
+        ],
+        "forged_per_s_at_2x": 44.87246366016759,
+        "is_lower_bound": false
+      },
+      {
+        "repeat": 2,
+        "baseline": {
+          "target_rate": null,
+          "forged_requests": 0,
+          "forged_accepted": 0,
+          "forged_per_s": 0,
+          "victim_completed": 31,
+          "victim_accepted": 31,
+          "victim_ms_median": 473.8080829847604,
+          "server_cpu_s": 53.87098521600001,
+          "attacker_errors": []
+        },
+        "sweep": [
+          {
+            "target_rate": 5,
+            "forged_requests": 75,
+            "forged_accepted": 0,
+            "forged_per_s": 4.998636842595511,
+            "victim_completed": 29,
+            "victim_accepted": 29,
+            "victim_ms_median": 492.9636660963297,
+            "server_cpu_s": 52.24148172800005,
+            "attacker_errors": [],
+            "latency_ratio": 1.0404289918206935
+          },
+          {
+            "target_rate": 10,
+            "forged_requests": 150,
+            "forged_accepted": 0,
+            "forged_per_s": 9.99814101734825,
+            "victim_completed": 28,
+            "victim_accepted": 28,
+            "victim_ms_median": 508.5492499638349,
+            "server_cpu_s": 51.93750937599998,
+            "attacker_errors": [],
+            "latency_ratio": 1.0733232889574658
+          },
+          {
+            "target_rate": 20,
+            "forged_requests": 300,
+            "forged_accepted": 0,
+            "forged_per_s": 19.991536785507527,
+            "victim_completed": 25,
+            "victim_accepted": 25,
+            "victim_ms_median": 581.2507499940693,
+            "server_cpu_s": 50.600607743999944,
+            "attacker_errors": [],
+            "latency_ratio": 1.226764107383885
+          },
+          {
+            "target_rate": 40,
+            "forged_requests": 600,
+            "forged_accepted": 0,
+            "forged_per_s": 39.96657729224766,
+            "victim_completed": 19,
+            "victim_accepted": 19,
+            "victim_ms_median": 761.9969169609249,
+            "server_cpu_s": 49.53751551999994,
+            "attacker_errors": [],
+            "latency_ratio": 1.6082395896682788
+          },
+          {
+            "target_rate": 0,
+            "forged_requests": 1086,
+            "forged_accepted": 0,
+            "forged_per_s": 72.24322793900345,
+            "victim_completed": 9,
+            "victim_accepted": 9,
+            "victim_ms_median": 1599.3694580392912,
+            "server_cpu_s": 47.487860736000016,
+            "attacker_errors": [],
+            "latency_ratio": 3.375563894908761
+          }
+        ],
+        "forged_per_s_at_2x": 45.57094250023137,
+        "is_lower_bound": false
+      }
+    ],
+    "forged_per_s_at_2x_mean": 44.68884637283929,
+    "forged_per_s_at_2x_sd": 0.9868013904734997,
+    "any_lower_bound": false
+  }
+}
