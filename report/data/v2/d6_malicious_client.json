@@ -1,0 +1,611 @@
+{
+ "A": [
+  {
+   "attack": "envelope of another session",
+   "tree": "after",
+   "n": 10,
+   "session_survived": 10,
+   "failed_at": {
+    "": 10
+   },
+   "vetoes": {}
+  },
+  {
+   "attack": "envelope of another session",
+   "tree": "before",
+   "n": 10,
+   "session_survived": 0,
+   "failed_at": {
+    "nonce_unused": 10
+   },
+   "vetoes": {}
+  },
+  {
+   "attack": "forged signature",
+   "tree": "after",
+   "n": 10,
+   "session_survived": 10,
+   "failed_at": {
+    "": 10
+   },
+   "vetoes": {}
+  },
+  {
+   "attack": "forged signature",
+   "tree": "before",
+   "n": 10,
+   "session_survived": 0,
+   "failed_at": {
+    "nonce_unused": 10
+   },
+   "vetoes": {}
+  },
+  {
+   "attack": "garbage body",
+   "tree": "after",
+   "n": 10,
+   "session_survived": 10,
+   "failed_at": {
+    "": 10
+   },
+   "vetoes": {}
+  },
+  {
+   "attack": "garbage body",
+   "tree": "before",
+   "n": 10,
+   "session_survived": 10,
+   "failed_at": {
+    "": 10
+   },
+   "vetoes": {}
+  },
+  {
+   "attack": "none (control)",
+   "tree": "after",
+   "n": 10,
+   "session_survived": 10,
+   "failed_at": {
+    "": 10
+   },
+   "vetoes": {}
+  },
+  {
+   "attack": "none (control)",
+   "tree": "before",
+   "n": 10,
+   "session_survived": 10,
+   "failed_at": {
+    "": 10
+   },
+   "vetoes": {}
+  },
+  {
+   "attack": "on-path: victim envelope, frames bit-flipped",
+   "tree": "after",
+   "n": 10,
+   "session_survived": 10,
+   "failed_at": {
+    "": 10
+   },
+   "vetoes": {}
+  },
+  {
+   "attack": "on-path: victim envelope, frames bit-flipped",
+   "tree": "before",
+   "n": 10,
+   "session_survived": 0,
+   "failed_at": {
+    "nonce_unused": 10
+   },
+   "vetoes": {}
+  },
+  {
+   "attack": "on-path: victim envelope, truncated body",
+   "tree": "after",
+   "n": 10,
+   "session_survived": 10,
+   "failed_at": {
+    "": 10
+   },
+   "vetoes": {}
+  },
+  {
+   "attack": "on-path: victim envelope, truncated body",
+   "tree": "before",
+   "n": 10,
+   "session_survived": 0,
+   "failed_at": {
+    "nonce_unused": 10
+   },
+   "vetoes": {}
+  },
+  {
+   "attack": "unsigned session close",
+   "tree": "after",
+   "n": 10,
+   "session_survived": 10,
+   "failed_at": {
+    "": 10
+   },
+   "vetoes": {}
+  },
+  {
+   "attack": "unsigned session close",
+   "tree": "before",
+   "n": 10,
+   "session_survived": 0,
+   "failed_at": {
+    "": 10
+   },
+   "vetoes": {}
+  }
+ ],
+ "A_forged_cost_ms": {
+  "before": 0.21502051095012575,
+  "after": 0.2098545228363946
+ },
+ "B1": [
+  {
+   "variant": "16-frame still stream",
+   "tree": "after",
+   "n": 30,
+   "accepted": 0,
+   "liveness_passed": 0,
+   "detection_ran": 0,
+   "server_ms_median": 124.78989652299788,
+   "http_ms_median": 127.74139549583197,
+   "failed_at": {
+    "challenge_fulfilled": 30
+   },
+   "vetoes": {}
+  },
+  {
+   "variant": "16-frame still stream",
+   "tree": "before",
+   "n": 30,
+   "accepted": 0,
+   "liveness_passed": 8,
+   "detection_ran": 8,
+   "server_ms_median": 137.6511464768555,
+   "http_ms_median": 141.34945800469723,
+   "failed_at": {
+    "": 8,
+    "challenge_fulfilled": 22
+   },
+   "vetoes": {
+    "deepfake": 8,
+    "injection": 8,
+    "presentation_attack": 7
+   }
+  },
+  {
+   "variant": "single frame",
+   "tree": "after",
+   "n": 30,
+   "accepted": 0,
+   "detection_ran": 0,
+   "server_ms_median": 0.36897951213177294,
+   "http_ms_median": 1.9130625005345792,
+   "failed_at": {
+    "submission_well_formed": 30
+   },
+   "vetoes": {}
+  },
+  {
+   "variant": "single frame",
+   "tree": "before",
+   "n": 30,
+   "accepted": 2,
+   "liveness_passed": 30,
+   "detection_ran": 30,
+   "server_ms_median": 110.83525049616583,
+   "http_ms_median": 112.65472900413442,
+   "failed_at": {
+    "": 30
+   },
+   "vetoes": {
+    "presentation_attack": 26,
+    "morph": 10,
+    "deepfake": 12,
+    "injection": 3
+   }
+  }
+ ],
+ "B2": [
+  {
+   "variant": "burst_frames=0",
+   "tree": "after",
+   "n": 20,
+   "accepted": 0,
+   "detection_ran": 0,
+   "server_ms_median": 4.59408298775088,
+   "http_ms_median": 9.887207997962832,
+   "failed_at": {
+    "submission_well_formed": 20
+   },
+   "vetoes": {}
+  },
+  {
+   "variant": "burst_frames=0",
+   "tree": "before",
+   "n": 20,
+   "accepted": 5,
+   "liveness_passed": 20,
+   "detection_ran": 20,
+   "server_ms_median": 1502.6601264835335,
+   "http_ms_median": 1511.786207993282,
+   "failed_at": {
+    "": 20
+   },
+   "vetoes": {
+    "injection": 15,
+    "deepfake": 2,
+    "presentation_attack": 4
+   }
+  },
+  {
+   "variant": "burst_frames=2",
+   "tree": "after",
+   "n": 20,
+   "accepted": 0,
+   "detection_ran": 0,
+   "server_ms_median": 4.595958991558291,
+   "http_ms_median": 9.510582996881567,
+   "failed_at": {
+    "submission_well_formed": 20
+   },
+   "vetoes": {}
+  },
+  {
+   "variant": "burst_frames=2",
+   "tree": "before",
+   "n": 20,
+   "accepted": 8,
+   "liveness_passed": 20,
+   "detection_ran": 20,
+   "server_ms_median": 498.381832963787,
+   "http_ms_median": 506.7443750012899,
+   "failed_at": {
+    "": 20
+   },
+   "vetoes": {
+    "injection": 11,
+    "deepfake": 2,
+    "presentation_attack": 4
+   }
+  },
+  {
+   "variant": "burst_frames=8",
+   "tree": "after",
+   "n": 20,
+   "accepted": 5,
+   "liveness_passed": 20,
+   "detection_ran": 20,
+   "server_ms_median": 515.0366249872604,
+   "http_ms_median": 521.0424584947759,
+   "failed_at": {
+    "": 20
+   },
+   "vetoes": {
+    "injection": 15,
+    "deepfake": 2,
+    "presentation_attack": 4
+   }
+  },
+  {
+   "variant": "burst_frames=8",
+   "tree": "before",
+   "n": 20,
+   "accepted": 5,
+   "liveness_passed": 20,
+   "detection_ran": 20,
+   "server_ms_median": 443.733333988348,
+   "http_ms_median": 452.12529199488927,
+   "failed_at": {
+    "": 20
+   },
+   "vetoes": {
+    "injection": 15,
+    "deepfake": 2,
+    "presentation_attack": 4
+   }
+  }
+ ],
+ "B3": [
+  {
+   "variant": "honest",
+   "tree": "after",
+   "n": 60,
+   "accepted": 19,
+   "liveness_passed": 60,
+   "detection_ran": 60,
+   "server_ms_median": 592.9921049973927,
+   "http_ms_median": 600.9234375087544,
+   "failed_at": {
+    "": 60
+   },
+   "vetoes": {
+    "presentation_attack": 26,
+    "deepfake": 12,
+    "injection": 13,
+    "morph": 1
+   }
+  },
+  {
+   "variant": "honest",
+   "tree": "before",
+   "n": 60,
+   "accepted": 25,
+   "liveness_passed": 60,
+   "detection_ran": 60,
+   "server_ms_median": 512.3824579932261,
+   "http_ms_median": 526.6840419935761,
+   "failed_at": {
+    "": 60
+   },
+   "vetoes": {
+    "presentation_attack": 19,
+    "deepfake": 12,
+    "injection": 13,
+    "morph": 1
+   }
+  },
+  {
+   "variant": "live frame spliced first",
+   "tree": "after",
+   "n": 60,
+   "accepted": 29,
+   "liveness_passed": 60,
+   "detection_ran": 60,
+   "server_ms_median": 614.5120625005802,
+   "http_ms_median": 624.5704375032801,
+   "failed_at": {
+    "": 60
+   },
+   "vetoes": {
+    "presentation_attack": 13,
+    "deepfake": 12,
+    "injection": 13
+   }
+  },
+  {
+   "variant": "live frame spliced first",
+   "tree": "before",
+   "n": 60,
+   "accepted": 38,
+   "liveness_passed": 60,
+   "detection_ran": 60,
+   "server_ms_median": 523.4680620051222,
+   "http_ms_median": 535.8447710023029,
+   "failed_at": {
+    "": 60
+   },
+   "vetoes": {
+    "deepfake": 12,
+    "injection": 13
+   }
+  }
+ ],
+ "B4": [
+  {
+   "variant": "16 x 1920x1080 (allowed)",
+   "tree": "after",
+   "n": 3,
+   "accepted": 3,
+   "liveness_passed": 3,
+   "detection_ran": 3,
+   "server_ms_median": 1779.9843340180814,
+   "http_ms_median": 1810.2683750039432,
+   "failed_at": {
+    "": 3
+   },
+   "vetoes": {}
+  },
+  {
+   "variant": "16 x 1920x1080 (allowed)",
+   "tree": "before",
+   "n": 3,
+   "accepted": 3,
+   "liveness_passed": 3,
+   "detection_ran": 3,
+   "server_ms_median": 1423.903542017797,
+   "http_ms_median": 1533.1450839876197,
+   "failed_at": {
+    "": 3
+   },
+   "vetoes": {}
+  },
+  {
+   "variant": "16 x 4000x3000",
+   "tree": "after",
+   "n": 3,
+   "accepted": 0,
+   "detection_ran": 0,
+   "http_ms_median": 47.28050000267103,
+   "failed_at": {
+    "HTTP 413": 3
+   },
+   "vetoes": {}
+  },
+  {
+   "variant": "16 x 4000x3000",
+   "tree": "before",
+   "n": 3,
+   "accepted": 3,
+   "liveness_passed": 3,
+   "detection_ran": 3,
+   "server_ms_median": 5442.871918028686,
+   "http_ms_median": 7915.114750008797,
+   "failed_at": {
+    "": 3
+   },
+   "vetoes": {}
+  },
+  {
+   "variant": "64 frames",
+   "tree": "after",
+   "n": 3,
+   "accepted": 0,
+   "detection_ran": 0,
+   "server_ms_median": 35.64600000390783,
+   "http_ms_median": 61.63095898227766,
+   "failed_at": {
+    "submission_well_formed": 3
+   },
+   "vetoes": {}
+  },
+  {
+   "variant": "64 frames",
+   "tree": "before",
+   "n": 3,
+   "accepted": 3,
+   "liveness_passed": 3,
+   "detection_ran": 3,
+   "server_ms_median": 4642.569249001099,
+   "http_ms_median": 4802.147125010379,
+   "failed_at": {
+    "": 3
+   },
+   "vetoes": {}
+  }
+ ],
+ "B5": [
+  {
+   "variant": "PGD eps=0/255",
+   "tree": "after",
+   "n": 20,
+   "accepted": 5,
+   "liveness_passed": 20,
+   "detection_ran": 20,
+   "server_ms_median": 625.9893335227389,
+   "http_ms_median": 633.9048540103249,
+   "failed_at": {
+    "": 20
+   },
+   "vetoes": {
+    "presentation_attack": 9,
+    "deepfake": 4,
+    "injection": 5,
+    "morph": 1
+   }
+  },
+  {
+   "variant": "PGD eps=0/255",
+   "tree": "before",
+   "n": 20,
+   "accepted": 6,
+   "liveness_passed": 20,
+   "detection_ran": 20,
+   "server_ms_median": 522.1711450285511,
+   "http_ms_median": 539.2433750093915,
+   "failed_at": {
+    "": 20
+   },
+   "vetoes": {
+    "presentation_attack": 7,
+    "deepfake": 4,
+    "injection": 5,
+    "morph": 1
+   }
+  },
+  {
+   "variant": "PGD eps=4/255",
+   "tree": "after",
+   "n": 20,
+   "accepted": 17,
+   "liveness_passed": 20,
+   "detection_ran": 20,
+   "server_ms_median": 617.3878960253205,
+   "http_ms_median": 624.1478960000677,
+   "failed_at": {
+    "": 20
+   },
+   "vetoes": {
+    "presentation_attack": 3
+   }
+  },
+  {
+   "variant": "PGD eps=4/255",
+   "tree": "before",
+   "n": 20,
+   "accepted": 17,
+   "liveness_passed": 20,
+   "detection_ran": 20,
+   "server_ms_median": 536.6232075029984,
+   "http_ms_median": 550.9027295047417,
+   "failed_at": {
+    "": 20
+   },
+   "vetoes": {
+    "presentation_attack": 3
+   }
+  },
+  {
+   "variant": "PGD eps=8/255",
+   "tree": "after",
+   "n": 20,
+   "accepted": 17,
+   "liveness_passed": 20,
+   "detection_ran": 20,
+   "server_ms_median": 798.1920205056667,
+   "http_ms_median": 807.419562494033,
+   "failed_at": {
+    "": 20
+   },
+   "vetoes": {
+    "presentation_attack": 2,
+    "injection": 1
+   }
+  },
+  {
+   "variant": "PGD eps=8/255",
+   "tree": "before",
+   "n": 20,
+   "accepted": 17,
+   "liveness_passed": 20,
+   "detection_ran": 20,
+   "server_ms_median": 546.7991465120576,
+   "http_ms_median": 559.9698330042884,
+   "failed_at": {
+    "": 20
+   },
+   "vetoes": {
+    "presentation_attack": 2,
+    "injection": 1
+   }
+  }
+ ],
+ "B6": [
+  {
+   "condition": "no attack",
+   "seconds": 60,
+   "victim_ms_median": 634.6410420082975,
+   "victim_n": 9,
+   "attacker_inferences": 0,
+   "attacker_429": 0,
+   "attacker_inferences_per_min": 0.0,
+   "server_cpu_s": 27.388235264000002
+  },
+  {
+   "condition": "flood, limits off",
+   "seconds": 60,
+   "victim_ms_median": 2077.2002910089213,
+   "victim_n": 9,
+   "attacker_inferences": 123,
+   "attacker_429": 0,
+   "attacker_inferences_per_min": 123.0,
+   "server_cpu_s": 436.810448896
+  },
+  {
+   "condition": "flood, default limits (12/min, 3 open)",
+   "seconds": 60,
+   "victim_ms_median": 620.3198750154115,
+   "victim_n": 9,
+   "attacker_inferences": 12,
+   "attacker_429": 3348,
+   "attacker_inferences_per_min": 12.0,
+   "server_cpu_s": 70.216859648
+  }
+ ]
+}

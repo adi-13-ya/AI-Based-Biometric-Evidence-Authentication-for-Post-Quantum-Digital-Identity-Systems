@@ -128,7 +128,7 @@ def sequence() -> None:
     # Exactly docs/PROTOCOL.md, Sections 2-7.
     steps = [
         (C, S, "POST /device/enroll (alg, pk_dev) → device_id   [once; sk_dev never leaves; token if ENROLLMENT_TOKEN set]"),
-        (C, S, "POST /session/start (device_id)"),
+        (C, S, "POST /session/start (device_id, ts, rn, Sign(sk_dev, REQ))   [fresh, rn unseen, ≤ 3 open, ≤ 12/min]"),
         (S, ST, "id, N←{0,1}²⁵⁶, C, (pk_KEM, sk_KEM)←ML-KEM-768.KeyGen; look up pk_dev"),
         (S, C, "OFFER = (id, N, C, pk_KEM, device_id, t, 30 s),  σ_srv = ML-DSA.Sign(sk_srv, OFFER)"),
         (C, C, "Verify(pk_srv pinned, OFFER, σ_srv), else abort  →  (ct, K) ← Encaps(pk_KEM)"),
@@ -136,9 +136,9 @@ def sequence() -> None:
         (C, C, "k = HKDF(K, salt N);  PQB1 = ct ‖ GCM_k(header: h, ts, r, σ_dev, meta) ‖ GCM_k(frames)"),
         (C, S, "POST /verify-sealed  PQB1   (≈8 KB header first, then ≈5.7 MB of frames)"),
         (S, S, "read head only; Decaps(ct); open header (bad tag ⇒ REJECT)"),
-        (S, ST, "consume N atomically? → |Δt| ≤ 30 s? → Verify(pk_dev, σ_dev)?   (stop at first failure)"),
+        (S, ST, "N unused? (read only) → |Δt| ≤ 30 s? → Verify(pk_dev, σ_dev)?   (stop at first failure)"),
         (ST, S, "any failure ⇒ REJECT now; rest of body drained unread (no buffer, decrypt or decode)"),
-        (S, S, "all pass ⇒ buffer + open frames; recompute h (evidence_matches_hash)"),
+        (S, S, "all pass ⇒ open frames; check h, then shape; consume N atomically"),
         (S, D, "first pixel decode → liveness challenge → PAD, morph, deepfake, replay, injection"),
         (D, S, "s₁..s₅: ACCEPT iff every sᵢ ≥ τᵢ (separate vetoes; mean reported only)"),
         (S, C, "ACCEPT / REJECT, failed check, reasons, timing_ms"),

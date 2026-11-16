@@ -69,3 +69,4 @@ qvenv/
 ~$*
 .pytest_cache/
 .env.bak*
+aswani-lor*.txt

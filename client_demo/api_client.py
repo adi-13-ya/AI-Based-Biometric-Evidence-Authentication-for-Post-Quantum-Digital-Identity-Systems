@@ -109,21 +109,32 @@ def verify_session_offer(session: dict) -> None:
         raise ApiError("session offer is not signed by the pinned server key (possible man in the middle); refusing to send evidence")
 
 
+def session_request(device_id: str) -> dict:
+    """Signed session-start body: only this device's key can open sessions
+    for it (crypto/signature.py: build_session_request)."""
+    request_nonce = os.urandom(16)
+    timestamp = now_iso()
+    signature = device().sign_session_request(device_id, timestamp, request_nonce)
+    return {"device_id": device_id, "timestamp": timestamp, "request_nonce": request_nonce.hex(), "signature": signature.hex()}
+
+
 def session_start() -> dict:
     try:
-        session = _request("POST", "/session/start", json={"device_id": enroll_device()})
+        session = _request("POST", "/session/start", json=session_request(enroll_device()))
     except ApiError as exc:
         if "Unknown device_id" not in str(exc):
             raise
         # The server forgot us (in-memory registry restarted): enroll again.
         device().forget_enrollment(API_BASE_URL)
-        session = _request("POST", "/session/start", json={"device_id": enroll_device()})
+        session = _request("POST", "/session/start", json=session_request(enroll_device()))
     verify_session_offer(session)
     return session
 
 
-def end_session(session_id: str) -> dict:
-    return _request("DELETE", f"/session/{session_id}")
+def end_session(session: dict) -> dict:
+    """Close a session early; the request is signed by the device."""
+    signature = device().sign_session_close(session["session_id"], base64.b64decode(session["nonce"]))
+    return _request("DELETE", f"/session/{session['session_id']}", headers={"X-Session-Close-Signature": signature.hex()})
 
 
 def reset_replay_store() -> dict:

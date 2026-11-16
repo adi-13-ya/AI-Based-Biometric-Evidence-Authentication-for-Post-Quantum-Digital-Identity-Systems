@@ -64,7 +64,13 @@ def crop_scaled(img: np.ndarray, bbox: list[int], scale: float, out_w: int, out_
     (2.7x and 4.0x the face box)."""
     import cv2
 
-    src_h, src_w = img.shape[:2]
+    x0, y0, x1, y1 = crop_box(img.shape, bbox, scale)
+    return cv2.resize(img[y0: y1 + 1, x0: x1 + 1], (out_w, out_h))
+
+
+def crop_box(shape: tuple, bbox: list[int], scale: float) -> tuple[int, int, int, int]:
+    """Inclusive pixel box (x0, y0, x1, y1) that crop_scaled cuts out."""
+    src_h, src_w = shape[:2]
     x, y, box_w, box_h = bbox
     box_w, box_h = max(box_w, 1), max(box_h, 1)
     scale = min((src_h - 1) / box_h, (src_w - 1) / box_w, scale)
@@ -83,8 +89,7 @@ def crop_scaled(img: np.ndarray, bbox: list[int], scale: float, out_w: int, out_
     if y1 > src_h - 1:
         y0 -= y1 - src_h + 1
         y1 = src_h - 1
-    x0, y0, x1, y1 = int(max(0, x0)), int(max(0, y0)), int(x1), int(y1)
-    return cv2.resize(img[y0: y1 + 1, x0: x1 + 1], (out_w, out_h))
+    return int(max(0, x0)), int(max(0, y0)), int(x1), int(y1)
 
 
 _shared: FaceDetector | None = None

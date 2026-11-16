@@ -63,6 +63,11 @@ def main() -> int:
         return 1
     print(f"Server: {info['status']}  {info['kem_alg']} / {info['sig_alg']}  liboqs_ready={info['liboqs_ready']}")
     print(f"Client channel: {'sealed (ML-KEM + AES-256-GCM)' if can_seal() else 'plaintext (no liboqs on client)'}")
+    if not info.get("allow_sample_uploads", True):
+        print("Server has ALLOW_SAMPLE_UPLOADS=false: the demo samples are single images and short clips, which a\n"
+              "production server rejects as malformed. Start the demo server with\n"
+              "  DEMO_MODE=true ALLOW_SAMPLE_UPLOADS=true uvicorn server.main:app --port 8000")
+        return 1
     try:
         reset_replay_store()
     except ApiError:

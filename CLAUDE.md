@@ -72,8 +72,16 @@ docs.
   the PQB1 layout, the check order or the decision rule updates it in the
   same commit. A new signed field goes into `build_binding_payload` (a new
   length-prefixed field; bump the tag version if the layout changes).
-- **The nonce is consumed only through `Session.consume_nonce()`** (atomic).
-  Never read `session.nonce_used` and set it later.
+- **The nonce is consumed only through `Session.consume_nonce()`** (atomic),
+  and only after the request is authenticated (signature and evidence hash
+  verified; stage `nonce_consumed` in `server/main.py`). Earlier stages read
+  `session.nonce_used` and must never consume it: an invalid request must not
+  be able to end someone else's session (`tests/test_session_safety.py`).
+  Session start and session close are signed by the device. Never read
+  `session.nonce_used` and set it later.
+- **Shape before decode.** `_submission_shape_problem` checks frame count,
+  burst length and image size from the headers before any pixel decode; the
+  liveness check fails closed (`strict=True`) unless ALLOW_SAMPLE_UPLOADS.
 - **Fusion is veto-only.** Every module threshold is a separate veto; the
   weighted mean is reported only. Do not reintroduce a fused accept
   threshold.

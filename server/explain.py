@@ -57,6 +57,11 @@ def _explain_check(name: str, binding_reasons: list[str], liveness: dict, challe
         when = f"{float(age):.0f} s" if age else "too long"
         return (f"The evidence was captured {when} before it reached the server. Anything older than 30 s is "
                 "treated as possibly pre-recorded.")
+    if name == "submission_well_formed":
+        return ("The submission does not have the shape of a live capture (frame count, burst length or image size), "
+                "so it was rejected before any image was decoded.")
+    if name == "nonce_consumed":
+        return "Another copy of this submission was accepted a moment earlier; each session accepts one submission."
     if name == "evidence_matches_hash":
         return ("The frames received are not the ones whose SHA-256 fingerprint was signed: the evidence was "
                 "swapped after signing.")
@@ -71,6 +76,10 @@ def _explain_liveness(liveness: dict, challenge: str) -> str:
         given = liveness.get("given") or "nothing"
         return (f"Liveness challenge not met: the number given ({given}) is not the one requested "
                 f"({liveness.get('expected')}). A pre-recorded video can't know a number chosen just now.")
+    if kind == "movement" and liveness.get("motion") is None:
+        return (f"Liveness challenge not met: '{challenge}' asked for a head movement, but it could not be measured "
+                f"({liveness.get('reason', 'no face found')}). The check fails closed: a submission without a visible "
+                "face, or with a single frame, cannot pass a movement challenge.")
     if kind == "movement":
         return (f"Liveness challenge not met: '{challenge}' asked for a head movement, but the head moved only "
                 f"{liveness['motion']:.0%} of the face width during the recording (at least "

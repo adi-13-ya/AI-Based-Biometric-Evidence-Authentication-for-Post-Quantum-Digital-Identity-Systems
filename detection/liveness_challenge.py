@@ -34,15 +34,22 @@ _NOSE_TIP_LANDMARK = 1  # MediaPipe Face Mesh canonical nose-tip index
 _MOTION_THRESHOLD_FRACTION_OF_FACE_WIDTH = 0.06
 
 
-def verify_challenge(challenge: str, challenge_response: str, frames: list[np.ndarray] | None = None) -> bool:
-    return evaluate_challenge(challenge, challenge_response, frames)[0]
+def verify_challenge(challenge: str, challenge_response: str, frames: list[np.ndarray] | None = None, strict: bool = False) -> bool:
+    return evaluate_challenge(challenge, challenge_response, frames, strict=strict)[0]
 
 
 def evaluate_challenge(
-    challenge: str, challenge_response: str, frames: list[np.ndarray] | None = None
+    challenge: str, challenge_response: str, frames: list[np.ndarray] | None = None, strict: bool = False
 ) -> tuple[bool, dict]:
     """Like verify_challenge, plus what was measured, so a rejection can be
-    explained (e.g. how far the head actually moved)."""
+    explained (e.g. how far the head actually moved).
+
+    strict=True (the server's default) fails closed: a motion challenge
+    whose motion cannot be measured (fewer than two frames with a face, or
+    MediaPipe unavailable) is not fulfilled. The lenient fallback below
+    accepted any non-empty response in that case, so an authenticated client
+    could pass a motion challenge by sending frames without a detectable
+    face, or a single frame."""
     challenge_lower = (challenge or "").lower()
 
     if "say the number" in challenge_lower:
@@ -55,7 +62,10 @@ def evaluate_challenge(
             "given": given.group() if given else None,
         }
 
-    if frames and len(frames) >= 2 and ("turn" in challenge_lower or "nod" in challenge_lower):
+    is_motion = "turn" in challenge_lower or "nod" in challenge_lower
+    if strict and is_motion and (not frames or len(frames) < 2):
+        return False, {"kind": "movement", "motion": None, "reason": "fewer than two frames"}
+    if frames and len(frames) >= 2 and is_motion:
         motion = _max_landmark_motion(frames)
         if motion is not None:
             return motion >= _MOTION_THRESHOLD_FRACTION_OF_FACE_WIDTH, {
@@ -63,6 +73,8 @@ def evaluate_challenge(
                 "motion": motion,
                 "required": _MOTION_THRESHOLD_FRACTION_OF_FACE_WIDTH,
             }
+        if strict:
+            return False, {"kind": "movement", "motion": None, "reason": "no face found in at least two frames"}
 
     # Fallback: no frames, MediaPipe unavailable, or an unrecognized
     # challenge type - can only check that some response was submitted.

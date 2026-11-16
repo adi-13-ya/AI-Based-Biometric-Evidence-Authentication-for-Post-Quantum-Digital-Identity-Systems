@@ -38,10 +38,17 @@ client = TestClient(app)
 @pytest.fixture(autouse=True)
 def _plaintext_endpoint_for_tests(monkeypatch):
     """The plaintext /verify endpoint is off by default (the evaluated
-    format is /verify-sealed); these tests drive it directly."""
+    format is /verify-sealed); these tests drive it directly. Most tests
+    exercise the protocol with one small synthetic frame, so they allow
+    sample-style submissions and lift the per-device session limits; the
+    tests of those mechanisms (TestAuthenticatedClientHardening,
+    TestInvalidRequestsCannotKillSessions) set them back."""
     from server.config import settings
 
     monkeypatch.setattr(settings, "allow_plaintext_verify", True)
+    monkeypatch.setattr(settings, "allow_sample_uploads", True)
+    monkeypatch.setattr(settings, "max_active_sessions_per_device", 10**6)
+    monkeypatch.setattr(settings, "max_sessions_per_minute_per_device", 10**6)
 
 
 def _now_iso() -> str:
@@ -84,13 +91,36 @@ def _device():
     return _DEVICE
 
 
-def _start() -> dict:
-    """Enroll the test device (idempotent) and open a session for it."""
-    dev = _device()
-    device_id = client.post("/device/enroll", json={"sig_alg": dev.alg, "public_key": dev.public_key.hex()}).json()["device_id"]
-    resp = client.post("/session/start", json={"device_id": device_id})
+def _start_request(device_id: str, signer, timestamp: str | None = None, request_nonce: bytes | None = None) -> dict:
+    """Signed session-start body (crypto/signature.py: build_session_request)."""
+    import os
+
+    from crypto.signature import build_session_request
+
+    timestamp = timestamp or _now_iso()
+    request_nonce = request_nonce or os.urandom(16)
+    sig = signer.sign(build_session_request(device_id=device_id, timestamp=timestamp, request_nonce=request_nonce))
+    return {"device_id": device_id, "timestamp": timestamp, "request_nonce": request_nonce.hex(), "signature": sig.hex()}
+
+
+def _enroll(dev=None) -> str:
+    dev = dev or _device()
+    return client.post("/device/enroll", json={"sig_alg": dev.alg, "public_key": dev.public_key.hex()}).json()["device_id"]
+
+
+def _start(dev=None) -> dict:
+    """Enroll the test device (idempotent) and open a signed session for it."""
+    dev = dev or _device()
+    resp = client.post("/session/start", json=_start_request(_enroll(dev), dev))
     assert resp.status_code == 200, resp.text
     return resp.json()
+
+
+def _close_headers(session: dict, dev=None) -> dict:
+    from crypto.signature import build_session_close
+
+    sig = (dev or _device()).sign(build_session_close(session_id=session["session_id"], session_nonce=base64.b64decode(session["nonce"])))
+    return {"X-Session-Close-Signature": sig.hex()}
 
 
 def _sign(session: dict, evidence_hash_hex: str, timestamp: str, challenge_response: str, signer=None,
@@ -130,7 +160,7 @@ class TestSessionFlow:
         assert "client_public_key" not in body
 
     def test_session_start_requires_an_enrolled_device(self):
-        assert client.post("/session/start", json={"device_id": "0" * 32}).status_code == 404
+        assert client.post("/session/start", json=_start_request("0" * 32, _device())).status_code == 404
 
     def test_enroll_rejects_malformed_key(self):
         assert client.post("/device/enroll", json={"sig_alg": "ML-DSA-65", "public_key": "00" * 10}).status_code == 400
@@ -187,6 +217,8 @@ class TestSessionFlow:
             "timestamp_fresh": True,
             "challenge_fulfilled": True,
             "evidence_matches_hash": True,
+            "submission_well_formed": True,
+            "nonce_consumed": True,
         }
         assert body["channel"] == "plaintext"
         assert body["detection_ran"] is True
@@ -329,7 +361,8 @@ class TestSessionFlow:
     def test_end_session_closes_it(self):
         session = _start()
         session_id = session["session_id"]
-        resp = client.delete(f"/session/{session_id}")
+        assert client.delete(f"/session/{session_id}").status_code == 401  # unsigned close is refused
+        resp = client.delete(f"/session/{session_id}", headers=_close_headers(session))
         assert resp.status_code == 200
         assert resp.json()["closed"] is True
         # session no longer usable
@@ -533,8 +566,7 @@ class TestServerAuthenticationAndEnrollment:
         from crypto.signature import SignerIdentity
 
         with SignerIdentity(alg="ECDSA-P256") as dev:
-            device_id = client.post("/device/enroll", json={"sig_alg": dev.alg, "public_key": dev.public_key.hex()}).json()["device_id"]
-            session = client.post("/session/start", json={"device_id": device_id}).json()
+            session = _start(dev)
             assert session["sig_alg"] == "ECDSA-P256"
             frame = _frame_b64(seed=31)
             ts = _now_iso()

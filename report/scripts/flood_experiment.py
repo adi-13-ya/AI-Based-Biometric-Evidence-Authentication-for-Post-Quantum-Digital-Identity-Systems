@@ -155,7 +155,7 @@ def victim(key_path: str, sig_alg: str, barrier, out: mp.Queue) -> None:
             client.reset_replay_store()
             session = digit_session(client)
             ms, result = _submit(client, session, h, frame_bytes, burst, sign)
-            client.end_session(session["session_id"])
+            client.end_session(session)
             lat.append(ms)
             accepted += bool(result["accepted"])
         except Exception:
@@ -209,7 +209,7 @@ def rate_at_degradation(points: list[tuple[float, float]], target: float) -> tup
 def run_config(mode: str, sig_alg: str) -> dict:
     from distributed_experiments import SERVER_KEY_PATH, Server
 
-    server = Server(mode)
+    server = Server(mode, extra_env={"REQUIRE_SIGNED_SESSION_START": "false"})  # attackers hold session ids (worst case)
     key_path = str(Path(tempfile.mkdtemp()) / "victim.json")
     repeats = []
     try:

@@ -16,7 +16,9 @@ import base64
 import hmac
 import io
 import logging
+import secrets
 import time
+from datetime import datetime, timezone
 
 import numpy as np
 from cryptography.exceptions import InvalidTag
@@ -28,7 +30,9 @@ from pydantic import BaseModel, Field
 from binding.session_binding import check_transaction_binding, complete_binding, credential_checks
 from crypto.channel import evidence_hash_of, open_envelope_frames, open_envelope_header, parse_envelope_head
 from crypto.kem import kem_details
-from crypto.signature import build_session_offer, sig_details
+from binding.session_binding import parse_timestamp
+from crypto.signature import build_session_close, build_session_offer, build_session_request, sig_details, verify as sig_verify
+from detection.base import DetectionResult
 from detection.deepfake_detector import DeepfakeDetector
 from detection.fusion import fuse
 from detection.injection_detector import InjectionDetector
@@ -40,7 +44,7 @@ from server.config import settings
 from server.device_registry import registry as device_registry
 from server.explain import explain
 from server.identity import identity as server_identity
-from server.session_store import Session, nonce_b64, store
+from server.session_store import Session, SessionLimitError, nonce_b64, store
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +93,9 @@ class DeviceEnrollResponse(BaseModel):
 
 class SessionStartRequest(BaseModel):
     device_id: str = Field(description="id returned by POST /device/enroll")
+    timestamp: str = Field(default="", description="ISO-8601 time of the request (signed)")
+    request_nonce: str = Field(default="", description="hex, 16 random bytes chosen by the device (signed)")
+    signature: str = Field(default="", description="hex device signature over build_session_request(...)")
 
 
 class SessionStartResponse(BaseModel):
@@ -151,6 +158,29 @@ class VerifyResponse(BaseModel):
 # --------------------------------------------------------------------------
 # Helpers
 # --------------------------------------------------------------------------
+def _check_session_request(req: SessionStartRequest, device) -> None:
+    """Only the holder of the device key may open sessions for it: verify
+    the signed (device_id, timestamp, request_nonce), its freshness, and
+    that the request nonce has not been seen (a replayed start request)."""
+    try:
+        request_nonce = bytes.fromhex(req.request_nonce)
+        signature = bytes.fromhex(req.signature)
+        age = abs((datetime.now(timezone.utc) - parse_timestamp(req.timestamp)).total_seconds())
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=401, detail="session start must be signed by the device (timestamp, request_nonce, signature)")
+    if len(request_nonce) < 16 or age > settings.freshness_window_seconds:
+        raise HTTPException(status_code=401, detail="session start request is stale or has a short request_nonce")
+    message = build_session_request(device_id=device.device_id, timestamp=req.timestamp, request_nonce=request_nonce)
+    try:
+        ok = bool(sig_verify(message, signature, device.public_key, alg=device.sig_alg))
+    except Exception:
+        ok = False
+    if not ok:
+        raise HTTPException(status_code=401, detail="session start signature does not verify against the enrolled device key")
+    if not store.claim_start_nonce(req.request_nonce):
+        raise HTTPException(status_code=401, detail="session start request replayed")
+
+
 def _get_session_or_404(session_id: str) -> Session:
     session = store.get(session_id)
     if session is None:
@@ -174,6 +204,55 @@ def _decode_frames(frame_bytes: list[bytes]) -> list[np.ndarray]:
         except Exception as exc:
             raise HTTPException(status_code=400, detail=f"could not decode frames_b64[{i}]: {exc}") from exc
     return frames
+
+
+def _submission_shape_problem(frame_bytes: list[bytes], burst_frames: int) -> str:
+    """Empty if the frames have the shape of a live capture, else what is
+    wrong. Runs after the evidence hash is verified and before any image is
+    decoded: it reads only the image headers. An authenticated client
+    controls frame count, burst length and image size; without this check a
+    single-frame submission skipped the motion challenge and the injection
+    classifier, and a huge or decompression-bomb frame cost unbounded CPU."""
+    n_expected = settings.spread_frames + settings.burst_frames
+    if not settings.allow_sample_uploads:
+        if len(frame_bytes) != n_expected:
+            return f"{len(frame_bytes)} frames, expected {n_expected}"
+        if burst_frames != settings.burst_frames:
+            return f"burst_frames={burst_frames}, expected {settings.burst_frames}"
+    elif not 1 <= len(frame_bytes) <= n_expected:
+        return f"{len(frame_bytes)} frames, expected 1 to {n_expected}"
+    sizes = set()
+    for b in frame_bytes:
+        try:
+            with Image.open(io.BytesIO(b)) as img:
+                if img.format not in ("PNG", "JPEG"):
+                    return f"frame format {img.format}, expected PNG or JPEG"
+                sizes.add(img.size)
+        except Exception:
+            return "a frame is not a readable image"
+    w, h = max(sizes, key=lambda s: s[0] * s[1])
+    if w * h > settings.max_frame_pixels:
+        return f"frame of {w}x{h} pixels exceeds {settings.max_frame_pixels}"
+    if not settings.allow_sample_uploads and len(sizes) != 1:
+        return "frames differ in size"
+    return ""
+
+
+def _pad_over_frames(spread: list[np.ndarray]) -> DetectionResult:
+    """Presentation-attack score of the worst of several frames: the first
+    (frontal) frame plus settings.pad_frames - 1 frames the server picks at
+    random. Judging only frames[0] let an authenticated client splice one
+    live frame in front of attack frames."""
+    k = max(1, min(settings.pad_frames, len(spread)))
+    rng = secrets.SystemRandom()
+    idx = [0] + sorted(rng.sample(range(1, len(spread)), k - 1)) if k > 1 else [0]
+    results = [_pad_detector.predict(spread[i]) for i in idx]
+    worst = min(range(len(results)), key=lambda j: results[j].score)
+    return DetectionResult(
+        module=results[worst].module, score=results[worst].score, is_mock=results[worst].is_mock,
+        details={**results[worst].details, "pad_frame_indices": idx, "pad_frame_scores": [r.score for r in results],
+                 "pad_worst_frame": idx[worst]},
+    )
 
 
 def _json_safe(details: dict) -> dict:
@@ -211,6 +290,8 @@ def health() -> dict:
         "kem_alg": settings.kem_alg,
         "sig_alg": settings.sig_alg,
         "liboqs_ready": liboqs_ready,
+        "allow_sample_uploads": settings.allow_sample_uploads,
+        "require_signed_session_start": settings.require_signed_session_start,
     }
     if error:
         payload["error"] = error
@@ -246,7 +327,12 @@ def session_start(req: SessionStartRequest) -> SessionStartResponse:
     device = device_registry.get(req.device_id)
     if device is None:
         raise HTTPException(status_code=404, detail=f"Unknown device_id {req.device_id!r}; enroll first")
-    session = store.create(device.device_id, device.public_key, device.sig_alg)
+    if settings.require_signed_session_start:
+        _check_session_request(req, device)
+    try:
+        session = store.create(device.device_id, device.public_key, device.sig_alg)
+    except SessionLimitError as exc:
+        raise HTTPException(status_code=429, detail=f"session limit: {exc}") from exc
     offer = build_session_offer(
         session_id=session.session_id, session_nonce=session.nonce, challenge=session.challenge,
         kem_alg=settings.kem_alg, kem_public_key=session.kem.public_key, device_id=device.device_id,
@@ -288,7 +374,8 @@ def _binding_context(session_id: str, req: VerifyRequest, kem_ct: bytes) -> dict
 
 
 def _channel_reject(session_id: str, session: Session, timing_ms: dict, reason: str) -> VerifyResponse:
-    session.consume_nonce()
+    # The nonce is not consumed: nothing here proves the request came from
+    # the enrolled device, so it must not be able to end the device's session.
     timing_ms["total_ms"] = sum(timing_ms.values())
     return VerifyResponse(
         session_id=session_id,
@@ -336,11 +423,13 @@ def _sealed_head(session_id: str, session: Session, head: tuple) -> tuple:
     if settings.pipeline_mode in ("layered", "buffered"):
         return None, shared_secret, req, None, timing_ms, context
     t2 = time.perf_counter()
-    first_use = session.consume_nonce()  # atomic: of concurrent duplicates, only one sees first_use
+    # Read-only: the nonce is consumed only after the signature and the
+    # evidence hash have been verified (_verify_core), so an invalid request
+    # cannot burn the session of the device that owns it.
     credentials = credential_checks(
         session_nonce=session.nonce, client_public_key=session.device_public_key, sig_alg=session.sig_alg,
         evidence_hash=evidence_hash, timestamp=req.timestamp, challenge_response=req.challenge_response,
-        signature=signature, nonce_already_used=not first_use,
+        signature=signature, nonce_already_used=session.nonce_used,
         freshness_window_seconds=settings.freshness_window_seconds, binding_context=context,
     )
     timing_ms["credential_check_ms"] = (time.perf_counter() - t2) * 1000
@@ -387,6 +476,8 @@ async def verify_evidence_sealed(session_id: str, request: Request) -> VerifyRes
     try:
         async for chunk in stream:
             buf += chunk
+            if len(buf) > settings.max_body_bytes:
+                raise HTTPException(status_code=413, detail=f"envelope larger than {settings.max_body_bytes} bytes")
             if buffered:
                 continue
             head = parse_envelope_head(buf)
@@ -401,12 +492,18 @@ async def verify_evidence_sealed(session_id: str, request: Request) -> VerifyRes
 
     response, shared_secret, req, credentials, timing_ms, context = await run_in_threadpool(_sealed_head, session_id, session, head)
     if response is not None:
-        async for _ in stream:  # drain without processing
-            pass
+        drained = len(buf)
+        async for chunk in stream:  # drain without processing, up to the body cap
+            drained += len(chunk)
+            if drained > settings.max_body_bytes:
+                break
         return response
-    tail = bytes(buf[head[3]:])
+    tail = bytearray(buf[head[3]:])
     async for chunk in stream:
         tail += chunk
+        if head[3] + len(tail) > settings.max_body_bytes:
+            raise HTTPException(status_code=413, detail=f"envelope larger than {settings.max_body_bytes} bytes")
+    tail = bytes(tail)
     return await run_in_threadpool(_sealed_tail, session_id, session, shared_secret, req, credentials, timing_ms, tail, context)
 
 
@@ -464,7 +561,7 @@ def _verify_core(session_id: str, session: Session, req: VerifyRequest, timing_m
         if liveness_ok is None:
             start = time.perf_counter()
             frames = _decode_frames(frame_bytes)
-            liveness_ok, measured = evaluate_challenge(challenge, response, frames)
+            liveness_ok, measured = evaluate_challenge(challenge, response, frames, strict=not settings.allow_sample_uploads)
             liveness.update(measured)
             liveness_ms = (time.perf_counter() - start) * 1000
         return liveness_ok
@@ -477,7 +574,7 @@ def _verify_core(session_id: str, session: Session, req: VerifyRequest, timing_m
             burst = req.burst_frames if 2 <= req.burst_frames <= len(frames) else 0
             spread = frames[: len(frames) - burst] or frames
             results = [
-                _pad_detector.predict(primary_frame),
+                _pad_over_frames(spread),
                 _morph_detector.predict(primary_frame),
                 _deepfake_detector.predict_video(spread),
                 replay_store.check_and_record(primary_frame, session_id=session_id),
@@ -506,19 +603,33 @@ def _verify_core(session_id: str, session: Session, req: VerifyRequest, timing_m
     # a genuine capture's hash signed and then submit different frames.
     # (Without frames there is nothing to compare; that case is a 400 below.)
     extra_checks = []
+    shape_problem: list[str] = []
     if frame_bytes:
         extra_checks.append((
             "evidence_matches_hash",
             lambda: hmac.compare_digest(evidence_hash_of(frame_bytes), evidence_hash),
             "submitted frames do not match the signed evidence_hash (evidence substituted after signing)",
         ))
+        def well_formed() -> bool:
+            shape_problem.append(_submission_shape_problem(frame_bytes, req.burst_frames))
+            return not shape_problem[-1]
+
+        extra_checks.append(("submission_well_formed", well_formed, "submission does not have the live-capture layout"))
+    # Consumed only here, once the request is authenticated (valid device
+    # signature, frames matching the signed hash, sane shape): no invalid
+    # request can use up the session's nonce. Atomic, so of concurrent valid
+    # copies exactly one proceeds.
+    extra_checks.append((
+        "nonce_consumed",
+        session.consume_nonce,
+        "session nonce was consumed by a concurrent submission (possible replay)",
+    ))
 
     t0 = time.perf_counter()
     if credentials is not None:  # sealed path: phase 1 already ran on the header
         binding_result = complete_binding(credentials, session_challenge=session.challenge, challenge_response=req.challenge_response,
                                           challenge_check=run_liveness, extra_checks=extra_checks)
     else:
-        first_use = session.consume_nonce()  # atomic, see Session.consume_nonce
         binding_result = check_transaction_binding(
             session_nonce=session.nonce,
             session_challenge=session.challenge,
@@ -528,7 +639,7 @@ def _verify_core(session_id: str, session: Session, req: VerifyRequest, timing_m
             timestamp=req.timestamp,
             challenge_response=req.challenge_response,
             signature=signature,
-            nonce_already_used=not first_use,
+            nonce_already_used=session.nonce_used,
             freshness_window_seconds=settings.freshness_window_seconds,
             challenge_check=run_liveness,
             extra_checks=extra_checks,
@@ -536,9 +647,9 @@ def _verify_core(session_id: str, session: Session, req: VerifyRequest, timing_m
         )
     t1 = time.perf_counter()
 
-    # The nonce is single-use: it was consumed atomically above (or in
-    # _sealed_head) regardless of outcome, so a rejected submission cannot
-    # be retried against the same nonce.
+    # The nonce is single-use: once a submission is authenticated it is
+    # consumed (stage nonce_consumed) whatever the liveness check and the
+    # detectors decide, so an authenticated submission cannot be retried.
 
     timing_ms["binding_check_ms"] = (t1 - t0) * 1000 - (0.0 if settings.pipeline_mode == "layered" else liveness_ms) + timing_ms.pop("credential_check_ms", 0.0)
     timing_ms["liveness_check_ms"] = liveness_ms
@@ -547,6 +658,8 @@ def _verify_core(session_id: str, session: Session, req: VerifyRequest, timing_m
         timing_ms["fusion_ms"] = detection[3]
 
     if not binding_result.accepted:
+        if binding_result.checks.get("submission_well_formed") is False and shape_problem and shape_problem[-1]:
+            binding_result.reasons[-1] = f"submission does not have the live-capture layout: {shape_problem[-1]}"
         timing_ms["total_ms"] = sum(timing_ms.values())
         return _binding_reject(session_id, session, binding_result, timing_ms, channel, liveness)
 
@@ -608,7 +721,18 @@ def reset_replay_store() -> dict:
 
 
 @app.delete("/session/{session_id}")
-def end_session(session_id: str) -> dict:
-    _get_session_or_404(session_id)
+def end_session(session_id: str, x_session_close_signature: str | None = Header(default=None)) -> dict:
+    """Close a session early (otherwise it expires after SESSION_TTL_SECONDS).
+    Requires the device's signature over (session_id, session nonce), so a
+    party that learns a session id cannot end someone else's session."""
+    session = _get_session_or_404(session_id)
+    try:
+        signature = bytes.fromhex(x_session_close_signature or "")
+        ok = bool(signature) and bool(sig_verify(build_session_close(session_id=session_id, session_nonce=session.nonce),
+                                                 signature, session.device_public_key, alg=session.sig_alg))
+    except Exception:
+        ok = False
+    if not ok:
+        raise HTTPException(status_code=401, detail="closing a session requires the device's X-Session-Close-Signature")
     store.delete(session_id)
     return {"session_id": session_id, "closed": True}

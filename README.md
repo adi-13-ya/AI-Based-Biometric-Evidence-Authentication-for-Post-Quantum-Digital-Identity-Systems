@@ -190,6 +190,12 @@ python scripts/make_demo_assets.py        # writes demo_assets/attacks/ (gitigno
 python scripts/demo_check.py --explain    # expects "12/12 scenarios behaved as expected"
 ```
 
+The demo samples are single images and short clips, which a production
+server rejects as malformed (a live capture is exactly 8 + 8 frames). For
+rehearsals set `DEMO_MODE=true` and `ALLOW_SAMPLE_UPLOADS=true` in `.env`
+and restart the server; `demo_check.py` tells you if they are missing.
+Live webcam capture works either way.
+
 **Managing the container:**
 
 ```bash
@@ -275,16 +281,16 @@ demo_assets/    Generated demo samples (gitignored) and their description
 | `GET /health` | Status, algorithms, liboqs readiness |
 | `GET /server/identity` | The server's ML-DSA identity public key, which clients pin |
 | `POST /device/enroll` | `{sig_alg, public_key}` → `device_id`; registers a device's ML-DSA public key |
-| `POST /session/start` | `{device_id}` → nonce, challenge, ML-KEM public key, signed by the server identity key |
+| `POST /session/start` | `{device_id, timestamp, request_nonce, signature}` (signed by the device) → nonce, challenge, ML-KEM public key, signed by the server identity key. HTTP 429 beyond the per-device limits |
 | `POST /session/{id}/verify-sealed` | Binary PQB1 envelope (ML-KEM ct, sealed header, sealed frames). Header checked first; frames read only if the signature is valid → liveness → AI → decision + explanations |
 | `POST /session/{id}/verify` | Plaintext variant for unit tests only; 404 unless `ALLOW_PLAINTEXT_VERIFY=true` |
 | `POST /demo/reset-replay-store` | Clear replay memory between rehearsals (`DEMO_MODE=true` only) |
-| `DELETE /session/{id}` | Close a session and free its keys |
+| `DELETE /session/{id}` | Close a session early; needs `X-Session-Close-Signature` from the device. Unused sessions expire after 120 s |
 
 ## Testing and reproducibility
 
 ```bash
-pytest tests/ -q                                 # 134 tests; liboqs-dependent ones skip without liboqs
+pytest tests/ -q                                 # 153 tests; liboqs-dependent ones skip without liboqs
 python evaluation/fetch_data.py                  # exact public subsets (HTTP range requests)
 python evaluation/finetune_pad.py && python evaluation/benchmark_pad.py
 python evaluation/train_deepfake.py && python evaluation/benchmark_deepfake.py
@@ -292,6 +298,8 @@ python evaluation/train_injection.py             # injection classifier + its ev
 python report/scripts/distributed_experiments.py # two-process latency and rejection cost: integrated / buffered / layered x ML-DSA / ECDSA
 python report/scripts/flood_experiment.py        # forged-request rate needed to double genuine latency (3 repeats)
 python report/scripts/signed_attacks.py          # public-data attacks signed by the enrolled device: which check rejects each
+python report/scripts/malicious_client.py        # session burning and authenticated-client attacks, v1.2.1 vs v1.3
+                                                 #   (needs the v1.2.1 tree: git worktree add ../before-fix-v1.2.1 3586b1e)
 python evaluation/cluster_ci.py                  # intervals by subject / video / person
 python report/scripts/results_figures.py         # figures from the saved results
 ```
@@ -321,6 +329,12 @@ The quantum experiments need Qiskit in a separate environment
   deployment would tie `POST /device/enroll` to onboarding or hardware key
   attestation and rate-limit per device. The server key is pinned on first
   use unless `PQBIO_SERVER_PUBKEY` is distributed out of band.
+- **Authenticated malicious clients.** An enrolled key passes every
+  cryptographic check by definition. Against such a client the protocol
+  bounds the shape of a submission and the work per device (one inference
+  per session, 12 sessions a minute), but whether attack content is caught
+  depends on the detectors alone, and white-box adversarial perturbations
+  are measured in the report (Section 4.6).
 - **liboqs is required on the client** now that the client signs.
 - **In-memory state.** Sessions, devices and replay memory live in one
   process; a multi-server deployment would need a shared store.

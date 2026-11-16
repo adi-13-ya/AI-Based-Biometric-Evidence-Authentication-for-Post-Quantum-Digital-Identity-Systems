@@ -24,7 +24,7 @@ import json
 import os
 from pathlib import Path
 
-from crypto.signature import DEFAULT_SIG_ALG, SignerIdentity, build_binding_payload
+from crypto.signature import DEFAULT_SIG_ALG, SignerIdentity, build_binding_payload, build_session_close, build_session_request
 
 
 def default_key_path(alg: str) -> Path:
@@ -76,6 +76,14 @@ class DeviceIdentity:
         build_binding_payload). `context`: session_id, kem_ciphertext,
         burst_frames, frame_timestamps."""
         return self._signer.sign(build_binding_payload(evidence_hash, session_nonce, timestamp, challenge_response, **context))
+
+    def sign_session_request(self, device_id: str, timestamp: str, request_nonce: bytes) -> bytes:
+        """Signature that lets the server open a session for this device
+        (crypto/signature.py: build_session_request)."""
+        return self._signer.sign(build_session_request(device_id=device_id, timestamp=timestamp, request_nonce=request_nonce))
+
+    def sign_session_close(self, session_id: str, session_nonce: bytes) -> bytes:
+        return self._signer.sign(build_session_close(session_id=session_id, session_nonce=session_nonce))
 
     def _save(self) -> None:
         self.key_path.parent.mkdir(parents=True, exist_ok=True)

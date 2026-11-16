@@ -69,6 +69,33 @@ class Settings(BaseSettings):
     # "layered": ablation - inference runs before the cryptographic checks.
     pipeline_mode: str = "integrated"
 
+    # --- Sessions (docs/PROTOCOL.md Section 3) ---
+    # Session start must carry the device's signature over (device_id,
+    # timestamp, request nonce), so only the key holder can open sessions for
+    # a device or spend its per-device budget. Experiments that model an
+    # attacker who already holds a session id set this to false.
+    require_signed_session_start: bool = True
+    session_ttl_seconds: int = 120  # an unused session expires after this
+    max_active_sessions_per_device: int = 3
+    max_sessions_per_minute_per_device: int = 12  # also bounds inference per device: one per session
+    # Challenge kinds the server issues: "motion" (head turn / nod, checked
+    # with MediaPipe) and "digits" (typed back; no audio pipeline, so it binds
+    # the session but is not a liveness test). Default: motion only.
+    challenge_kinds: str = "motion"
+
+    # --- Submission shape (checked after authentication, before decoding) ---
+    # A live capture is exactly spread_frames evenly spaced frames followed by
+    # burst_frames consecutive ones (client_demo/recorder.py: select_frames).
+    spread_frames: int = 8
+    burst_frames: int = 8
+    max_frame_pixels: int = 1920 * 1080
+    max_body_bytes: int = 48 * 2**20
+    pad_frames: int = 3  # PAD/morph judge the first frame plus this many - 1 server-chosen frames; worst score counts
+    # Single images and short clips from demo_assets/ do not have the live
+    # layout. Allowing them also lets the liveness check fall back to a
+    # response-only check. Demo rehearsals only; never in an evaluation.
+    allow_sample_uploads: bool = False
+
     # --- Replay detector store ---
     replay_hash_window_seconds: int = 86400
 

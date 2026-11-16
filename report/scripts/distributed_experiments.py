@@ -83,8 +83,17 @@ def stats(xs: list[float]) -> dict:
 # --------------------------------------------------------------------------
 # Server process
 # --------------------------------------------------------------------------
+# The v1.2 measurements (D1-D5) open many sessions per device per minute and
+# reopen sessions until a digit challenge is issued (so pre-recorded clips are
+# judged by the detectors, not the motion check). These settings keep them
+# reproducible; the per-device limits and the motion-only default are
+# evaluated separately in report/scripts/malicious_client.py.
+MEASUREMENT_ENV = {"CHALLENGE_KINDS": "motion,digits", "ALLOW_SAMPLE_UPLOADS": "false", "DEMO_MODE": "true", "MAX_SESSIONS_PER_MINUTE_PER_DEVICE": "1000000",
+                   "MAX_ACTIVE_SESSIONS_PER_DEVICE": "1000000"}
+
+
 class Server:
-    def __init__(self, mode: str):
+    def __init__(self, mode: str, extra_env: dict | None = None, repo: Path = REPO):
         from server.config import Settings
 
         # Every tunable from the code defaults (the calibrated values), so a
@@ -92,10 +101,10 @@ class Server:
         defaults = {name.upper(): str(f.default) for name, f in Settings.model_fields.items()
                     if name.startswith(("threshold_", "weight_", "fusion_", "pad_", "kem_", "sig_"))}
         env = {**os.environ, **defaults, "PIPELINE_MODE": mode, "DEMO_MODE": "true", "DETECTION_MODE": "pretrained",
-               "SERVER_KEY_PATH": SERVER_KEY_PATH}
+               "SERVER_KEY_PATH": SERVER_KEY_PATH, **MEASUREMENT_ENV, **(extra_env or {})}
         self.proc = subprocess.Popen(
             [sys.executable, "-m", "uvicorn", "server.main:app", "--port", str(PORT), "--log-level", "warning"],
-            cwd=REPO, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            cwd=repo, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
         import requests
 
@@ -157,7 +166,7 @@ def digit_session(client) -> dict:
         session = client.session_start()
         if "number" in session["challenge"].lower():
             return session
-        client.end_session(session["session_id"])
+        client.end_session(session)
     raise RuntimeError("no digit challenge issued in 50 tries")
 
 

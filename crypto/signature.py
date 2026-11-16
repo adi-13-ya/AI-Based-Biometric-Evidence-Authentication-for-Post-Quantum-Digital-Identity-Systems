@@ -40,6 +40,8 @@ SUPPORTED_SIG_ALGS = PQ_SIG_ALGS | CLASSICAL_SIG_ALGS
 
 BINDING_TAG = b"PQBIO-EVIDENCE-v2"
 SESSION_OFFER_TAG = b"PQBIO-SESSION-OFFER-v1"
+SESSION_REQUEST_TAG = b"PQBIO-SESSION-REQUEST-v1"
+SESSION_CLOSE_TAG = b"PQBIO-SESSION-CLOSE-v1"
 
 
 def _check_alg(alg: str) -> None:
@@ -220,6 +222,19 @@ def build_session_offer(
         repr(float(issued_at)).encode("ascii"),
         str(int(freshness_window_seconds)).encode("ascii"),
     )
+
+
+def build_session_request(*, device_id: str, timestamp: str, request_nonce: bytes) -> bytes:
+    """What the device signs to open a session (docs/PROTOCOL.md, 3.1). Only
+    the holder of the enrolled key can open sessions for a device, so nobody
+    else can spend that device's per-device session budget."""
+    return encode_fields(SESSION_REQUEST_TAG, device_id.encode("ascii"), timestamp.encode("utf-8"), request_nonce)
+
+
+def build_session_close(*, session_id: str, session_nonce: bytes) -> bytes:
+    """What the device signs to close its own session early. An unsigned
+    close request would let anyone who learns a session id end it."""
+    return encode_fields(SESSION_CLOSE_TAG, session_id.encode("utf-8"), session_nonce)
 
 
 def sig_details(alg: str = DEFAULT_SIG_ALG) -> dict:

@@ -5,6 +5,53 @@ follows [Keep a Changelog](https://keepachangelog.com/); dates are when the
 change was made, not a formal release schedule (this is a prototype, not a
 versioned package).
 
+## [1.3.0] - session safety and authenticated malicious clients
+
+Supervisor review, second round (items i-iv).
+
+### Fixed (security)
+- **Invalid requests could end a legitimate session.** The nonce was consumed
+  before the device signature was checked, and a GCM failure consumed it too,
+  so anyone who knew a session id (or saw the device's envelope and sent a
+  corrupted copy first) could burn the session. The nonce is now read
+  (`nonce_unused`) at the head and consumed atomically only after the
+  signature and the evidence hash verify (`nonce_consumed`).
+- **Unauthenticated session close and start.** `DELETE /session/{id}` now needs
+  `X-Session-Close-Signature` (device signature over `PQBIO-SESSION-CLOSE-v1`);
+  `POST /session/start` needs the device's signature over
+  `PQBIO-SESSION-REQUEST-v1` (device_id, timestamp, request nonce), fresh and
+  not replayed. `REQUIRE_SIGNED_SESSION_START=false` restores the old start
+  for the flood experiment's worst case.
+- **Submission shape controlled by the client.** A single-frame submission
+  skipped the motion challenge (response-only fallback) and the injection
+  classifier; `burst_frames` chose which frames the injection classifier saw;
+  frame size and count were unbounded. New stage `submission_well_formed`
+  (after the evidence hash, before any decode): exactly 8 + 8 frames,
+  `burst_frames = 8`, one size, at most 1920x1080; body capped at 48 MiB (413).
+- **Liveness failed open.** A motion challenge with no detectable face fell
+  back to "any non-empty response". It now fails closed unless
+  `ALLOW_SAMPLE_UPLOADS=true` (demo rehearsals only).
+- **PAD looked at frame 0 only**, so a live frame spliced in front of attack
+  frames passed it. PAD now scores the first frame and two server-chosen
+  frames and keeps the worst (`PAD_FRAMES=3`).
+- The spoken-digit challenge is typed back (no audio), so it is not issued by
+  default (`CHALLENGE_KINDS=motion`).
+
+### Added
+- Per-device limits: 3 unused sessions, 12 session starts per minute (HTTP
+  429); unused sessions expire after 120 s.
+- `tests/test_session_safety.py` (19 tests); 153 tests in total.
+- `report/scripts/malicious_client.py` (D6): session burning and
+  authenticated-client attacks against v1.2.1 and v1.3 side by side.
+- Report: Section 4.6, claims restated (abstract, contributions,
+  conclusions); negative cross-domain results kept as a finding.
+
+### Changed
+- `client_demo/api_client.py` signs session start and close; `end_session`
+  takes the session dict.
+- Measurement scripts set `CHALLENGE_KINDS=motion,digits` and lift the
+  per-device limits so D1-D5 stay reproducible.
+
 ## [1.2.1] - framing and attribution after the supervisor's answers
 
 - Report title now ends "for Biometric Evidence Screening"; the problem statement (1.2) says the system is a screening stage, and Section 6.3 maps the three parts of the problem statement onto the objectives.
