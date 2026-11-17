@@ -1,7 +1,8 @@
-# AI-Based Biometric Evidence Authentication for Post-Quantum Digital Identity Systems
+# Rejecting Invalid Biometric Submissions Before Inference
 
-> This project was done as part of the **Quantum Computing** course project
-> under **Professor Aswani Kumar Cherukuri**, Vellore Institute of Technology (VIT), Vellore.
+**Post-quantum transaction binding for biometric evidence screening.**
+Code, data and experiment scripts for the paper of the same title
+(`report/final-report/`). Vellore Institute of Technology, Vellore.
 
 Remote identity checks (bank onboarding, e-KYC, digital ID) ask a person to
 show their face to a camera and send it to a server. Two things can go
@@ -10,15 +11,19 @@ which quantum computers will break, so sessions recorded today can be
 decrypted later. And even a perfectly secure channel says nothing about
 whether the face in it is real: a deepfake sent over TLS is still a deepfake.
 
-This project is a working prototype of **biometric evidence screening**
+This repository implements **biometric evidence screening**
 that addresses both. It checks that a face capture came unaltered from an
 enrolled device, for one session, within the last 30 s, and shows none of
-five attack signatures. It sends the capture over a channel that stays
-secure against quantum computers. Invalid submissions are rejected
+five attack signatures. It sends the capture over a channel built only
+from post-quantum public-key primitives (ML-KEM-768, ML-DSA-65). Invalid submissions are rejected
 cryptographically **before** any image is read or any model runs. It does
 not match the face against a trusted identity reference, so it does not
 by itself establish who the person is (see
-[`docs/PROTOCOL.md`](docs/PROTOCOL.md), Section 5).
+[`docs/PROTOCOL.md`](docs/PROTOCOL.md), Section 5). Invalid requests cannot
+end or use up a legitimate session, and the work any enrolled key can cause
+is bounded. The protocol's security is argued informally, not formally
+proven, and the biometric detectors are not robust across datasets or
+against adaptive attacks; the paper reports these as limitations.
 
 ![Architecture](report/figures/fig_a1_architecture.png)
 
@@ -31,20 +36,26 @@ by itself establish who the person is (see
   evidence with **AES-256-GCM**.
 - **Transaction binding with early rejection.** An **ML-DSA-65** (FIPS 204)
   signature, made on the capture device with a key that never leaves it,
-  over the evidence fingerprint, a single-use 256-bit nonce (consumed
-  atomically, so concurrent duplicates cannot both pass), a timestamp, the
+  over the evidence fingerprint, a single-use 256-bit nonce, a timestamp, the
   liveness-challenge answer, the session id, the ML-KEM ciphertext and the
   injection-check metadata. The server checks nonce, freshness, signature
   and frame fingerprint cheapest-first and stops at the first failure, so
   forged or replayed submissions are rejected before the frames are read,
   decrypted or decoded. The exact format and check order are in
   [`docs/PROTOCOL.md`](docs/PROTOCOL.md).
+- **Session safety.** Opening and closing a session require the device's
+  signature. The nonce is only read by the early checks and claimed
+  atomically once the request is authenticated, so invalid requests cannot
+  end a session and exactly one of several concurrent copies is admitted.
+  Per-device limits (3 open sessions, 12 per minute) bound the inference any
+  one key can trigger.
 - **Distributed trust.** Devices enrol only their public key
   (`POST /device/enroll`, optionally gated by `ENROLLMENT_TOKEN`); the server
   stores public keys and has no way to sign evidence on a client's behalf.
 - **Live recording with a liveness challenge.** The dashboard records a
   4 s clip from the browser camera while the person performs a randomly
-  chosen task (turn head, nod, say a number).
+  chosen head movement (turn left, turn right or nod); the check fails
+  closed if the movement cannot be measured.
 - **Trained detectors, measured on public data:** MiniFASNet presentation
   attack detection, an EfficientNet-B0 deepfake detector fine-tuned on
   DeepFakeFace, and a virtual-camera (injection) classifier that relies on
@@ -362,5 +373,5 @@ The quantum experiments need Qiskit in a separate environment
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Verification flow, detectors, security properties |
 | [`docs/SETUP_MACOS.md`](docs/SETUP_MACOS.md), [`docs/SETUP.md`](docs/SETUP.md) | Detailed setup (macOS, Windows) |
 | [`docs/STUDY_GUIDE.md`](docs/STUDY_GUIDE.md) | Background: PQC, algorithms, detectors, terminology |
-| [`report/final-report/QUANTUM-FINAL-REPORT-REVISED.docx`](report/final-report/QUANTUM-FINAL-REPORT-REVISED.docx) | Current full report (older versions in `report/archive/`) |
+| [`report/final-report/QUANTUM-FINAL-REPORT-REVISED.docx`](report/final-report/QUANTUM-FINAL-REPORT-REVISED.docx) | The paper (earlier drafts in `report/archive/`) |
 | [`CHANGELOG.md`](CHANGELOG.md), [`CLAUDE.md`](CLAUDE.md) | Change history, contributor conventions |
