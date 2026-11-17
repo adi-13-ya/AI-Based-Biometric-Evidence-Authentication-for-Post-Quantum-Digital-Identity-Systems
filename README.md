@@ -369,6 +369,7 @@ The quantum experiments need Qiskit in a separate environment
 | Document | For |
 |---|---|
 | [`docs/GUIDE.md`](docs/GUIDE.md) | Presenter's guide: running the demo, showing each ACCEPT/REJECT |
+| [`docs/VIRTUAL_CAMERA_TEST.md`](docs/VIRTUAL_CAMERA_TEST.md) | Step-by-step real virtual-camera (OBS) injection test |
 | [`docs/PROTOCOL.md`](docs/PROTOCOL.md) | Exact protocol: keys, signed and encrypted fields, wire format, server check order, decision rule |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Verification flow, detectors, security properties |
 | [`docs/SETUP_MACOS.md`](docs/SETUP_MACOS.md), [`docs/SETUP.md`](docs/SETUP.md) | Detailed setup (macOS, Windows) |

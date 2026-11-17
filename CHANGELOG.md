@@ -5,6 +5,14 @@ follows [Keep a Changelog](https://keepachangelog.com/); dates are when the
 change was made, not a formal release schedule (this is a prototype, not a
 versioned package).
 
+## [Unreleased]
+
+- `evaluation/virtual_camera_capture.py` and `docs/VIRTUAL_CAMERA_TEST.md`:
+  real virtual-camera injection test with OBS Virtual Camera (attack videos,
+  camera discovery, guided genuine recording, automatic attack recording,
+  end-to-end evaluation through the final server). Clips stay in
+  `datasets/vcam/` (gitignored).
+
 ## [1.4.0] - paper version: final-system results only
 
 Supervisor review, round 3.
