@@ -4,21 +4,22 @@
     "species": "webcam_real",
     "n": 30,
     "sources": 10,
-    "accepted": 28,
-    "accept_rate": 0.9333333333333333,
+    "accepted": 26,
+    "accept_rate": 0.8666666666666667,
     "accept_ci95": [
-      0.7867618227892791,
-      0.9815233646723066
+      0.7031831605558306,
+      0.9469043057578189
     ],
     "rejected_at_binding": {},
     "veto_rate": {
-      "presentation_attack": 0.0,
+      "presentation_attack": 0.06666666666666667,
       "deepfake": 0.0,
       "injection": 0.06666666666666667,
       "replay": 0.0,
       "morph": 0.0
     },
     "sole_veto": {
+      "presentation_attack": 2,
       "injection": 2
     }
   },
@@ -192,6 +193,30 @@
     "species": "monitor",
     "n": 10,
     "sources": 10,
+    "accepted": 2,
+    "accept_rate": 0.2,
+    "accept_ci95": [
+      0.056680947980693314,
+      0.5098431532792765
+    ],
+    "rejected_at_binding": {},
+    "veto_rate": {
+      "presentation_attack": 0.6,
+      "deepfake": 0.5,
+      "injection": 0.0,
+      "replay": 0.0,
+      "morph": 0.0
+    },
+    "sole_veto": {
+      "presentation_attack": 3,
+      "deepfake": 2
+    }
+  },
+  {
+    "cls": "presentation",
+    "species": "outline",
+    "n": 10,
+    "sources": 10,
     "accepted": 3,
     "accept_rate": 0.3,
     "accept_ci95": [
@@ -200,37 +225,14 @@
     ],
     "rejected_at_binding": {},
     "veto_rate": {
-      "presentation_attack": 0.3,
-      "deepfake": 0.5,
-      "injection": 0.0,
-      "replay": 0.0,
-      "morph": 0.0
-    },
-    "sole_veto": {
-      "deepfake": 4,
-      "presentation_attack": 2
-    }
-  },
-  {
-    "cls": "presentation",
-    "species": "outline",
-    "n": 10,
-    "sources": 10,
-    "accepted": 5,
-    "accept_rate": 0.5,
-    "accept_ci95": [
-      0.23658959361548731,
-      0.7634104063845126
-    ],
-    "rejected_at_binding": {},
-    "veto_rate": {
-      "presentation_attack": 0.0,
+      "presentation_attack": 0.2,
       "deepfake": 0.4,
       "injection": 0.0,
       "replay": 0.0,
       "morph": 0.2
     },
     "sole_veto": {
+      "presentation_attack": 2,
       "morph": 1,
       "deepfake": 3
     }
@@ -264,22 +266,22 @@
     "species": "print_cut",
     "n": 10,
     "sources": 10,
-    "accepted": 8,
-    "accept_rate": 0.8,
+    "accepted": 7,
+    "accept_rate": 0.7,
     "accept_ci95": [
-      0.49015684672072335,
-      0.9433190520193067
+      0.39677321997956516,
+      0.892210712513788
     ],
     "rejected_at_binding": {},
     "veto_rate": {
-      "presentation_attack": 0.2,
+      "presentation_attack": 0.3,
       "deepfake": 0.0,
       "injection": 0.0,
       "replay": 0.0,
       "morph": 0.0
     },
     "sole_veto": {
-      "presentation_attack": 2
+      "presentation_attack": 3
     }
   },
   {
@@ -287,15 +289,15 @@
     "species": "silicone",
     "n": 10,
     "sources": 10,
-    "accepted": 6,
-    "accept_rate": 0.6,
+    "accepted": 5,
+    "accept_rate": 0.5,
     "accept_ci95": [
-      0.3126695474501864,
-      0.8318224187964902
+      0.23658959361548731,
+      0.7634104063845126
     ],
     "rejected_at_binding": {},
     "veto_rate": {
-      "presentation_attack": 0.2,
+      "presentation_attack": 0.3,
       "deepfake": 0.1,
       "injection": 0.1,
       "replay": 0.0,
@@ -304,7 +306,7 @@
     "sole_veto": {
       "injection": 1,
       "deepfake": 1,
-      "presentation_attack": 2
+      "presentation_attack": 3
     }
   },
   {
@@ -320,14 +322,14 @@
     ],
     "rejected_at_binding": {},
     "veto_rate": {
-      "presentation_attack": 0.0,
+      "presentation_attack": 0.1,
       "deepfake": 0.0,
       "injection": 0.0,
       "replay": 1.0,
       "morph": 0.0
     },
     "sole_veto": {
-      "replay": 10
+      "replay": 9
     }
   },
   {

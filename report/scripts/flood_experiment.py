@@ -19,12 +19,25 @@ Then, REPEATS times:
      log r between the two bracketing points). If the highest rate tried
      never reaches it, the result is a lower bound and is flagged.
 
-Attackers and victim are separate OS processes (no shared GIL). An attacker
+Attackers and victims are separate OS processes (no shared GIL). The
+server runs the deployed configuration: signed session start, per-device
+limits (3 unused sessions, 12 starts a minute) and late nonce consumption;
+only the challenge kind is the typed-digit one, so that recorded clips reach
+the detectors (see distributed_experiments.MEASUREMENT_ENV).
+
+Adversary: holds no enrolled key, observes session ids and session offers on
+the network (as an on-path party, or from leaked URLs), and can open as many
+connections as it likes. It cannot open sessions itself (session start is
+signed), so it targets observed sessions: three sessions of a bystander
+device, refreshed every 90 s. Because a forged request does not consume the
+nonce, the attacker can reuse one session id for every request. Each attacker
 prepares one realistic payload once (16 PNG frames from a real webcam clip,
-about 5.7 MB), then loops: open a session for the victim's enrolled device
-(device ids are not secret), encapsulate to the session's ML-KEM key, sign
-with its own key (same algorithm as the victim's device), seal, submit.
-Only the signature check can tell the request is not from the victim.
+about 5.7 MB) and loops: encapsulate to the observed session's ML-KEM key,
+sign with its own key (same algorithm as the devices), seal, submit. Only
+the signature check can tell the request is not from the device.
+
+Genuine traffic comes from VICTIM_DEVICES enrolled devices used in turn, so
+no device exceeds its per-device limit.
 
 Run: python report/scripts/flood_experiment.py [config ...]
 Writes report/data/v2/d3_flood_matched.json
@@ -48,6 +61,7 @@ sys.path.insert(0, str(REPO))
 sys.path.insert(0, str(REPO / "report" / "scripts"))
 
 PORT = 8765
+VICTIM_DEVICES = 12
 SECONDS = 15
 ATTACK_PROCS = 4
 REPEATS = 3
@@ -107,7 +121,7 @@ def _submit(client, session, evidence_hash, frame_bytes, burst, sign) -> tuple[f
     return (time.perf_counter() - t0) * 1000, result
 
 
-def attacker(device_id: str, sig_alg: str, rate: float, barrier, out: mp.Queue, k: int) -> None:
+def attacker(sessions: list[dict], sig_alg: str, rate: float, barrier, out: mp.Queue, k: int) -> None:
     from crypto.signature import SignerIdentity, build_binding_payload
 
     client = _api(str(Path(tempfile.mkdtemp()) / "attacker.json"), sig_alg)
@@ -119,7 +133,7 @@ def attacker(device_id: str, sig_alg: str, rate: float, barrier, out: mp.Queue, 
     barrier.wait()
     t_start = time.time()
     stop_at = t_start + SECONDS
-    next_at = t_start + (k / ATTACK_PROCS) * interval  # stagger the attackers
+    next_at = t_start + k * interval / ATTACK_PROCS
     while time.time() < stop_at:
         if interval:
             wait = next_at - time.time()
@@ -129,8 +143,7 @@ def attacker(device_id: str, sig_alg: str, rate: float, barrier, out: mp.Queue, 
                     break
             next_at = max(next_at + interval, time.time() - interval)  # no burst catch-up after a stall
         try:
-            # Raw session start: the attacker does not need to verify the offer.
-            session = client._request("POST", "/session/start", json={"device_id": device_id})
+            session = sessions[(n + k) % len(sessions)]  # an observed session; forged requests never use it up
             _, result = _submit(client, session, h, frame_bytes, burst, sign)
             n += 1
             accepted += bool(result["accepted"])
@@ -139,23 +152,24 @@ def attacker(device_id: str, sig_alg: str, rate: float, barrier, out: mp.Queue, 
     out.put(("attacker", n, accepted, time.time() - t_start, error))
 
 
-def victim(key_path: str, sig_alg: str, barrier, out: mp.Queue) -> None:
-    client = _api(key_path, sig_alg)
-    dev = client.device()
+def victim(key_paths: list[str], sig_alg: str, barrier, out: mp.Queue) -> None:
+    from client_demo.device import DeviceIdentity
+
+    client = _api(key_paths[0], sig_alg)
+    devices = [DeviceIdentity(alg=sig_alg, key_path=Path(p)) for p in key_paths]
     parts = [_payload_parts(i) for i in range(3)]
     lat, accepted, i = [], 0, 0
-    sign = lambda h_, n, ts, r, ctx: dev.sign_binding(h_, n, ts, r, **ctx)  # noqa: E731
-    from distributed_experiments import digit_session
-
     barrier.wait()
     stop_at = time.time() + SECONDS
     while time.time() < stop_at:
         h, frame_bytes, burst = parts[i % len(parts)]
+        dev = devices[i % len(devices)]
+        client._device = dev
+        sign = lambda h_, n, ts, r, ctx: dev.sign_binding(h_, n, ts, r, **ctx)  # noqa: E731
         try:
             client.reset_replay_store()
-            session = digit_session(client)
+            session = client.session_start()
             ms, result = _submit(client, session, h, frame_bytes, burst, sign)
-            client.end_session(session)
             lat.append(ms)
             accepted += bool(result["accepted"])
         except Exception:
@@ -164,14 +178,39 @@ def victim(key_path: str, sig_alg: str, barrier, out: mp.Queue) -> None:
     out.put(("victim", lat, accepted))
 
 
-def one_run(key_path: str, device_id: str, sig_alg: str, rate: float | None, server) -> dict:
-    """rate None = victim alone."""
+class Bystander:
+    """Sessions an attacker can observe: three sessions of an enrolled
+    device, closed (signed) and reopened every 90 s so they never expire
+    during a run, within the per-device limits."""
+
+    def __init__(self, sig_alg: str):
+        self.client = _api(str(Path(tempfile.mkdtemp()) / "bystander.json"), sig_alg)
+        self.client._device = None
+        self.client.enroll_device()
+        self.sessions: list[dict] = []
+        self.opened = 0.0
+
+    def pool(self) -> list[dict]:
+        if time.time() - self.opened > 90:
+            for s in self.sessions:
+                try:
+                    self.client.end_session(s)
+                except Exception:
+                    pass
+            self.sessions = [self.client.session_start() for _ in range(3)]
+            self.opened = time.time()
+        return self.sessions
+
+
+def one_run(key_paths: list[str], bystander: Bystander, sig_alg: str, rate: float | None, server) -> dict:
+    """rate None = victims alone."""
     ctx = mp.get_context("spawn")
     out = ctx.Queue()
     n_att = 0 if rate is None else ATTACK_PROCS
     barrier = ctx.Barrier(1 + n_att)
-    procs = [ctx.Process(target=victim, args=(key_path, sig_alg, barrier, out))]
-    procs += [ctx.Process(target=attacker, args=(device_id, sig_alg, rate, barrier, out, k)) for k in range(n_att)]
+    sessions = bystander.pool() if n_att else []
+    procs = [ctx.Process(target=victim, args=(key_paths, sig_alg, barrier, out))]
+    procs += [ctx.Process(target=attacker, args=(sessions, sig_alg, rate, barrier, out, k)) for k in range(n_att)]
     cpu0 = server.cpu_seconds()
     for p in procs:
         p.start()
@@ -209,16 +248,21 @@ def rate_at_degradation(points: list[tuple[float, float]], target: float) -> tup
 def run_config(mode: str, sig_alg: str) -> dict:
     from distributed_experiments import SERVER_KEY_PATH, Server
 
-    server = Server(mode, extra_env={"REQUIRE_SIGNED_SESSION_START": "false"})  # attackers hold session ids (worst case)
-    key_path = str(Path(tempfile.mkdtemp()) / "victim.json")
+    # Deployed per-device limits (MEASUREMENT_ENV lifts them for D1/D2).
+    server = Server(mode, extra_env={"MAX_SESSIONS_PER_MINUTE_PER_DEVICE": "12", "MAX_ACTIVE_SESSIONS_PER_DEVICE": "3"})
     repeats = []
     try:
-        client = _api(key_path, sig_alg)
-        client._device = None
-        device_id = client.enroll_device()
+        key_paths = []
+        for v in range(VICTIM_DEVICES):
+            kp = str(Path(tempfile.mkdtemp()) / f"victim{v}.json")
+            client = _api(kp, sig_alg)
+            client._device = None
+            client.enroll_device()
+            key_paths.append(kp)
+        bystander = Bystander(sig_alg)
         for rep in range(REPEATS):
-            base = one_run(key_path, device_id, sig_alg, None, server)
-            sweep = [one_run(key_path, device_id, sig_alg, rate, server) for rate in RATES[mode]]
+            base = one_run(key_paths, bystander, sig_alg, None, server)
+            sweep = [one_run(key_paths, bystander, sig_alg, rate, server) for rate in RATES[mode]]
             for row in sweep:
                 row["latency_ratio"] = row["victim_ms_median"] / base["victim_ms_median"] if row["victim_ms_median"] else None
             r2, lower = rate_at_degradation([(r["forged_per_s"], r["latency_ratio"]) for r in sweep], DEGRADATION)
@@ -226,7 +270,7 @@ def run_config(mode: str, sig_alg: str) -> dict:
                             "forged_per_s_at_2x": r2, "is_lower_bound": lower})
             print(json.dumps({"config": f"{mode}/{sig_alg}", "repeat": rep, "L0": base["victim_ms_median"],
                               "points": [(round(r["forged_per_s"], 2), round(r["latency_ratio"] or 0, 2)) for r in sweep],
-                              "rate_at_2x": r2, "lower_bound": lower}), flush=True)
+                              "rate_at_2x": r2, "lower_bound": lower, "errors": [r["attacker_errors"] for r in sweep]}), flush=True)
     finally:
         server.stop()
     vals = [r["forged_per_s_at_2x"] for r in repeats if r["forged_per_s_at_2x"] is not None]

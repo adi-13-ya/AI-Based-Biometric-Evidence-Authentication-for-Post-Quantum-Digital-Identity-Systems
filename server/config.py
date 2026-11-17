@@ -96,6 +96,13 @@ class Settings(BaseSettings):
     # response-only check. Demo rehearsals only; never in an evaluation.
     allow_sample_uploads: bool = False
 
+    # --- Ablations (measurement only; report Section 4.6) ---
+    # Each switch removes one defence so its effect can be measured in the
+    # same code base. Never set in a deployment.
+    ablate_early_nonce_consume: bool = False  # consume N at the first check (before the signature), on GCM failure too, and accept unsigned close
+    enforce_submission_shape: bool = True  # false: skip submission_well_formed
+    strict_liveness: bool = True  # false: motion challenge falls back to "any response" when motion cannot be measured
+
     # --- Replay detector store ---
     replay_hash_window_seconds: int = 86400
 

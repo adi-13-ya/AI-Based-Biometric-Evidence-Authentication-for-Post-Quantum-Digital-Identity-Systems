@@ -1,0 +1,143 @@
+config,attack,i,http,session_survived,device_accepted,device_failed_check
+final,none (control),0,200,True,True,
+final,none (control),1,200,True,True,
+final,none (control),2,200,True,False,
+final,none (control),3,200,True,True,
+final,none (control),4,200,True,False,
+final,none (control),5,200,True,True,
+final,none (control),6,200,True,True,
+final,none (control),7,200,True,True,
+final,none (control),8,200,True,True,
+final,none (control),9,200,True,True,
+final,body that cannot be parsed,0,200,True,True,
+final,body that cannot be parsed,1,200,True,True,
+final,body that cannot be parsed,2,200,True,True,
+final,body that cannot be parsed,3,200,True,True,
+final,body that cannot be parsed,4,200,True,True,
+final,body that cannot be parsed,5,200,True,False,
+final,body that cannot be parsed,6,200,True,True,
+final,body that cannot be parsed,7,200,True,True,
+final,body that cannot be parsed,8,200,True,True,
+final,body that cannot be parsed,9,200,True,True,
+final,envelope signed with the attacker's key,0,200,True,True,
+final,envelope signed with the attacker's key,1,200,True,True,
+final,envelope signed with the attacker's key,2,200,True,False,
+final,envelope signed with the attacker's key,3,200,True,True,
+final,envelope signed with the attacker's key,4,200,True,False,
+final,envelope signed with the attacker's key,5,200,True,True,
+final,envelope signed with the attacker's key,6,200,True,True,
+final,envelope signed with the attacker's key,7,200,True,True,
+final,envelope signed with the attacker's key,8,200,True,True,
+final,envelope signed with the attacker's key,9,200,True,True,
+final,envelope sealed for another session,0,200,True,True,
+final,envelope sealed for another session,1,200,True,True,
+final,envelope sealed for another session,2,200,True,True,
+final,envelope sealed for another session,3,200,True,True,
+final,envelope sealed for another session,4,200,True,False,
+final,envelope sealed for another session,5,200,True,False,
+final,envelope sealed for another session,6,200,True,True,
+final,envelope sealed for another session,7,200,True,True,
+final,envelope sealed for another session,8,200,True,True,
+final,envelope sealed for another session,9,200,True,True,
+final,"on path: device envelope, frames bit-flipped, sent first",0,200,True,True,
+final,"on path: device envelope, frames bit-flipped, sent first",1,200,True,True,
+final,"on path: device envelope, frames bit-flipped, sent first",2,200,True,False,
+final,"on path: device envelope, frames bit-flipped, sent first",3,200,True,True,
+final,"on path: device envelope, frames bit-flipped, sent first",4,200,True,False,
+final,"on path: device envelope, frames bit-flipped, sent first",5,200,True,True,
+final,"on path: device envelope, frames bit-flipped, sent first",6,200,True,True,
+final,"on path: device envelope, frames bit-flipped, sent first",7,200,True,True,
+final,"on path: device envelope, frames bit-flipped, sent first",8,200,True,True,
+final,"on path: device envelope, frames bit-flipped, sent first",9,200,True,True,
+final,"on path: device envelope, truncated, sent first",0,200,True,True,
+final,"on path: device envelope, truncated, sent first",1,200,True,True,
+final,"on path: device envelope, truncated, sent first",2,200,True,False,
+final,"on path: device envelope, truncated, sent first",3,200,True,True,
+final,"on path: device envelope, truncated, sent first",4,200,True,True,
+final,"on path: device envelope, truncated, sent first",5,200,True,True,
+final,"on path: device envelope, truncated, sent first",6,200,True,True,
+final,"on path: device envelope, truncated, sent first",7,200,True,True,
+final,"on path: device envelope, truncated, sent first",8,200,True,True,
+final,"on path: device envelope, truncated, sent first",9,200,True,True,
+final,unsigned session close,0,200,True,True,
+final,unsigned session close,1,200,True,True,
+final,unsigned session close,2,200,True,False,
+final,unsigned session close,3,200,True,True,
+final,unsigned session close,4,200,True,True,
+final,unsigned session close,5,200,True,False,
+final,unsigned session close,6,200,True,True,
+final,unsigned session close,7,200,True,True,
+final,unsigned session close,8,200,True,True,
+final,unsigned session close,9,200,True,True,
+final,_forged_cost_ms,0,200,,,"{""median"": 0.20866647537332028, ""p95"": 0.24337598006241024, ""n"": 100}"
+early nonce consumption,none (control),0,200,True,True,
+early nonce consumption,none (control),1,200,True,True,
+early nonce consumption,none (control),2,200,True,False,
+early nonce consumption,none (control),3,200,True,True,
+early nonce consumption,none (control),4,200,True,False,
+early nonce consumption,none (control),5,200,True,True,
+early nonce consumption,none (control),6,200,True,True,
+early nonce consumption,none (control),7,200,True,True,
+early nonce consumption,none (control),8,200,True,True,
+early nonce consumption,none (control),9,200,True,True,
+early nonce consumption,body that cannot be parsed,0,200,True,True,
+early nonce consumption,body that cannot be parsed,1,200,True,True,
+early nonce consumption,body that cannot be parsed,2,200,True,False,
+early nonce consumption,body that cannot be parsed,3,200,True,True,
+early nonce consumption,body that cannot be parsed,4,200,True,False,
+early nonce consumption,body that cannot be parsed,5,200,True,True,
+early nonce consumption,body that cannot be parsed,6,200,True,True,
+early nonce consumption,body that cannot be parsed,7,200,True,True,
+early nonce consumption,body that cannot be parsed,8,200,True,True,
+early nonce consumption,body that cannot be parsed,9,200,True,True,
+early nonce consumption,envelope signed with the attacker's key,0,200,False,False,nonce_unused
+early nonce consumption,envelope signed with the attacker's key,1,200,False,False,nonce_unused
+early nonce consumption,envelope signed with the attacker's key,2,200,False,False,nonce_unused
+early nonce consumption,envelope signed with the attacker's key,3,200,False,False,nonce_unused
+early nonce consumption,envelope signed with the attacker's key,4,200,False,False,nonce_unused
+early nonce consumption,envelope signed with the attacker's key,5,200,False,False,nonce_unused
+early nonce consumption,envelope signed with the attacker's key,6,200,False,False,nonce_unused
+early nonce consumption,envelope signed with the attacker's key,7,200,False,False,nonce_unused
+early nonce consumption,envelope signed with the attacker's key,8,200,False,False,nonce_unused
+early nonce consumption,envelope signed with the attacker's key,9,200,False,False,nonce_unused
+early nonce consumption,envelope sealed for another session,0,200,False,False,nonce_unused
+early nonce consumption,envelope sealed for another session,1,200,False,False,nonce_unused
+early nonce consumption,envelope sealed for another session,2,200,False,False,nonce_unused
+early nonce consumption,envelope sealed for another session,3,200,False,False,nonce_unused
+early nonce consumption,envelope sealed for another session,4,200,False,False,nonce_unused
+early nonce consumption,envelope sealed for another session,5,200,False,False,nonce_unused
+early nonce consumption,envelope sealed for another session,6,200,False,False,nonce_unused
+early nonce consumption,envelope sealed for another session,7,200,False,False,nonce_unused
+early nonce consumption,envelope sealed for another session,8,200,False,False,nonce_unused
+early nonce consumption,envelope sealed for another session,9,200,False,False,nonce_unused
+early nonce consumption,"on path: device envelope, frames bit-flipped, sent first",0,200,False,False,nonce_unused
+early nonce consumption,"on path: device envelope, frames bit-flipped, sent first",1,200,False,False,nonce_unused
+early nonce consumption,"on path: device envelope, frames bit-flipped, sent first",2,200,False,False,nonce_unused
+early nonce consumption,"on path: device envelope, frames bit-flipped, sent first",3,200,False,False,nonce_unused
+early nonce consumption,"on path: device envelope, frames bit-flipped, sent first",4,200,False,False,nonce_unused
+early nonce consumption,"on path: device envelope, frames bit-flipped, sent first",5,200,False,False,nonce_unused
+early nonce consumption,"on path: device envelope, frames bit-flipped, sent first",6,200,False,False,nonce_unused
+early nonce consumption,"on path: device envelope, frames bit-flipped, sent first",7,200,False,False,nonce_unused
+early nonce consumption,"on path: device envelope, frames bit-flipped, sent first",8,200,False,False,nonce_unused
+early nonce consumption,"on path: device envelope, frames bit-flipped, sent first",9,200,False,False,nonce_unused
+early nonce consumption,"on path: device envelope, truncated, sent first",0,200,False,False,nonce_unused
+early nonce consumption,"on path: device envelope, truncated, sent first",1,200,False,False,nonce_unused
+early nonce consumption,"on path: device envelope, truncated, sent first",2,200,False,False,nonce_unused
+early nonce consumption,"on path: device envelope, truncated, sent first",3,200,False,False,nonce_unused
+early nonce consumption,"on path: device envelope, truncated, sent first",4,200,False,False,nonce_unused
+early nonce consumption,"on path: device envelope, truncated, sent first",5,200,False,False,nonce_unused
+early nonce consumption,"on path: device envelope, truncated, sent first",6,200,False,False,nonce_unused
+early nonce consumption,"on path: device envelope, truncated, sent first",7,200,False,False,nonce_unused
+early nonce consumption,"on path: device envelope, truncated, sent first",8,200,False,False,nonce_unused
+early nonce consumption,"on path: device envelope, truncated, sent first",9,200,False,False,nonce_unused
+early nonce consumption,unsigned session close,0,404,False,False,HTTP 404
+early nonce consumption,unsigned session close,1,404,False,False,HTTP 404
+early nonce consumption,unsigned session close,2,404,False,False,HTTP 404
+early nonce consumption,unsigned session close,3,404,False,False,HTTP 404
+early nonce consumption,unsigned session close,4,404,False,False,HTTP 404
+early nonce consumption,unsigned session close,5,404,False,False,HTTP 404
+early nonce consumption,unsigned session close,6,404,False,False,HTTP 404
+early nonce consumption,unsigned session close,7,404,False,False,HTTP 404
+early nonce consumption,unsigned session close,8,404,False,False,HTTP 404
+early nonce consumption,unsigned session close,9,404,False,False,HTTP 404
+early nonce consumption,_forged_cost_ms,0,200,,,"{""median"": 0.13379099254962057, ""p95"": 0.1618750102352351, ""n"": 100}"

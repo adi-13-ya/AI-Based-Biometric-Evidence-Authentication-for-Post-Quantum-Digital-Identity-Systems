@@ -83,13 +83,16 @@ def stats(xs: list[float]) -> dict:
 # --------------------------------------------------------------------------
 # Server process
 # --------------------------------------------------------------------------
-# The v1.2 measurements (D1-D5) open many sessions per device per minute and
-# reopen sessions until a digit challenge is issued (so pre-recorded clips are
-# judged by the detectors, not the motion check). These settings keep them
-# reproducible; the per-device limits and the motion-only default are
-# evaluated separately in report/scripts/malicious_client.py.
-MEASUREMENT_ENV = {"CHALLENGE_KINDS": "motion,digits", "ALLOW_SAMPLE_UPLOADS": "false", "DEMO_MODE": "true", "MAX_SESSIONS_PER_MINUTE_PER_DEVICE": "1000000",
-                   "MAX_ACTIVE_SESSIONS_PER_DEVICE": "1000000"}
+# Measurement configuration. Everything is the deployed default except:
+#  - CHALLENGE_KINDS=digits: recorded clips cannot answer a live head-motion
+#    challenge, so the server issues the typed-digit challenge, which any
+#    client can answer. This isolates the binding gate and the detectors; the
+#    motion challenge is evaluated separately (malicious_client.py, B1).
+#  - per-device session limits lifted, so that one device can run all
+#    sessions of an experiment back to back. The limits do not change the
+#    cost of any single request; they are evaluated in malicious_client.py.
+MEASUREMENT_ENV = {"CHALLENGE_KINDS": "digits", "ALLOW_SAMPLE_UPLOADS": "false", "DEMO_MODE": "true",
+                   "MAX_SESSIONS_PER_MINUTE_PER_DEVICE": "1000000", "MAX_ACTIVE_SESSIONS_PER_DEVICE": "1000000"}
 
 
 class Server:
@@ -294,7 +297,7 @@ def module_latency(clips) -> list[dict]:
         return round(sum(Path(p).stat().st_size for p in paths if Path(p).exists()) / 2**20, 2)
 
     pad_dir = FINETUNED_DIR if pad.weights == "finetuned" else WEIGHTS_DIR
-    timeit("presentation_attack", lambda i: pad.predict(clips[i % len(clips)][0][0]), model=f"RetinaFace + 2x MiniFASNet ({pad.weights})",
+    timeit("presentation_attack (3 frames)", lambda i: [pad.predict(clips[i % len(clips)][0][j]) for j in (0, 3, 6)], model=f"RetinaFace + 2x MiniFASNet ({pad.weights})",
            size_mb=mb(list(pad_dir.glob("*.pth")) + list(WEIGHTS_DIR.glob("*.caffemodel"))))
     timeit("deepfake (8 frames)", lambda i: df.predict_video(clips[i % len(clips)][0][:8]), model="RetinaFace + EfficientNet-B0", size_mb=mb([DF_W]))
     timeit("injection (8-frame burst)", lambda i: inj.predict_sequence(clips[i % len(clips)][0][-8:]), model="features + logistic regression")

@@ -1,7 +1,7 @@
 """Figures for the revised report, drawn only from saved result files:
 evaluation/results/*.json|csv and report/data/v2/*.
 
-Colour use: grey = the v0.2 heuristic baseline, blue = the deployed model,
+Colour use: grey = the heuristic baseline, blue = the deployed model,
 orange = the alternative it is compared with (fine-tuned PAD, layered
 pipeline). Every figure has a legend; no colour carries meaning on its own.
 
@@ -72,7 +72,7 @@ def fig_pad_roc() -> None:
     fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.2), sharey=True)
     for ax, name in zip(axes, titles):
         d = load_scores(name)
-        for key, color, label in [("legacy", GREY, "v0.2 heuristic"), ("released", BLUE, "MiniFASNet (released)"), ("finetuned", ORANGE, "MiniFASNet (CASIA fine-tuned)")]:
+        for key, color, label in [("legacy", GREY, "heuristic baseline"), ("released", BLUE, "MiniFASNet (released)"), ("finetuned", ORANGE, "MiniFASNet (CASIA fine-tuned)")]:
             if key not in d:
                 continue
             fp, tp = roc(d[key], d["labels"])
@@ -97,7 +97,7 @@ def fig_pad_species() -> None:
     for ax, (name, title) in zip(axes, panels):
         species = list(bench["systems"]["released"]["dev_eer"][name]["apcer_per_species"]) + ["BPCER"]
         x = np.arange(len(species))
-        for i, (key, color, label) in enumerate([("legacy", GREY, "v0.2 heuristic"), ("released", BLUE, "MiniFASNet (released)")]):
+        for i, (key, color, label) in enumerate([("legacy", GREY, "heuristic baseline"), ("released", BLUE, "MiniFASNet (released)")]):
             r = bench["systems"][key]["dev_eer"][name]
             vals = [r["apcer_per_species"][s] for s in species[:-1]] + [r["bpcer"]]
             label_small(ax, ax.bar(x + (i - 0.5) * 0.38, vals, width=0.36, color=color, label=label, edgecolor="white", linewidth=1))
@@ -142,7 +142,7 @@ def fig_deepfake() -> None:
     gens = ["insight", "inpainting", "text2img"]
     names = ["InsightFace swap\n(training generator)", "SD inpainting\n(unseen)", "SD text2img\n(unseen)"]
     fig, axes = plt.subplots(1, 2, figsize=(7.2, 2.8))
-    for i, (key, color, label) in enumerate([("legacy", GREY, "v0.2 FFT heuristic"), ("efficientnet_b0", BLUE, "EfficientNet-B0 (fine-tuned)")]):
+    for i, (key, color, label) in enumerate([("legacy", GREY, "FFT heuristic baseline"), ("efficientnet_b0", BLUE, "EfficientNet-B0 (fine-tuned)")]):
         s = r["systems"][key]
         axes[0].bar(np.arange(3) + (i - 0.5) * 0.38, [s["test_auc_per_generator"][g] for g in gens], width=0.36, color=color, label=label, edgecolor="white")
         label_small(axes[1], axes[1].bar(np.arange(3) + (i - 0.5) * 0.38, [s["test"]["apcer_per_species"][g] for g in gens], width=0.36, color=color, label=label, edgecolor="white"))

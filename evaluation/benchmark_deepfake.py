@@ -1,6 +1,6 @@
 """Evaluate the deepfake module on DeepFakeFace (held-out identities).
 
-Systems: the v0.2 FFT high-frequency heuristic ("legacy", applied to the
+Systems: an FFT high-frequency heuristic baseline ("legacy", applied to the
 same face crops) and the fine-tuned EfficientNet-B0. The operating
 threshold of each is fixed at the EER point of the development split and
 applied unchanged to the test split. Each generator is reported as its own

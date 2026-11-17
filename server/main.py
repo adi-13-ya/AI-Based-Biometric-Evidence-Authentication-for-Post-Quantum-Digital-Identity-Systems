@@ -181,6 +181,15 @@ def _check_session_request(req: SessionStartRequest, device) -> None:
         raise HTTPException(status_code=401, detail="session start request replayed")
 
 
+def _nonce_used_at_first_check(session: Session) -> bool:
+    """g1. Normally a read: the nonce is consumed only once the request is
+    authenticated (stage nonce_consumed). The ablation consumes it here,
+    before the signature is checked, to measure what that costs."""
+    if settings.ablate_early_nonce_consume:
+        return not session.consume_nonce()
+    return session.nonce_used
+
+
 def _get_session_or_404(session_id: str) -> Session:
     session = store.get(session_id)
     if session is None:
@@ -376,6 +385,8 @@ def _binding_context(session_id: str, req: VerifyRequest, kem_ct: bytes) -> dict
 def _channel_reject(session_id: str, session: Session, timing_ms: dict, reason: str) -> VerifyResponse:
     # The nonce is not consumed: nothing here proves the request came from
     # the enrolled device, so it must not be able to end the device's session.
+    if settings.ablate_early_nonce_consume:  # ablation only
+        session.consume_nonce()
     timing_ms["total_ms"] = sum(timing_ms.values())
     return VerifyResponse(
         session_id=session_id,
@@ -429,7 +440,7 @@ def _sealed_head(session_id: str, session: Session, head: tuple) -> tuple:
     credentials = credential_checks(
         session_nonce=session.nonce, client_public_key=session.device_public_key, sig_alg=session.sig_alg,
         evidence_hash=evidence_hash, timestamp=req.timestamp, challenge_response=req.challenge_response,
-        signature=signature, nonce_already_used=session.nonce_used,
+        signature=signature, nonce_already_used=_nonce_used_at_first_check(session),
         freshness_window_seconds=settings.freshness_window_seconds, binding_context=context,
     )
     timing_ms["credential_check_ms"] = (time.perf_counter() - t2) * 1000
@@ -561,7 +572,8 @@ def _verify_core(session_id: str, session: Session, req: VerifyRequest, timing_m
         if liveness_ok is None:
             start = time.perf_counter()
             frames = _decode_frames(frame_bytes)
-            liveness_ok, measured = evaluate_challenge(challenge, response, frames, strict=not settings.allow_sample_uploads)
+            liveness_ok, measured = evaluate_challenge(challenge, response, frames,
+                                                         strict=settings.strict_liveness and not settings.allow_sample_uploads)
             liveness.update(measured)
             liveness_ms = (time.perf_counter() - start) * 1000
         return liveness_ok
@@ -614,16 +626,18 @@ def _verify_core(session_id: str, session: Session, req: VerifyRequest, timing_m
             shape_problem.append(_submission_shape_problem(frame_bytes, req.burst_frames))
             return not shape_problem[-1]
 
-        extra_checks.append(("submission_well_formed", well_formed, "submission does not have the live-capture layout"))
+        if settings.enforce_submission_shape:
+            extra_checks.append(("submission_well_formed", well_formed, "submission does not have the live-capture layout"))
     # Consumed only here, once the request is authenticated (valid device
     # signature, frames matching the signed hash, sane shape): no invalid
     # request can use up the session's nonce. Atomic, so of concurrent valid
     # copies exactly one proceeds.
-    extra_checks.append((
-        "nonce_consumed",
-        session.consume_nonce,
-        "session nonce was consumed by a concurrent submission (possible replay)",
-    ))
+    if not settings.ablate_early_nonce_consume:
+        extra_checks.append((
+            "nonce_consumed",
+            session.consume_nonce,
+            "session nonce was consumed by a concurrent submission (possible replay)",
+        ))
 
     t0 = time.perf_counter()
     if credentials is not None:  # sealed path: phase 1 already ran on the header
@@ -639,7 +653,7 @@ def _verify_core(session_id: str, session: Session, req: VerifyRequest, timing_m
             timestamp=req.timestamp,
             challenge_response=req.challenge_response,
             signature=signature,
-            nonce_already_used=session.nonce_used,
+            nonce_already_used=_nonce_used_at_first_check(session),
             freshness_window_seconds=settings.freshness_window_seconds,
             challenge_check=run_liveness,
             extra_checks=extra_checks,
@@ -732,7 +746,7 @@ def end_session(session_id: str, x_session_close_signature: str | None = Header(
                                                  signature, session.device_public_key, alg=session.sig_alg))
     except Exception:
         ok = False
-    if not ok:
+    if not ok and not settings.ablate_early_nonce_consume:
         raise HTTPException(status_code=401, detail="closing a session requires the device's X-Session-Close-Signature")
     store.delete(session_id)
     return {"session_id": session_id, "closed": True}

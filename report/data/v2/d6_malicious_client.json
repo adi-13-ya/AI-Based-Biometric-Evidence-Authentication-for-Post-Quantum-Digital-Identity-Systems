@@ -1,60 +1,66 @@
 {
  "A": [
   {
-   "attack": "envelope of another session",
-   "tree": "after",
+   "attack": "body that cannot be parsed",
+   "config": "early nonce consumption",
    "n": 10,
    "session_survived": 10,
+   "device_accepted": 8,
    "failed_at": {
     "": 10
    },
    "vetoes": {}
   },
   {
-   "attack": "envelope of another session",
-   "tree": "before",
+   "attack": "body that cannot be parsed",
+   "config": "final",
+   "n": 10,
+   "session_survived": 10,
+   "device_accepted": 9,
+   "failed_at": {
+    "": 10
+   },
+   "vetoes": {}
+  },
+  {
+   "attack": "envelope sealed for another session",
+   "config": "early nonce consumption",
    "n": 10,
    "session_survived": 0,
+   "device_accepted": 0,
    "failed_at": {
     "nonce_unused": 10
    },
    "vetoes": {}
   },
   {
-   "attack": "forged signature",
-   "tree": "after",
+   "attack": "envelope sealed for another session",
+   "config": "final",
    "n": 10,
    "session_survived": 10,
+   "device_accepted": 8,
    "failed_at": {
     "": 10
    },
    "vetoes": {}
   },
   {
-   "attack": "forged signature",
-   "tree": "before",
+   "attack": "envelope signed with the attacker's key",
+   "config": "early nonce consumption",
    "n": 10,
    "session_survived": 0,
+   "device_accepted": 0,
    "failed_at": {
     "nonce_unused": 10
    },
    "vetoes": {}
   },
   {
-   "attack": "garbage body",
-   "tree": "after",
+   "attack": "envelope signed with the attacker's key",
+   "config": "final",
    "n": 10,
    "session_survived": 10,
-   "failed_at": {
-    "": 10
-   },
-   "vetoes": {}
-  },
-  {
-   "attack": "garbage body",
-   "tree": "before",
-   "n": 10,
-   "session_survived": 10,
+   "device_accepted": 8,
    "failed_at": {
     "": 10
    },
@@ -62,9 +68,10 @@
   },
   {
    "attack": "none (control)",
-   "tree": "after",
+   "config": "early nonce consumption",
    "n": 10,
    "session_survived": 10,
+   "device_accepted": 8,
    "failed_at": {
     "": 10
    },
@@ -72,59 +79,54 @@
   },
   {
    "attack": "none (control)",
-   "tree": "before",
+   "config": "final",
    "n": 10,
    "session_survived": 10,
+   "device_accepted": 8,
    "failed_at": {
     "": 10
    },
    "vetoes": {}
   },
   {
-   "attack": "on-path: victim envelope, frames bit-flipped",
-   "tree": "after",
-   "n": 10,
-   "session_survived": 10,
-   "failed_at": {
-    "": 10
-   },
-   "vetoes": {}
-  },
-  {
-   "attack": "on-path: victim envelope, frames bit-flipped",
-   "tree": "before",
+   "attack": "on path: device envelope, frames bit-flipped, sent first",
+   "config": "early nonce consumption",
    "n": 10,
    "session_survived": 0,
+   "device_accepted": 0,
    "failed_at": {
     "nonce_unused": 10
    },
    "vetoes": {}
   },
   {
-   "attack": "on-path: victim envelope, truncated body",
-   "tree": "after",
+   "attack": "on path: device envelope, frames bit-flipped, sent first",
+   "config": "final",
    "n": 10,
    "session_survived": 10,
+   "device_accepted": 8,
    "failed_at": {
     "": 10
    },
    "vetoes": {}
   },
   {
-   "attack": "on-path: victim envelope, truncated body",
-   "tree": "before",
+   "attack": "on path: device envelope, truncated, sent first",
+   "config": "early nonce consumption",
    "n": 10,
    "session_survived": 0,
+   "device_accepted": 0,
    "failed_at": {
     "nonce_unused": 10
    },
    "vetoes": {}
   },
   {
-   "attack": "unsigned session close",
-   "tree": "after",
+   "attack": "on path: device envelope, truncated, sent first",
+   "config": "final",
    "n": 10,
    "session_survived": 10,
+   "device_accepted": 9,
    "failed_at": {
     "": 10
    },
@@ -132,9 +134,21 @@
   },
   {
    "attack": "unsigned session close",
-   "tree": "before",
+   "config": "early nonce consumption",
    "n": 10,
    "session_survived": 0,
+   "device_accepted": 0,
+   "failed_at": {
+    "HTTP 404": 10
+   },
+   "vetoes": {}
+  },
+  {
+   "attack": "unsigned session close",
+   "config": "final",
+   "n": 10,
+   "session_survived": 10,
+   "device_accepted": 8,
    "failed_at": {
     "": 10
    },
@@ -142,36 +156,44 @@
   }
  ],
  "A_forged_cost_ms": {
-  "before": 0.21502051095012575,
-  "after": 0.2098545228363946
+  "final": {
+   "median": 0.20866647537332028,
+   "p95": 0.24337598006241024,
+   "n": 100
+  },
+  "early nonce consumption": {
+   "median": 0.13379099254962057,
+   "p95": 0.1618750102352351,
+   "n": 100
+  }
  },
  "B1": [
   {
-   "variant": "16-frame still stream",
-   "tree": "after",
+   "variant": "still image as 16 frames",
+   "config": "final",
    "n": 30,
    "accepted": 0,
    "liveness_passed": 0,
    "detection_ran": 0,
-   "server_ms_median": 124.78989652299788,
-   "http_ms_median": 127.74139549583197,
+   "server_ms_median": 123.1913119845558,
+   "http_ms_median": 125.31337499967776,
    "failed_at": {
     "challenge_fulfilled": 30
    },
    "vetoes": {}
   },
   {
-   "variant": "16-frame still stream",
-   "tree": "before",
+   "variant": "still image as 16 frames",
+   "config": "no shape check, lenient liveness",
    "n": 30,
    "accepted": 0,
    "liveness_passed": 8,
    "detection_ran": 8,
-   "server_ms_median": 137.6511464768555,
-   "http_ms_median": 141.34945800469723,
+   "server_ms_median": 135.1027715136297,
+   "http_ms_median": 137.7739585150266,
    "failed_at": {
-    "": 8,
-    "challenge_fulfilled": 22
+    "challenge_fulfilled": 22,
+    "": 8
    },
    "vetoes": {
     "deepfake": 8,
@@ -180,27 +202,27 @@
    }
   },
   {
-   "variant": "single frame",
-   "tree": "after",
+   "variant": "still image as one frame",
+   "config": "final",
    "n": 30,
    "accepted": 0,
    "detection_ran": 0,
-   "server_ms_median": 0.36897951213177294,
-   "http_ms_median": 1.9130625005345792,
+   "server_ms_median": 0.343687497661449,
+   "http_ms_median": 1.7921459948411211,
    "failed_at": {
     "submission_well_formed": 30
    },
    "vetoes": {}
   },
   {
-   "variant": "single frame",
-   "tree": "before",
+   "variant": "still image as one frame",
+   "config": "no shape check, lenient liveness",
    "n": 30,
    "accepted": 2,
    "liveness_passed": 30,
    "detection_ran": 30,
-   "server_ms_median": 110.83525049616583,
-   "http_ms_median": 112.65472900413442,
+   "server_ms_median": 111.37577149202116,
+   "http_ms_median": 113.23337501380593,
    "failed_at": {
     "": 30
    },
@@ -215,12 +237,12 @@
  "B2": [
   {
    "variant": "burst_frames=0",
-   "tree": "after",
+   "config": "final",
    "n": 20,
    "accepted": 0,
    "detection_ran": 0,
-   "server_ms_median": 4.59408298775088,
-   "http_ms_median": 9.887207997962832,
+   "server_ms_median": 4.458665498532355,
+   "http_ms_median": 10.679479004465975,
    "failed_at": {
     "submission_well_formed": 20
    },
@@ -228,13 +250,13 @@
   },
   {
    "variant": "burst_frames=0",
-   "tree": "before",
+   "config": "no shape check",
    "n": 20,
    "accepted": 5,
    "liveness_passed": 20,
    "detection_ran": 20,
-   "server_ms_median": 1502.6601264835335,
-   "http_ms_median": 1511.786207993282,
+   "server_ms_median": 1588.5193330177572,
+   "http_ms_median": 1593.2591039891122,
    "failed_at": {
     "": 20
    },
@@ -246,12 +268,12 @@
   },
   {
    "variant": "burst_frames=2",
-   "tree": "after",
+   "config": "final",
    "n": 20,
    "accepted": 0,
    "detection_ran": 0,
-   "server_ms_median": 4.595958991558291,
-   "http_ms_median": 9.510582996881567,
+   "server_ms_median": 4.587853996781632,
+   "http_ms_median": 10.004062482039444,
    "failed_at": {
     "submission_well_formed": 20
    },
@@ -259,13 +281,13 @@
   },
   {
    "variant": "burst_frames=2",
-   "tree": "before",
+   "config": "no shape check",
    "n": 20,
    "accepted": 8,
    "liveness_passed": 20,
    "detection_ran": 20,
-   "server_ms_median": 498.381832963787,
-   "http_ms_median": 506.7443750012899,
+   "server_ms_median": 558.5745005082572,
+   "http_ms_median": 565.4334579885472,
    "failed_at": {
     "": 20
    },
@@ -277,13 +299,13 @@
   },
   {
    "variant": "burst_frames=8",
-   "tree": "after",
+   "config": "final",
    "n": 20,
    "accepted": 5,
    "liveness_passed": 20,
    "detection_ran": 20,
-   "server_ms_median": 515.0366249872604,
-   "http_ms_median": 521.0424584947759,
+   "server_ms_median": 513.8586665125331,
+   "http_ms_median": 519.1830830008257,
    "failed_at": {
     "": 20
    },
@@ -295,52 +317,70 @@
   },
   {
    "variant": "burst_frames=8",
-   "tree": "before",
+   "config": "no shape check",
    "n": 20,
    "accepted": 5,
    "liveness_passed": 20,
    "detection_ran": 20,
-   "server_ms_median": 443.733333988348,
-   "http_ms_median": 452.12529199488927,
+   "server_ms_median": 519.1641459823586,
+   "http_ms_median": 526.4389579970157,
    "failed_at": {
     "": 20
    },
    "vetoes": {
     "injection": 15,
     "deepfake": 2,
-    "presentation_attack": 4
+    "presentation_attack": 5
    }
   }
  ],
  "B3": [
   {
-   "variant": "honest",
-   "tree": "after",
+   "variant": "bona fide frame spliced first",
+   "config": "PAD on first frame only",
    "n": 60,
-   "accepted": 19,
-   "liveness_passed": 60,
-   "detection_ran": 60,
-   "server_ms_median": 592.9921049973927,
-   "http_ms_median": 600.9234375087544,
+   "accepted": 20,
+   "liveness_passed": 36,
+   "detection_ran": 36,
+   "server_ms_median": 451.4556869689841,
+   "http_ms_median": 458.9439789997414,
    "failed_at": {
-    "": 60
+    "submission_well_formed": 24,
+    "": 36
    },
    "vetoes": {
-    "presentation_attack": 26,
-    "deepfake": 12,
-    "injection": 13,
-    "morph": 1
+    "deepfake": 9,
+    "injection": 8
    }
   },
   {
-   "variant": "honest",
-   "tree": "before",
+   "variant": "bona fide frame spliced first",
+   "config": "final",
+   "n": 60,
+   "accepted": 17,
+   "liveness_passed": 36,
+   "detection_ran": 36,
+   "server_ms_median": 524.0905629907502,
+   "http_ms_median": 531.4051669993205,
+   "failed_at": {
+    "submission_well_formed": 24,
+    "": 36
+   },
+   "vetoes": {
+    "deepfake": 9,
+    "presentation_attack": 5,
+    "injection": 8
+   }
+  },
+  {
+   "variant": "unaltered",
+   "config": "PAD on first frame only",
    "n": 60,
    "accepted": 25,
    "liveness_passed": 60,
    "detection_ran": 60,
-   "server_ms_median": 512.3824579932261,
-   "http_ms_median": 526.6840419935761,
+   "server_ms_median": 491.5671459893929,
+   "http_ms_median": 498.8911250111414,
    "failed_at": {
     "": 60
    },
@@ -352,104 +392,89 @@
    }
   },
   {
-   "variant": "live frame spliced first",
-   "tree": "after",
+   "variant": "unaltered",
+   "config": "final",
    "n": 60,
-   "accepted": 29,
+   "accepted": 19,
    "liveness_passed": 60,
    "detection_ran": 60,
-   "server_ms_median": 614.5120625005802,
-   "http_ms_median": 624.5704375032801,
+   "server_ms_median": 581.9615629879991,
+   "http_ms_median": 589.5242504921043,
    "failed_at": {
     "": 60
    },
    "vetoes": {
-    "presentation_attack": 13,
+    "presentation_attack": 26,
     "deepfake": 12,
-    "injection": 13
-   }
-  },
-  {
-   "variant": "live frame spliced first",
-   "tree": "before",
-   "n": 60,
-   "accepted": 38,
-   "liveness_passed": 60,
-   "detection_ran": 60,
-   "server_ms_median": 523.4680620051222,
-   "http_ms_median": 535.8447710023029,
-   "failed_at": {
-    "": 60
-   },
-   "vetoes": {
-    "deepfake": 12,
-    "injection": 13
+    "injection": 13,
+    "morph": 1
    }
   }
  ],
  "B4": [
   {
-   "variant": "16 x 1920x1080 (allowed)",
-   "tree": "after",
+   "variant": "16 frames of 1920x1080",
+   "config": "final",
    "n": 3,
    "accepted": 3,
    "liveness_passed": 3,
    "detection_ran": 3,
-   "server_ms_median": 1779.9843340180814,
-   "http_ms_median": 1810.2683750039432,
+   "server_ms_median": 1440.4129600152373,
+   "http_ms_median": 1467.870041000424,
    "failed_at": {
     "": 3
    },
    "vetoes": {}
   },
   {
-   "variant": "16 x 1920x1080 (allowed)",
-   "tree": "before",
+   "variant": "16 frames of 1920x1080",
+   "config": "no shape check, no body cap",
    "n": 3,
    "accepted": 3,
    "liveness_passed": 3,
    "detection_ran": 3,
-   "server_ms_median": 1423.903542017797,
-   "http_ms_median": 1533.1450839876197,
+   "server_ms_median": 1635.9342090436257,
+   "http_ms_median": 1658.720458013704,
    "failed_at": {
     "": 3
    },
    "vetoes": {}
   },
   {
-   "variant": "16 x 4000x3000",
-   "tree": "after",
+   "variant": "16 frames of 4000x3000",
+   "config": "final",
    "n": 3,
    "accepted": 0,
    "detection_ran": 0,
-   "http_ms_median": 47.28050000267103,
+   "http_ms_median": 31.072292011231184,
    "failed_at": {
     "HTTP 413": 3
    },
    "vetoes": {}
   },
   {
-   "variant": "16 x 4000x3000",
-   "tree": "before",
+   "variant": "16 frames of 4000x3000",
+   "config": "no shape check, no body cap",
    "n": 3,
-   "accepted": 3,
-   "liveness_passed": 3,
-   "detection_ran": 3,
-   "server_ms_median": 5442.871918028686,
-   "http_ms_median": 7915.114750008797,
+   "accepted": 2,
+   "liveness_passed": 2,
+   "detection_ran": 2,
+   "server_ms_median": 5571.068853983888,
+   "http_ms_median": 5563.079417013796,
    "failed_at": {
-    "": 3
+    "": 2,
+    "HTTP 404": 1
    },
    "vetoes": {}
   },
   {
    "variant": "64 frames",
-   "tree": "after",
+   "config": "final",
    "n": 3,
    "accepted": 0,
    "detection_ran": 0,
-   "server_ms_median": 35.64600000390783,
-   "http_ms_median": 61.63095898227766,
+   "server_ms_median": 25.851082958979532,
+   "http_ms_median": 49.46279097930528,
    "failed_at": {
     "submission_well_formed": 3
    },
@@ -457,13 +482,13 @@
   },
   {
    "variant": "64 frames",
-   "tree": "before",
+   "config": "no shape check, no body cap",
    "n": 3,
    "accepted": 3,
    "liveness_passed": 3,
    "detection_ran": 3,
-   "server_ms_median": 4642.569249001099,
-   "http_ms_median": 4802.147125010379,
+   "server_ms_median": 4429.661372996634,
+   "http_ms_median": 4453.716209012782,
    "failed_at": {
     "": 3
    },
@@ -473,13 +498,13 @@
  "B5": [
   {
    "variant": "PGD eps=0/255",
-   "tree": "after",
+   "config": "final",
    "n": 20,
-   "accepted": 5,
+   "accepted": 4,
    "liveness_passed": 20,
    "detection_ran": 20,
-   "server_ms_median": 625.9893335227389,
-   "http_ms_median": 633.9048540103249,
+   "server_ms_median": 556.1470835091313,
+   "http_ms_median": 562.6571664906805,
    "failed_at": {
     "": 20
    },
@@ -491,49 +516,14 @@
    }
   },
   {
-   "variant": "PGD eps=0/255",
-   "tree": "before",
-   "n": 20,
-   "accepted": 6,
-   "liveness_passed": 20,
-   "detection_ran": 20,
-   "server_ms_median": 522.1711450285511,
-   "http_ms_median": 539.2433750093915,
-   "failed_at": {
-    "": 20
-   },
-   "vetoes": {
-    "presentation_attack": 7,
-    "deepfake": 4,
-    "injection": 5,
-    "morph": 1
-   }
-  },
-  {
    "variant": "PGD eps=4/255",
-   "tree": "after",
+   "config": "final",
    "n": 20,
    "accepted": 17,
    "liveness_passed": 20,
    "detection_ran": 20,
-   "server_ms_median": 617.3878960253205,
-   "http_ms_median": 624.1478960000677,
-   "failed_at": {
-    "": 20
-   },
-   "vetoes": {
-    "presentation_attack": 3
-   }
-  },
-  {
-   "variant": "PGD eps=4/255",
-   "tree": "before",
-   "n": 20,
-   "accepted": 17,
-   "liveness_passed": 20,
-   "detection_ran": 20,
-   "server_ms_median": 536.6232075029984,
-   "http_ms_median": 550.9027295047417,
+   "server_ms_median": 577.2467499919003,
+   "http_ms_median": 584.0934160078177,
    "failed_at": {
     "": 20
    },
@@ -543,69 +533,493 @@
   },
   {
    "variant": "PGD eps=8/255",
-   "tree": "after",
+   "config": "final",
    "n": 20,
-   "accepted": 17,
+   "accepted": 15,
    "liveness_passed": 20,
    "detection_ran": 20,
-   "server_ms_median": 798.1920205056667,
-   "http_ms_median": 807.419562494033,
+   "server_ms_median": 602.3310635209782,
+   "http_ms_median": 610.7926455006236,
    "failed_at": {
     "": 20
    },
    "vetoes": {
-    "presentation_attack": 2,
-    "injection": 1
-   }
-  },
-  {
-   "variant": "PGD eps=8/255",
-   "tree": "before",
-   "n": 20,
-   "accepted": 17,
-   "liveness_passed": 20,
-   "detection_ran": 20,
-   "server_ms_median": 546.7991465120576,
-   "http_ms_median": 559.9698330042884,
-   "failed_at": {
-    "": 20
-   },
-   "vetoes": {
-    "presentation_attack": 2,
+    "presentation_attack": 4,
     "injection": 1
    }
   }
  ],
  "B6": [
   {
-   "condition": "no attack",
+   "attacker_keys": 1,
    "seconds": 60,
-   "victim_ms_median": 634.6410420082975,
-   "victim_n": 9,
-   "attacker_inferences": 0,
-   "attacker_429": 0,
-   "attacker_inferences_per_min": 0.0,
-   "server_cpu_s": 27.388235264000002
+   "genuine_ms_median": 1254.9438329879194,
+   "genuine_n": 9,
+   "attacker_inferences": 116,
+   "attacker_inferences_per_min": 116.0,
+   "attacker_starts_refused_429": 0,
+   "server_cpu_s_per_s": 6.2456772949333335,
+   "limits": "off"
   },
   {
-   "condition": "flood, limits off",
+   "attacker_keys": 1,
    "seconds": 60,
-   "victim_ms_median": 2077.2002910089213,
-   "victim_n": 9,
-   "attacker_inferences": 123,
-   "attacker_429": 0,
-   "attacker_inferences_per_min": 123.0,
-   "server_cpu_s": 436.810448896
-  },
-  {
-   "condition": "flood, default limits (12/min, 3 open)",
-   "seconds": 60,
-   "victim_ms_median": 620.3198750154115,
-   "victim_n": 9,
+   "genuine_ms_median": 653.2092500128783,
+   "genuine_n": 9,
    "attacker_inferences": 12,
-   "attacker_429": 3348,
    "attacker_inferences_per_min": 12.0,
-   "server_cpu_s": 70.216859648
+   "attacker_starts_refused_429": 1793,
+   "server_cpu_s_per_s": 1.0438886634666666,
+   "limits": "default"
+  }
+ ],
+ "A2": {
+  "unsigned": {
+   "n": 300,
+   "status": {
+    "401": 300
+   },
+   "http_ms_median": 0.9432505030417815,
+   "server_cpu_ms_per_request": 0.5688541866666668
+  },
+  "signed with the attacker's key": {
+   "n": 300,
+   "status": {
+    "401": 300
+   },
+   "http_ms_median": 1.0508539999136701,
+   "server_cpu_ms_per_request": 0.32383658666666665
+  },
+  "replay of a valid start request": {
+   "n": 300,
+   "status": {
+    "401": 300
+   },
+   "http_ms_median": 1.053999993018806,
+   "server_cpu_ms_per_request": 0.3229687466666675
+  }
+ },
+ "C": {
+  "copies": [
+   {
+    "k": 2,
+    "trial": 0,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 2,
+    "trial": 1,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 2,
+    "trial": 2,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 2,
+    "trial": 3,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 2,
+    "trial": 4,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 2,
+    "trial": 5,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 2,
+    "trial": 6,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 2,
+    "trial": 7,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 2,
+    "trial": 8,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 2,
+    "trial": 9,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 8,
+    "trial": 0,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 8,
+    "trial": 1,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 8,
+    "trial": 2,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 8,
+    "trial": 3,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 8,
+    "trial": 4,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 8,
+    "trial": 5,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 8,
+    "trial": 6,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 8,
+    "trial": 7,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 8,
+    "trial": 8,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 8,
+    "trial": 9,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 32,
+    "trial": 0,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 32,
+    "trial": 1,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 32,
+    "trial": 2,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 32,
+    "trial": 3,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 32,
+    "trial": 4,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 32,
+    "trial": 5,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 32,
+    "trial": 6,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 32,
+    "trial": 7,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 32,
+    "trial": 8,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   },
+   {
+    "k": 32,
+    "trial": 9,
+    "admitted": 1,
+    "rejected_as": [
+     "",
+     "nonce_consumed"
+    ]
+   }
+  ],
+  "race": [
+   {
+    "trial": 0,
+    "valid_admitted": true,
+    "valid_accepted": true,
+    "forged_admitted": 0
+   },
+   {
+    "trial": 1,
+    "valid_admitted": true,
+    "valid_accepted": true,
+    "forged_admitted": 0
+   },
+   {
+    "trial": 2,
+    "valid_admitted": true,
+    "valid_accepted": false,
+    "forged_admitted": 0
+   },
+   {
+    "trial": 3,
+    "valid_admitted": true,
+    "valid_accepted": true,
+    "forged_admitted": 0
+   },
+   {
+    "trial": 4,
+    "valid_admitted": true,
+    "valid_accepted": false,
+    "forged_admitted": 0
+   },
+   {
+    "trial": 5,
+    "valid_admitted": true,
+    "valid_accepted": false,
+    "forged_admitted": 0
+   },
+   {
+    "trial": 6,
+    "valid_admitted": true,
+    "valid_accepted": true,
+    "forged_admitted": 0
+   },
+   {
+    "trial": 7,
+    "valid_admitted": true,
+    "valid_accepted": true,
+    "forged_admitted": 0
+   },
+   {
+    "trial": 8,
+    "valid_admitted": true,
+    "valid_accepted": true,
+    "forged_admitted": 0
+   },
+   {
+    "trial": 9,
+    "valid_admitted": true,
+    "valid_accepted": true,
+    "forged_admitted": 0
+   }
+  ],
+  "load": [
+   {
+    "devices": 1,
+    "submissions": 3,
+    "accepted": 3,
+    "median_ms": 585.3238749841694,
+    "max_ms": 606.6537909791805
+   },
+   {
+    "devices": 2,
+    "submissions": 6,
+    "accepted": 4,
+    "median_ms": 874.9057294917293,
+    "max_ms": 1111.2915409903508
+   },
+   {
+    "devices": 4,
+    "submissions": 12,
+    "accepted": 8,
+    "median_ms": 1566.3674374955008,
+    "max_ms": 1856.2009159941226
+   },
+   {
+    "devices": 8,
+    "submissions": 24,
+    "accepted": 14,
+    "median_ms": 5574.277125007939,
+    "max_ms": 5761.528041999554
+   }
+  ]
+ },
+ "B7": [
+  {
+   "attacker_keys": 0,
+   "seconds": 60,
+   "genuine_ms_median": 629.0484170021955,
+   "genuine_n": 9,
+   "attacker_inferences": 0,
+   "attacker_inferences_per_min": 0.0,
+   "attacker_starts_refused_429": 0,
+   "server_cpu_s_per_s": 0.3571240064,
+   "limits": "default"
+  },
+  {
+   "attacker_keys": 1,
+   "seconds": 60,
+   "genuine_ms_median": 599.8106249899138,
+   "genuine_n": 9,
+   "attacker_inferences": 12,
+   "attacker_inferences_per_min": 12.0,
+   "attacker_starts_refused_429": 1828,
+   "server_cpu_s_per_s": 0.9410322666666667,
+   "limits": "default"
+  },
+  {
+   "attacker_keys": 2,
+   "seconds": 60,
+   "genuine_ms_median": 654.2923340166453,
+   "genuine_n": 9,
+   "attacker_inferences": 24,
+   "attacker_inferences_per_min": 24.0,
+   "attacker_starts_refused_429": 3257,
+   "server_cpu_s_per_s": 1.7768135850666666,
+   "limits": "default"
+  },
+  {
+   "attacker_keys": 4,
+   "seconds": 60,
+   "genuine_ms_median": 6468.734583992045,
+   "genuine_n": 9,
+   "attacker_inferences": 48,
+   "attacker_inferences_per_min": 48.0,
+   "attacker_starts_refused_429": 2868,
+   "server_cpu_s_per_s": 5.128634681600001,
+   "limits": "default"
+  },
+  {
+   "attacker_keys": 8,
+   "seconds": 60,
+   "genuine_ms_median": 27719.837437500246,
+   "genuine_n": 2,
+   "attacker_inferences": 48,
+   "attacker_inferences_per_min": 48.0,
+   "attacker_starts_refused_429": 0,
+   "server_cpu_s_per_s": 9.897699236266668,
+   "limits": "default"
   }
  ]
 }

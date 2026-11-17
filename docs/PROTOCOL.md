@@ -221,6 +221,20 @@ an atomic shared store (for example Redis `SET NX`).
 Each session admits one inference, so this bounds the model work any one
 enrolled key, including a stolen or malicious one, can cause.
 
+**Session states.** OPEN (issued, nonce unused) -> CONSUMED (step 10, an
+authenticated submission claimed the nonce) | CLOSED (signed close) |
+EXPIRED (`SESSION_TTL_SECONDS` after issue). No request that fails steps 2-9
+changes the state, so a forged request can be sent to one session any number
+of times without effect.
+
+**Ablations (measurement only, never in a deployment).** Each switch removes
+one defence so that the report can measure it in the same code base:
+`ABLATE_EARLY_NONCE_CONSUME=true` (nonce consumed at step 3 and on GCM
+failure; unsigned close accepted), `ENFORCE_SUBMISSION_SHAPE=false` (skip
+step 9), `STRICT_LIVENESS=false` (response-only fallback when motion cannot be
+measured), `PAD_FRAMES=1`. `report/scripts/malicious_client.py` runs each
+attack with and without the responsible defence.
+
 **Not covered.** The body still crosses the network after an early reject,
 so bandwidth is not saved, only server CPU and memory. Rate limits are per
 device: an attacker with many enrolled keys is limited only by enrollment

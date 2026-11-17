@@ -44,12 +44,12 @@ def architecture() -> None:
     # --- Quantum adversary layer -------------------------------------------
     ax.add_patch(FancyBboxPatch((0.3, 12.6), 23.4, 3.5, boxstyle="round,pad=0.02,rounding_size=0.2",
                                 lw=1.4, ec=RED, fc="#fff8f7", ls="--"))
-    ax.text(0.6, 15.75, "QUANTUM ADVERSARY MODEL (circuits simulated in Qiskit, Section 3.2)", fontsize=9.5, fontweight="bold", color=RED)
+    ax.text(0.6, 15.75, "QUANTUM ADVERSARY MODEL (illustrative circuits in Appendix A)", fontsize=9.5, fontweight="bold", color=RED)
     box(ax, 0.8, 13.0, 5.4, 2.3, "Shor's algorithm\nQFT order finding\n⇒ breaks RSA-3072, ECDSA-P256,\nX25519 in poly-time",
         RED, RED_L)
     box(ax, 6.7, 13.0, 5.4, 2.3, "Grover's algorithm\namplitude amplification\n⇒ AES-256 → 128-bit,\nSHA-256 preimage → 128-bit", RED, RED_L)
     box(ax, 12.6, 13.0, 5.4, 2.3, "Harvest-now, decrypt-later\nrecord biometric sessions\ntoday, decrypt with a future\nCRQC", RED, RED_L)
-    box(ax, 18.5, 13.0, 4.8, 2.3, "Quantum entropy (QRNG)\nH⊗n |0⟩ → uniform bits\n⇒ session nonce source\n(defensive use)", GREEN, GREEN_L)
+    box(ax, 18.5, 13.0, 4.8, 2.3, "Quantum entropy (QRNG)\nH⊗n |0⟩ → uniform bits\nsimulated in Appendix A;\nnot used: N ← os.urandom", GREEN, GREEN_L)
 
     # --- Client ---------------------------------------------------------------
     ax.add_patch(FancyBboxPatch((0.3, 0.4), 7.4, 11.7, boxstyle="round,pad=0.02,rounding_size=0.2",
@@ -57,10 +57,10 @@ def architecture() -> None:
     ax.text(4.0, 11.65, "CAPTURE DEVICE (holds sk_dev)", ha="center", fontsize=9.5, fontweight="bold", color=BLUE)
     cy = [9.9, 8.0, 6.1, 4.2, 2.3]
     labels = [
-        "0. Enrol once: send pk_dev only\n1. Receive session: nonce N (32 B),\nchallenge C, ML-KEM pk",
+        "0. Enrol once: send pk_dev only\n1. Signed session request → offer\n(N, C, pk_KEM) signed by server; verify",
         "2. Capture 8 spread frames +\n8-frame burst while\nperforming challenge C",
         "3. h = SHA-256(frames)\n(Grover-resistant: 128-bit PQ)",
-        "4. σ = ML-DSA-65.Sign(sk_dev,\nh ‖ N ‖ ts ‖ resp)\n(on the device, never on the server)",
+        "4. σ = ML-DSA-65.Sign(sk_dev,\n⟨h, N, ts, r, id, H(ct), μ⟩)\n(on the device, never on the server)",
         "5. (ct, K) = ML-KEM-768.Encaps(pk)\nk = HKDF(K, salt=N); seal payload\nwith AES-256-GCM (AAD = session id)",
     ]
     for y, t in zip(cy, labels):
@@ -80,34 +80,32 @@ def architecture() -> None:
     ax.text(18.2, 11.65, "SERVER (FastAPI + liboqs + PyTorch/MediaPipe)", ha="center", fontsize=9.5, fontweight="bold", color=ORANGE)
     box(ax, 13.2, 9.9, 4.9, 1.45, "6. K = ML-KEM.Decaps(sk, ct)\nk = HKDF(K); AES-GCM open (tag)", ORANGE, ORANGE_L, fs=8)
     box(ax, 13.2, 6.4, 4.9, 3.0,
-        "7. Binding gate, cheapest first,\nstop at first failure:\n(1) nonce N unused  (2) |now − ts| ≤ 30 s\n(3) ML-DSA.Verify(pk_dev, σ) over stored N\n(4) SHA-256(frames) = h\n(5) decode + liveness challenge C",
+        "7. Binding gate, cheapest first,\nstop at first failure:\n(1) N unused (read)  (2) |now − ts| ≤ 30 s\n(3) ML-DSA.Verify(pk_dev, σ) over stored N\n(4) H(frames) = h, 8+8 frames; consume N\n(5) decode + motion challenge (fail closed)",
         ORANGE, ORANGE_L, fs=7.6, bold=False)
     arrow(ax, 15.65, 9.9, 15.65, 9.4, ORANGE)
-    box(ax, 13.2, 4.3, 4.9, 1.5, "REJECT early: (1)-(4) need no\nimage decoding and no model", RED, RED_L, fs=8)
+    box(ax, 13.2, 4.3, 4.9, 1.5, "REJECT early: (1)-(4) need no\nimage decoding; N stays unused", RED, RED_L, fs=8)
     arrow(ax, 15.65, 6.4, 15.65, 5.8, RED, text="any check fails", fs=7)
 
     box(ax, 18.6, 3.0, 4.7, 6.4, "", ORANGE, ORANGE_L)
     ax.text(20.95, 9.0, "8. AI attack-detection\npipeline", ha="center", va="top", fontsize=8.5, fontweight="bold")
-    dets = ["PAD: 2× MiniFASNet\n(CelebA-Spoof fine-tuned)", "Morph: ghosting, mirror\nsymmetry of fine detail", "Deepfake: EfficientNet-B0\n(DeepFakeFace fine-tuned)",
+    dets = ["PAD: 2× MiniFASNet (released),\n3 frames, worst score", "Morph: ghosting, mirror\nsymmetry of fine detail", "Deepfake: EfficientNet-B0\n(DeepFakeFace fine-tuned)",
             "Replay: pHash + residual\ncorrelation (binary)", "Injection: frame repeats,\ncodec features + LR"]
     for i, d in enumerate(dets):
         box(ax, 18.9, 7.25 - i * 0.92, 4.1, 0.78, d, GREY, "white", fs=7.2)
     arrow(ax, 18.1, 7.9, 18.6, 7.9, GREEN, text="all pass", fs=7)
 
-    box(ax, 18.6, 0.8, 4.7, 1.7, "9. Fusion over threshold-\nnormalised scores; ACCEPT\niff ∀i: sᵢ ≥ τᵢ (τ from dev data)", GREEN, GREEN_L, fs=8)
+    box(ax, 18.6, 0.8, 4.7, 1.7, "9. Per-detector veto: ACCEPT\niff ∀i: sᵢ ≥ τᵢ (τ from dev data;\nmean reported only)", GREEN, GREEN_L, fs=8)
     arrow(ax, 20.95, 3.0, 20.95, 2.5, GREEN)
-    box(ax, 13.2, 0.8, 4.9, 1.7, "10. Decision + per-stage\nlatency → client\n(nonce marked used)", GREY, GREY_L, fs=8)
+    box(ax, 13.2, 0.8, 4.9, 1.7, "10. Decision + per-stage\nlatency → client\n(session consumed at (4))", GREY, GREY_L, fs=8)
     arrow(ax, 18.6, 1.65, 18.1, 1.65, GREY)
 
     # Threat-to-countermeasure links
     arrow(ax, 3.5, 13.0, 10.2, 8.25, RED, ls=":", lw=1.0, rad=-0.15)
     WB = dict(boxstyle="round,pad=0.2", fc="white", ec="none")
-    ax.text(10.2, 10.2, "Shor + HNDL\nneutralised by\nML-KEM / ML-DSA", fontsize=7, color=RED, ha="center", bbox=WB)
+    ax.text(10.2, 10.2, "Shor + HNDL: assumed\nresisted by\nML-KEM / ML-DSA", fontsize=7, color=RED, ha="center", bbox=WB)
     arrow(ax, 9.4, 13.0, 4.0, 7.45, RED, ls=":", lw=1.0, rad=0.1)
     ax.text(9.6, 12.15, "Grover absorbed by 256-bit\nsymmetric / hash sizes", fontsize=7, color=RED, ha="center", bbox=WB)
     arrow(ax, 15.3, 13.0, 10.2, 8.25, RED, ls=":", lw=1.0, rad=0.15)
-    arrow(ax, 20.9, 13.0, 7.2, 10.6, GREEN, ls=":", lw=1.0, rad=0.12)
-    ax.text(16.6, 12.2, "QRNG → nonce N", fontsize=7, color=GREEN, bbox=WB)
 
     fig.tight_layout()
     fig.savefig(FIG / "fig_a1_architecture.png", dpi=300)

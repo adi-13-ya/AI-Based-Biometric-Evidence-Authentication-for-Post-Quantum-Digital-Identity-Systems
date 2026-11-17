@@ -5,6 +5,31 @@ follows [Keep a Changelog](https://keepachangelog.com/); dates are when the
 change was made, not a formal release schedule (this is a prototype, not a
 versioned package).
 
+## [1.4.0] - paper version: final-system results only
+
+Supervisor review, round 3.
+
+- All system experiments re-run on the final implementation (D1/D2 latency
+  and rejection cost, D3 matched-degradation flood, D5 signed attacks, D6).
+- D3 flood redesigned for the final protocol: attackers hold no key and use
+  observed session ids (forged requests do not consume them); genuine traffic
+  from 12 devices; deployed per-device limits.
+- D6 rewritten: every defence measured by an ablation flag in the same code
+  base (`ABLATE_EARLY_NONCE_CONSUME`, `ENFORCE_SUBMISSION_SHAPE`,
+  `STRICT_LIVENESS`, `PAD_FRAMES=1`) instead of an older source tree; new
+  concurrency test (k = 2, 8, 32 copies; valid vs 16 forged), forged session
+  starts, and floods by 1-8 enrolled keys.
+- Measurement configuration: typed-digit challenge for recorded clips
+  (`CHALLENGE_KINDS=digits`), stated in the paper.
+- Figures: architecture corrected (QRNG not used for nonces; released, not
+  fine-tuned, MiniFASNet; veto rule; nonce claim at g4); legends no longer
+  name versions.
+- Report rewritten as a paper: research questions, precise adversaries,
+  informal security argument (no formal proof claimed), session life cycle,
+  design rules (Table 16), claims and evidence (Table 17); course and version
+  history removed.
+- 155 tests.
+
 ## [1.3.0] - session safety and authenticated malicious clients
 
 Supervisor review, second round (items i-iv).

@@ -265,3 +265,28 @@ class TestAuthenticatedClientHardening:
         result = main._pad_over_frames(spread)
         assert result.details["pad_frame_indices"][0] == 0 and len(result.details["pad_frame_indices"]) == 3
         assert result.score == pytest.approx(0.1)
+
+
+class TestAblationFlags:
+    """The measurement-only ablations really remove the defence (so the
+    report's ablation rows measure what they claim)."""
+
+    def test_early_nonce_consumption_lets_invalid_requests_end_the_session(self, monkeypatch):
+        from crypto.signature import SignerIdentity
+        from server.config import settings
+
+        monkeypatch.setattr(settings, "ablate_early_nonce_consume", True)
+        session = _start()
+        _post(session, _envelope(session, _frames(), signer=SignerIdentity(alg="ML-DSA-65")))
+        body = _post(session, _envelope(session, _frames(seed=99))).json()
+        assert body["binding_checks"]["nonce_unused"] is False
+        session2 = _start()
+        assert client.delete(f"/session/{session2['session_id']}").status_code == 200  # unsigned close accepted
+
+    def test_shape_check_can_be_disabled(self, monkeypatch):
+        from server.config import settings
+
+        monkeypatch.setattr(settings, "enforce_submission_shape", False)
+        session = _start()
+        body = _post(session, _envelope(session, _frames(1), burst=0)).json()
+        assert "submission_well_formed" not in body["binding_checks"]

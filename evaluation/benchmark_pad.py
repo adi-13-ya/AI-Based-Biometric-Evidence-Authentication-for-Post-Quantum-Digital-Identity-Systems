@@ -1,7 +1,7 @@
 """ISO/IEC 30107-3 evaluation of the PAD module on public datasets.
 
 Systems compared (same cached face crops, evaluation/pad_data.py):
-    legacy      the v0.2 three-cue heuristic (black level, sharpness, saturation)
+    legacy      a three-cue heuristic baseline (black level, sharpness, saturation)
     released    MiniFASNetV2 + MiniFASNetV1SE, released checkpoints (zero-shot)
     finetuned   the same two networks after evaluation/finetune_pad.py
 

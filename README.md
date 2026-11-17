@@ -102,16 +102,22 @@ Apple M3, CPU only; details in `report/final-report/QUANTUM-FINAL-REPORT-REVISED
 
 | | Result |
 |---|---|
-| Forged submission, server time: integrated / buffered / layered | 0.29 ms / 3.2 ms / 538 ms |
-| Forged requests/s needed to double genuine latency (3 repeats) | 96 ± 18 integrated, 44 ± 2 buffered, 1.25 ± 0.06 layered (77× layered) |
-| Same protocol with ECDSA-P256 instead of ML-DSA-65 | 0.46 ms, 109 ± 1 requests/s: the gain is the check order, not the signature scheme |
-| Validly signed attacks (enrolled device key) accepted | 31/60 webcam presentation attacks, 10/40 re-encoded injections, 7/10 lossless injections, 0/135 still images, 0/10 replays |
-| All post-quantum work on the server per verification | 5.97 ms (1.2% of server time) |
-| ML-KEM-768 encaps + decaps vs RSA-3072 | 0.045 ms vs 3.70 ms |
-| PAD (MiniFASNet), CASIA-FASD test | worst-species APCER 0.7%, BPCER 14.4% [8.4, 21.4] by subject, EER 6.3% (heuristic: 44.8%) |
+| Forged submission, server time: integrated / buffered / layered | 0.30 ms / 2.6 ms / 589 ms |
+| Forged requests/s needed to double genuine latency (3 repeats, deployed limits) | 108 ± 4 integrated, 43.5 ± 0.7 buffered, 1.20 ± 0.01 layered (90× layered) |
+| Same protocol with ECDSA-P256 instead of ML-DSA-65 | 0.49 ms, 114 ± 1 requests/s: the saving is the check order, not the signature scheme |
+| Invalid requests against live sessions (6 kinds × 10) | 60/60 sessions survive; with the nonce consumed at the first check, 5 of 6 kinds end every session |
+| Concurrent copies of one valid submission (k = 2, 8, 32) | exactly one admitted in 30/30 trials |
+| Floods by enrolled keys (deployed limits) | 12 inferences/min per key (116 without limits); 4 keys: genuine median 6.5 s, 8 keys: 27.7 s |
+| Validly signed attacks accepted | 26/60 webcam presentation attacks, 10/40 re-encoded injections, 7/10 lossless injections, 0/135 still images, 0/10 replays |
+| White-box PGD (ε = 4/255) on webcam attacks | 17/20 accepted (4/20 unperturbed) |
+| All post-quantum work on the server per verification | 6.5 ms (1.1% of server time) |
+| PAD (MiniFASNet), CASIA-FASD test | worst-species APCER 0.7%, BPCER 14.4% [8.4, 21.4] by subject, EER 6.3% (heuristic baseline: 44.8%) |
 | PAD cross-dataset AUC: CelebA-Spoof / webcam video | 0.782 / 0.782 |
 | Deepfake (EfficientNet-B0), DFF unseen identities | AUC 0.930 on the training generator; does not transfer to unseen diffusion generators |
 | Injection classifier vs timing heuristic (forged jitter) | APCER 4.0% vs 100% (25→30 fps file), BPCER 6.4% |
+
+The detector results are limitations, not a robust identity-verification
+solution: the system screens evidence and does not match faces to an identity.
 
 ![Demo samples](report/figures/fig_r6_demo_samples.png)
 
@@ -290,7 +296,7 @@ demo_assets/    Generated demo samples (gitignored) and their description
 ## Testing and reproducibility
 
 ```bash
-pytest tests/ -q                                 # 153 tests; liboqs-dependent ones skip without liboqs
+pytest tests/ -q                                 # 155 tests; liboqs-dependent ones skip without liboqs
 python evaluation/fetch_data.py                  # exact public subsets (HTTP range requests)
 python evaluation/finetune_pad.py && python evaluation/benchmark_pad.py
 python evaluation/train_deepfake.py && python evaluation/benchmark_deepfake.py
@@ -298,8 +304,7 @@ python evaluation/train_injection.py             # injection classifier + its ev
 python report/scripts/distributed_experiments.py # two-process latency and rejection cost: integrated / buffered / layered x ML-DSA / ECDSA
 python report/scripts/flood_experiment.py        # forged-request rate needed to double genuine latency (3 repeats)
 python report/scripts/signed_attacks.py          # public-data attacks signed by the enrolled device: which check rejects each
-python report/scripts/malicious_client.py        # session burning and authenticated-client attacks, v1.2.1 vs v1.3
-                                                 #   (needs the v1.2.1 tree: git worktree add ../before-fix-v1.2.1 3586b1e)
+python report/scripts/malicious_client.py        # session safety, concurrency, authenticated clients, enrolled-key floods (with ablations)
 python evaluation/cluster_ci.py                  # intervals by subject / video / person
 python report/scripts/results_figures.py         # figures from the saved results
 ```

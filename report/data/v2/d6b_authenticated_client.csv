@@ -1,241 +1,559 @@
-tree,part,variant,item,http,accepted,binding_failed,liveness_passed,detection_ran,vetoes,server_ms,http_ms
-before,B1,16-frame still stream,casia_warped_photo,200,False,challenge_fulfilled,False,False,,145.00870599295013,148.20833399426192
-before,B1,single frame,casia_warped_photo,200,False,,True,True,presentation_attack,421.19691692641936,423.00208398955874
-before,B1,16-frame still stream,casia_warped_photo,200,False,challenge_fulfilled,False,False,,126.3097079936415,129.356417019153
-before,B1,single frame,casia_warped_photo,200,False,,True,True,morph+presentation_attack,123.54804098140448,125.34245799179189
-before,B1,16-frame still stream,casia_warped_photo,200,False,challenge_fulfilled,False,False,,118.86070901528001,120.94520899700001
-before,B1,single frame,casia_warped_photo,200,False,,True,True,morph+presentation_attack,109.2413739534095,111.56929199933074
-before,B1,16-frame still stream,casia_warped_photo,200,False,challenge_fulfilled,False,False,,123.23695796658285,125.61895800172351
-before,B1,single frame,casia_warped_photo,200,False,,True,True,morph+presentation_attack,140.61933304765262,142.34645801479928
-before,B1,16-frame still stream,casia_warped_photo,200,False,challenge_fulfilled,False,False,,122.59137601358816,124.85054199350998
-before,B1,single frame,casia_warped_photo,200,False,,True,True,presentation_attack,101.8531670270022,103.80420900764875
-before,B1,16-frame still stream,casia_cut_photo,200,False,challenge_fulfilled,False,False,,123.11700099962763,125.51816701306961
-before,B1,single frame,casia_cut_photo,200,False,,True,True,morph+presentation_attack,110.4064590181224,112.13250001310371
-before,B1,16-frame still stream,casia_cut_photo,200,False,challenge_fulfilled,False,False,,122.49624996911734,125.50512500456534
-before,B1,single frame,casia_cut_photo,200,False,,True,True,morph+presentation_attack,105.35708503448404,107.15170900220983
-before,B1,16-frame still stream,casia_cut_photo,200,False,challenge_fulfilled,False,False,,124.14287400315516,126.65016599930823
-before,B1,single frame,casia_cut_photo,200,False,,True,True,morph+presentation_attack,109.765707020415,111.49716700310819
-before,B1,16-frame still stream,casia_cut_photo,200,False,challenge_fulfilled,False,False,,118.50941804004833,121.3260420190636
-before,B1,single frame,casia_cut_photo,200,False,,True,True,morph+presentation_attack,108.02137496648356,109.99016699497588
-before,B1,16-frame still stream,casia_cut_photo,200,False,challenge_fulfilled,False,False,,120.18991500372067,122.85291598527692
-before,B1,single frame,casia_cut_photo,200,False,,True,True,presentation_attack,103.20099900127389,104.94141600793228
-before,B1,16-frame still stream,casia_video_replay,200,False,challenge_fulfilled,False,False,,124.13325096713379,127.05283297691494
-before,B1,single frame,casia_video_replay,200,False,,True,True,morph+presentation_attack,110.93995900591835,112.97408299287781
-before,B1,16-frame still stream,casia_video_replay,200,False,challenge_fulfilled,False,False,,118.68354200851172,121.36470898985863
-before,B1,single frame,casia_video_replay,200,False,,True,True,deepfake+presentation_attack,113.03521002992056,114.67254199669696
-before,B1,16-frame still stream,casia_video_replay,200,False,challenge_fulfilled,False,False,,119.96420900686644,122.54962499719113
-before,B1,single frame,casia_video_replay,200,False,,True,True,presentation_attack,109.63283298769966,111.73291600425728
-before,B1,16-frame still stream,casia_video_replay,200,False,challenge_fulfilled,False,False,,126.28033399232663,128.50116600748152
-before,B1,single frame,casia_video_replay,200,False,,True,True,morph+presentation_attack,140.00016698264517,141.80849998956546
-before,B1,16-frame still stream,casia_video_replay,200,False,challenge_fulfilled,False,False,,148.95979000721127,151.85812499839813
-before,B1,single frame,casia_video_replay,200,False,,True,True,morph+presentation_attack,128.28149896813557,129.95008399593644
-before,B1,16-frame still stream,dff_insight,200,False,challenge_fulfilled,False,False,,139.69470898155123,143.59366599819623
-before,B1,single frame,dff_insight,200,False,,True,True,deepfake+presentation_attack,131.69879201450385,133.50783300120384
-before,B1,16-frame still stream,dff_insight,200,False,,True,True,deepfake+injection+presentation_attack,314.4976659677923,316.8722910049837
-before,B1,single frame,dff_insight,200,False,,True,True,deepfake+presentation_attack,99.23354297643527,100.9431249985937
-before,B1,16-frame still stream,dff_insight,200,False,,True,True,deepfake+injection+presentation_attack,309.858916036319,312.1247919916641
-before,B1,single frame,dff_insight,200,False,,True,True,deepfake+presentation_attack,107.36841801553965,109.01929100509733
-before,B1,16-frame still stream,dff_insight,200,False,,True,True,deepfake+injection,352.696124027716,355.4244159895461
-before,B1,single frame,dff_insight,200,False,,True,True,deepfake,114.15041703730822,116.02987500373274
-before,B1,16-frame still stream,dff_insight,200,False,challenge_fulfilled,False,False,,135.60758397215977,139.10525001119822
-before,B1,single frame,dff_insight,200,False,,True,True,deepfake,110.7305419864133,112.33537501539104
-before,B1,16-frame still stream,dff_inpainting,200,False,,True,True,deepfake+injection+presentation_attack,309.3674590345472,312.1129169885535
-before,B1,single frame,dff_inpainting,200,False,,True,True,deepfake+presentation_attack,100.73187499074265,102.50462498515844
-before,B1,16-frame still stream,dff_inpainting,200,False,challenge_fulfilled,False,False,,143.41037499252707,147.29883399559185
-before,B1,single frame,dff_inpainting,200,False,,True,True,presentation_attack,135.3024150012061,137.4762910127174
-before,B1,16-frame still stream,dff_inpainting,200,False,challenge_fulfilled,False,False,,134.58462498965673,138.22150000487454
-before,B1,single frame,dff_inpainting,200,False,,True,True,deepfake+presentation_attack,112.56129195680842,114.72887499257922
-before,B1,16-frame still stream,dff_inpainting,200,False,challenge_fulfilled,False,False,,144.22700105933473,148.26691697817296
-before,B1,single frame,dff_inpainting,200,True,,True,True,,113.45395899843425,115.4755000025034
-before,B1,16-frame still stream,dff_inpainting,200,False,,True,True,deepfake+injection+presentation_attack,323.8037910195999,325.72774999425747
-before,B1,single frame,dff_inpainting,200,False,,True,True,deepfake+injection+presentation_attack,101.11758299171925,102.86524999537505
-before,B1,16-frame still stream,dff_text2img,200,False,challenge_fulfilled,False,False,,147.54049803013913,151.85816699522547
-before,B1,single frame,dff_text2img,200,False,,True,True,presentation_attack,140.11116497567855,141.8647910177242
-before,B1,16-frame still stream,dff_text2img,200,False,,True,True,deepfake+injection+presentation_attack,303.70216502342373,305.7885830057785
-before,B1,single frame,dff_text2img,200,False,,True,True,deepfake+injection+presentation_attack,98.9348329603672,100.62591597670689
-before,B1,16-frame still stream,dff_text2img,200,False,challenge_fulfilled,False,False,,145.75595801579766,149.08712499891408
-before,B1,single frame,dff_text2img,200,True,,True,True,,141.64071003324352,143.45312499790452
-before,B1,16-frame still stream,dff_text2img,200,False,,True,True,deepfake+injection+presentation_attack,304.1129159682896,306.4562920189928
-before,B1,single frame,dff_text2img,200,False,,True,True,deepfake+injection+presentation_attack,104.39208298339508,106.143000011798
-before,B1,16-frame still stream,dff_text2img,200,False,,True,True,deepfake+injection+presentation_attack,350.0866240647156,352.5025839917362
-before,B1,single frame,dff_text2img,200,False,,True,True,deepfake+presentation_attack,111.99324997141957,113.96700001205318
-before,B2,burst_frames=8,inj_25fps_crf23,200,False,,True,True,injection,439.64220900670625,447.4250420171302
-before,B2,burst_frames=2,inj_25fps_crf23,200,True,,True,True,,498.25962496106513,505.38341599167325
-before,B2,burst_frames=0,inj_25fps_crf23,200,False,,True,True,injection,1513.704291981412,1521.7530829831958
-before,B2,burst_frames=8,inj_25fps_crf23,200,False,,True,True,injection,445.2856649586465,453.3626250049565
-before,B2,burst_frames=2,inj_25fps_crf23,200,True,,True,True,,477.9374979843851,485.41358299553394
-before,B2,burst_frames=0,inj_25fps_crf23,200,False,,True,True,injection,1652.8293329756707,1661.8997079785913
-before,B2,burst_frames=8,inj_25fps_crf23,200,False,,True,True,injection,414.07904305378906,421.23074998380616
-before,B2,burst_frames=2,inj_25fps_crf23,200,False,,True,True,injection,475.78041700762697,483.22654198273085
-before,B2,burst_frames=0,inj_25fps_crf23,200,False,,True,True,injection,1431.2714989937376,1439.211292017717
-before,B2,burst_frames=8,inj_25fps_crf23,200,False,,True,True,injection,935.5471239832696,991.2127909774426
-before,B2,burst_frames=2,inj_25fps_crf23,200,True,,True,True,,851.5947920095641,897.3697499895934
-before,B2,burst_frames=0,inj_25fps_crf23,200,False,,True,True,injection,2259.812542994041,2306.8130419997033
-before,B2,burst_frames=8,inj_25fps_crf23,200,False,,True,True,deepfake+injection+presentation_attack,385.00012605800293,392.2481249901466
-before,B2,burst_frames=2,inj_25fps_crf23,200,False,,True,True,deepfake+injection+presentation_attack,452.97987599042244,458.2947909948416
-before,B2,burst_frames=0,inj_25fps_crf23,200,False,,True,True,deepfake+injection+presentation_attack,1444.6081669884734,1450.096708984347
-before,B2,burst_frames=8,inj_24fps_crf28,200,False,,True,True,injection,443.0480839801021,452.209374983795
-before,B2,burst_frames=2,inj_24fps_crf28,200,False,,True,True,injection,473.81800098810345,480.8391669939738
-before,B2,burst_frames=0,inj_24fps_crf28,200,False,,True,True,injection,1457.765000028303,1465.523207996739
-before,B2,burst_frames=8,inj_24fps_crf28,200,False,,True,True,injection,436.66366598336026,445.5989580019377
-before,B2,burst_frames=2,inj_24fps_crf28,200,False,,True,True,injection,530.6065809854772,541.0418750252575
-before,B2,burst_frames=0,inj_24fps_crf28,200,False,,True,True,injection,1587.8549990302417,1596.3057080225553
-before,B2,burst_frames=8,inj_24fps_crf28,200,False,,True,True,injection,406.2042069854215,414.8339590174146
-before,B2,burst_frames=2,inj_24fps_crf28,200,False,,True,True,injection,472.3249179951381,480.4196250042878
-before,B2,burst_frames=0,inj_24fps_crf28,200,False,,True,True,injection,1439.1166669956874,1447.4472079891711
-before,B2,burst_frames=8,inj_24fps_crf28,200,False,,True,True,injection,935.9934169915505,989.5300839853007
-before,B2,burst_frames=2,inj_24fps_crf28,200,True,,True,True,,981.028332025744,1025.3687080112286
-before,B2,burst_frames=0,inj_24fps_crf28,200,False,,True,True,injection,2244.325250037946,2294.516374997329
-before,B2,burst_frames=8,inj_24fps_crf28,200,False,,True,True,deepfake+injection+presentation_attack,399.07620899612084,403.40116698644124
-before,B2,burst_frames=2,inj_24fps_crf28,200,False,,True,True,deepfake+injection+presentation_attack,426.8117930041626,433.27499998849817
-before,B2,burst_frames=0,inj_24fps_crf28,200,False,,True,True,deepfake+injection+presentation_attack,1450.1991239958443,1455.1165419979952
-before,B2,burst_frames=8,inj_30fps_crf23,200,True,,True,True,,462.9678330384195,473.2068750017788
-before,B2,burst_frames=2,inj_30fps_crf23,200,True,,True,True,,503.2921249512583,510.73454099241644
-before,B2,burst_frames=0,inj_30fps_crf23,200,True,,True,True,,1489.7722929890733,1499.1017919965088
-before,B2,burst_frames=8,inj_30fps_crf23,200,False,,True,True,injection,444.41858399659395,453.4104169870261
-before,B2,burst_frames=2,inj_30fps_crf23,200,False,,True,True,injection,505.38733397843316,513.3830420090817
-before,B2,burst_frames=0,inj_30fps_crf23,200,False,,True,True,injection,1573.938709043432,1582.6249590027146
-before,B2,burst_frames=8,inj_30fps_crf23,200,False,,True,True,injection,421.82141801458783,433.4947080060374
-before,B2,burst_frames=2,inj_30fps_crf23,200,False,,True,True,injection,498.9218339906074,507.1219170058612
-before,B2,burst_frames=0,inj_30fps_crf23,200,False,,True,True,injection,1451.9956259755418,1462.0867500198074
-before,B2,burst_frames=8,inj_30fps_crf23,200,True,,True,True,,946.9565410108771,999.3592079845257
-before,B2,burst_frames=2,inj_30fps_crf23,200,True,,True,True,,901.2147509783972,953.883375012083
-before,B2,burst_frames=0,inj_30fps_crf23,200,True,,True,True,,2250.897000049008,2299.0214999881573
-before,B2,burst_frames=8,inj_30fps_crf23,200,False,,True,True,injection+presentation_attack,425.7783340290189,432.99479101551697
-before,B2,burst_frames=2,inj_30fps_crf23,200,False,,True,True,injection+presentation_attack,477.15129202697426,483.16404200159013
-before,B2,burst_frames=0,inj_30fps_crf23,200,False,,True,True,injection+presentation_attack,1420.3494600369595,1425.5782079999335
-before,B2,burst_frames=8,inj_30fps_crf18,200,True,,True,True,,464.485542033799,477.1076670149341
-before,B2,burst_frames=2,inj_30fps_crf18,200,True,,True,True,,495.03408302553,506.3668329967186
-before,B2,burst_frames=0,inj_30fps_crf18,200,True,,True,True,,1757.909206993645,1767.6522499823477
-before,B2,burst_frames=8,inj_30fps_crf18,200,False,,True,True,injection,427.8322500176728,441.4493340009358
-before,B2,burst_frames=2,inj_30fps_crf18,200,False,,True,True,injection,524.9559999501798,535.1419170037843
-before,B2,burst_frames=0,inj_30fps_crf18,200,False,,True,True,injection,1699.9219990393613,1711.3961669965647
-before,B2,burst_frames=8,inj_30fps_crf18,200,True,,True,True,,453.8557500054594,466.04712499538437
-before,B2,burst_frames=2,inj_30fps_crf18,200,False,,True,True,injection,498.5040409665089,507.91362501331605
-before,B2,burst_frames=0,inj_30fps_crf18,200,True,,True,True,,1491.615960985655,1501.8193330033682
-before,B2,burst_frames=8,inj_30fps_crf18,200,True,,True,True,,938.5000000183936,1000.6080410094
-before,B2,burst_frames=2,inj_30fps_crf18,200,True,,True,True,,904.4672089803498,959.4038340146653
-before,B2,burst_frames=0,inj_30fps_crf18,200,True,,True,True,,2276.2998329708353,2326.579957996728
-before,B2,burst_frames=8,inj_30fps_crf18,200,False,,True,True,injection+presentation_attack,445.15125002362765,452.04120900598355
-before,B2,burst_frames=2,inj_30fps_crf18,200,False,,True,True,presentation_attack,461.9784999813419,468.9205829927232
-before,B2,burst_frames=0,inj_30fps_crf18,200,False,,True,True,injection+presentation_attack,1478.9428320073057,1485.8933750074357
-after,B1,16-frame still stream,casia_warped_photo,200,False,challenge_fulfilled,False,False,,140.0856240070425,143.35683299577795
-after,B1,single frame,casia_warped_photo,200,False,submission_well_formed,,False,,0.41562499245628715,2.087415981804952
-after,B1,16-frame still stream,casia_warped_photo,200,False,challenge_fulfilled,False,False,,123.59537498559803,126.19162499322556
-after,B1,single frame,casia_warped_photo,200,False,submission_well_formed,,False,,0.377876014681533,2.0712910045403987
-after,B1,16-frame still stream,casia_warped_photo,200,False,challenge_fulfilled,False,False,,124.93337396881543,128.2365410006605
-after,B1,single frame,casia_warped_photo,200,False,submission_well_formed,,False,,0.4254999803379178,1.9631669856607914
-after,B1,16-frame still stream,casia_warped_photo,200,False,challenge_fulfilled,False,False,,125.46087501686998,128.85879099485464
-after,B1,single frame,casia_warped_photo,200,False,submission_well_formed,,False,,0.3655829932540655,2.0115839724894613
-after,B1,16-frame still stream,casia_warped_photo,200,False,challenge_fulfilled,False,False,,124.71741702756844,127.65962499543093
-after,B1,single frame,casia_warped_photo,200,False,submission_well_formed,,False,,0.4120839585084468,2.2986250114627182
-after,B1,16-frame still stream,casia_cut_photo,200,False,challenge_fulfilled,False,False,,124.12941694492474,126.49020800017752
-after,B1,single frame,casia_cut_photo,200,False,submission_well_formed,,False,,0.3507929795887321,2.068833011435345
-after,B1,16-frame still stream,casia_cut_photo,200,False,challenge_fulfilled,False,False,,123.13212497974746,125.78466700506397
-after,B1,single frame,casia_cut_photo,200,False,submission_well_formed,,False,,0.3694590413942933,2.015957987168804
-after,B1,16-frame still stream,casia_cut_photo,200,False,challenge_fulfilled,False,False,,124.86237601842731,127.97925001359545
-after,B1,single frame,casia_cut_photo,200,False,submission_well_formed,,False,,0.3552919952198863,1.8732500029727817
-after,B1,16-frame still stream,casia_cut_photo,200,False,challenge_fulfilled,False,False,,199.35970802907832,202.10291701368988
-after,B1,single frame,casia_cut_photo,200,False,submission_well_formed,,False,,0.36849998286925256,1.91687501501292
-after,B1,16-frame still stream,casia_cut_photo,200,False,challenge_fulfilled,False,False,,121.32145796203986,124.05500002205372
-after,B1,single frame,casia_cut_photo,200,False,submission_well_formed,,False,,0.5656259891111404,1.8296249909326434
-after,B1,16-frame still stream,casia_video_replay,200,False,challenge_fulfilled,False,False,,126.10333404154517,128.65549998241477
-after,B1,single frame,casia_video_replay,200,False,submission_well_formed,,False,,0.3246669948566705,1.7571249918546528
-after,B1,16-frame still stream,casia_video_replay,200,False,challenge_fulfilled,False,False,,120.33437503851019,122.78595901443623
-after,B1,single frame,casia_video_replay,200,False,submission_well_formed,,False,,0.3510840469971299,1.6651249898131937
-after,B1,16-frame still stream,casia_video_replay,200,False,challenge_fulfilled,False,False,,161.36516601545736,163.70483400532976
-after,B1,single frame,casia_video_replay,200,False,submission_well_formed,,False,,0.3927910001948476,2.0894580229651183
-after,B1,16-frame still stream,casia_video_replay,200,False,challenge_fulfilled,False,False,,122.75266600772738,125.49208299606107
-after,B1,single frame,casia_video_replay,200,False,submission_well_formed,,False,,0.39670802652835846,1.9092499860562384
-after,B1,16-frame still stream,casia_video_replay,200,False,challenge_fulfilled,False,False,,125.386375002563,127.823165996233
-after,B1,single frame,casia_video_replay,200,False,submission_well_formed,,False,,0.33562397584319115,1.6337499837391078
-after,B1,16-frame still stream,dff_insight,200,False,challenge_fulfilled,False,False,,140.33575003850274,144.33137499145232
-after,B1,single frame,dff_insight,200,False,submission_well_formed,,False,,0.3830420027952641,2.0296669972594827
-after,B1,16-frame still stream,dff_insight,200,False,challenge_fulfilled,False,False,,62.85900104558095,64.99600000097416
-after,B1,single frame,dff_insight,200,False,submission_well_formed,,False,,0.31116700847633183,1.7178329871967435
-after,B1,16-frame still stream,dff_insight,200,False,challenge_fulfilled,False,False,,53.581499989377335,55.36908400245011
-after,B1,single frame,dff_insight,200,False,submission_well_formed,,False,,0.30612500268034637,1.635249995160848
-after,B1,16-frame still stream,dff_insight,200,False,challenge_fulfilled,False,False,,61.799374991096556,64.11258401931264
-after,B1,single frame,dff_insight,200,False,submission_well_formed,,False,,0.2615409903228283,1.5782499976921827
-after,B1,16-frame still stream,dff_insight,200,False,challenge_fulfilled,False,False,,138.55050000711344,141.94395899539813
-after,B1,single frame,dff_insight,200,False,submission_well_formed,,False,,0.3900829760823399,1.8417499959468842
-after,B1,16-frame still stream,dff_inpainting,200,False,challenge_fulfilled,False,False,,61.68166603310965,63.57929200748913
-after,B1,single frame,dff_inpainting,200,False,submission_well_formed,,False,,0.27616493753157556,1.4706669899169356
-after,B1,16-frame still stream,dff_inpainting,200,False,challenge_fulfilled,False,False,,145.7497500232421,148.76033400651067
-after,B1,single frame,dff_inpainting,200,False,submission_well_formed,,False,,0.4160839889664203,2.1957910212222487
-after,B1,16-frame still stream,dff_inpainting,200,False,challenge_fulfilled,False,False,,133.317583007738,136.14412501920015
-after,B1,single frame,dff_inpainting,200,False,submission_well_formed,,False,,0.37779001286253333,2.26716700126417
-after,B1,16-frame still stream,dff_inpainting,200,False,challenge_fulfilled,False,False,,147.02379098162055,149.96862501720898
-after,B1,single frame,dff_inpainting,200,False,submission_well_formed,,False,,0.39137498242780566,2.130834007402882
-after,B1,16-frame still stream,dff_inpainting,200,False,challenge_fulfilled,False,False,,61.46354100201279,63.571250007953495
-after,B1,single frame,dff_inpainting,200,False,submission_well_formed,,False,,0.28612499590963125,1.578499999595806
-after,B1,16-frame still stream,dff_text2img,200,False,challenge_fulfilled,False,False,,145.47354201204143,149.18141599628143
-after,B1,single frame,dff_text2img,200,False,submission_well_formed,,False,,0.41745800990611315,2.0213749958202243
-after,B1,16-frame still stream,dff_text2img,200,False,challenge_fulfilled,False,False,,57.01404297724366,58.74787500943057
-after,B1,single frame,dff_text2img,200,False,submission_well_formed,,False,,0.2507079625502229,1.4730830152984709
-after,B1,16-frame still stream,dff_text2img,200,False,challenge_fulfilled,False,False,,143.50987601210363,146.19437500368804
-after,B1,single frame,dff_text2img,200,False,submission_well_formed,,False,,0.41291501838713884,2.345250017242506
-after,B1,16-frame still stream,dff_text2img,200,False,challenge_fulfilled,False,False,,58.711541030788794,60.50595801207237
-after,B1,single frame,dff_text2img,200,False,submission_well_formed,,False,,0.3363339928910136,1.677374995779246
-after,B1,16-frame still stream,dff_text2img,200,False,challenge_fulfilled,False,False,,52.71358499885537,54.43670801469125
-after,B1,single frame,dff_text2img,200,False,submission_well_formed,,False,,0.27416698867455125,1.575667003635317
-after,B2,burst_frames=8,inj_25fps_crf23,200,False,,True,True,injection,672.4509579944424,679.0767080092337
-after,B2,burst_frames=2,inj_25fps_crf23,200,False,submission_well_formed,,False,,5.1147089980077,10.867167002288625
-after,B2,burst_frames=0,inj_25fps_crf23,200,False,submission_well_formed,,False,,4.964418010786176,11.004792002495378
-after,B2,burst_frames=8,inj_25fps_crf23,200,False,,True,True,injection,499.8556250066031,506.72400000621565
-after,B2,burst_frames=2,inj_25fps_crf23,200,False,submission_well_formed,,False,,4.641207953682169,9.38674999633804
-after,B2,burst_frames=0,inj_25fps_crf23,200,False,submission_well_formed,,False,,4.233416024362668,9.691833023680374
-after,B2,burst_frames=8,inj_25fps_crf23,200,False,,True,True,injection,489.427416032413,497.07983300322667
-after,B2,burst_frames=2,inj_25fps_crf23,200,False,submission_well_formed,,False,,4.557167005259544,8.411709015490487
-after,B2,burst_frames=0,inj_25fps_crf23,200,False,submission_well_formed,,False,,4.528043005848303,10.268708021612838
-after,B2,burst_frames=8,inj_25fps_crf23,200,False,,True,True,injection,965.6261679774616,989.338042010786
-after,B2,burst_frames=2,inj_25fps_crf23,200,False,submission_well_formed,,False,,18.53229198604822,34.49145800550468
-after,B2,burst_frames=0,inj_25fps_crf23,200,False,submission_well_formed,,False,,16.39108400559053,29.232875007437542
-after,B2,burst_frames=8,inj_25fps_crf23,200,False,,True,True,deepfake+injection+presentation_attack,477.4579169752542,481.9516670249868
-after,B2,burst_frames=2,inj_25fps_crf23,200,False,submission_well_formed,,False,,1.668957993388176,4.119124991120771
-after,B2,burst_frames=0,inj_25fps_crf23,200,False,submission_well_formed,,False,,1.824957987992093,5.68145900615491
-after,B2,burst_frames=8,inj_24fps_crf28,200,False,,True,True,injection,503.15483298618346,508.9214160107076
-after,B2,burst_frames=2,inj_24fps_crf28,200,False,submission_well_formed,,False,,3.719207044923678,9.641584008932114
-after,B2,burst_frames=0,inj_24fps_crf28,200,False,submission_well_formed,,False,,3.9502489962615073,8.15062501351349
-after,B2,burst_frames=8,inj_24fps_crf28,200,False,,True,True,injection,504.5176670246292,512.3311670031399
-after,B2,burst_frames=2,inj_24fps_crf28,200,False,submission_well_formed,,False,,4.24087600549683,9.03254101285711
-after,B2,burst_frames=0,inj_24fps_crf28,200,False,submission_well_formed,,False,,4.104999970877543,9.481708984822035
-after,B2,burst_frames=8,inj_24fps_crf28,200,False,,True,True,injection,463.36412499658763,468.35375000955537
-after,B2,burst_frames=2,inj_24fps_crf28,200,False,submission_well_formed,,False,,3.8979990349616855,8.627916977275163
-after,B2,burst_frames=0,inj_24fps_crf28,200,False,submission_well_formed,,False,,3.8747919898014516,8.471832989016548
-after,B2,burst_frames=8,inj_24fps_crf28,200,False,,True,True,injection,978.4368760010693,994.7836250066757
-after,B2,burst_frames=2,inj_24fps_crf28,200,False,submission_well_formed,,False,,15.435332956258208,25.87370900437236
-after,B2,burst_frames=0,inj_24fps_crf28,200,False,submission_well_formed,,False,,15.716124995378777,27.58233400527388
-after,B2,burst_frames=8,inj_24fps_crf28,200,False,,True,True,deepfake+injection+presentation_attack,499.95429103728384,503.7561669887509
-after,B2,burst_frames=2,inj_24fps_crf28,200,False,submission_well_formed,,False,,1.3747509801760316,4.65616601286456
-after,B2,burst_frames=0,inj_24fps_crf28,200,False,submission_well_formed,,False,,1.2910000223200768,4.508415993768722
-after,B2,burst_frames=8,inj_30fps_crf23,200,True,,True,True,,524.8051659727935,532.5286670122296
-after,B2,burst_frames=2,inj_30fps_crf23,200,False,submission_well_formed,,False,,4.313707031542435,8.915165992220864
-after,B2,burst_frames=0,inj_30fps_crf23,200,False,submission_well_formed,,False,,4.615374986315146,9.900083008687943
-after,B2,burst_frames=8,inj_30fps_crf23,200,False,,True,True,injection,510.32025000313297,516.7676249984652
-after,B2,burst_frames=2,inj_30fps_crf23,200,False,submission_well_formed,,False,,4.447293031262234,9.634415997425094
-after,B2,burst_frames=0,inj_30fps_crf23,200,False,submission_well_formed,,False,,4.572790989186615,9.874332987237722
-after,B2,burst_frames=8,inj_30fps_crf23,200,False,,True,True,injection,520.7819179340731,525.3172919910867
-after,B2,burst_frames=2,inj_30fps_crf23,200,False,submission_well_formed,,False,,4.724956990685314,8.455292001599446
-after,B2,burst_frames=0,inj_30fps_crf23,200,False,submission_well_formed,,False,,4.65783299296163,8.855833002598956
-after,B2,burst_frames=8,inj_30fps_crf23,200,True,,True,True,,969.5011660223827,989.2570000083651
-after,B2,burst_frames=2,inj_30fps_crf23,200,False,submission_well_formed,,False,,17.901375016663224,32.723415992222726
-after,B2,burst_frames=0,inj_30fps_crf23,200,False,submission_well_formed,,False,,16.59174996893853,30.23124998435378
-after,B2,burst_frames=8,inj_30fps_crf23,200,False,,True,True,injection+presentation_attack,504.4216260139365,508.35525000002235
-after,B2,burst_frames=2,inj_30fps_crf23,200,False,submission_well_formed,,False,,1.788125984603539,4.291791992727667
-after,B2,burst_frames=0,inj_30fps_crf23,200,False,submission_well_formed,,False,,1.811623980756849,4.593416990246624
-after,B2,burst_frames=8,inj_30fps_crf18,200,True,,True,True,,519.7529999713879,529.2639580147807
-after,B2,burst_frames=2,inj_30fps_crf18,200,False,submission_well_formed,,False,,5.280625948216766,10.815749992616475
-after,B2,burst_frames=0,inj_30fps_crf18,200,False,submission_well_formed,,False,,4.94104198878631,11.16866699885577
-after,B2,burst_frames=8,inj_30fps_crf18,200,False,,True,True,injection,505.5889990471769,512.8712089790497
-after,B2,burst_frames=2,inj_30fps_crf18,200,False,submission_well_formed,,False,,4.634750977857038,10.153249982977286
-after,B2,burst_frames=0,inj_30fps_crf18,200,False,submission_well_formed,,False,,4.633875039871782,10.55725000333041
-after,B2,burst_frames=8,inj_30fps_crf18,200,True,,True,True,,536.5526670066174,543.39366700151
-after,B2,burst_frames=2,inj_30fps_crf18,200,False,submission_well_formed,,False,,5.291669018333778,11.61820799461566
-after,B2,burst_frames=0,inj_30fps_crf18,200,False,submission_well_formed,,False,,5.2542090124916285,10.23983399500139
-after,B2,burst_frames=8,inj_30fps_crf18,200,True,,True,True,,947.5189159857109,967.6108330022544
-after,B2,burst_frames=2,inj_30fps_crf18,200,False,submission_well_formed,,False,,16.91104201017879,32.59866699227132
-after,B2,burst_frames=0,inj_30fps_crf18,200,False,submission_well_formed,,False,,16.830248991027474,37.99450001679361
-after,B2,burst_frames=8,inj_30fps_crf18,200,False,,True,True,injection+presentation_attack,525.4051659721881,531.3460000033956
-after,B2,burst_frames=2,inj_30fps_crf18,200,False,submission_well_formed,,False,,2.6334580034017563,6.317874998785555
-after,B2,burst_frames=0,inj_30fps_crf18,200,False,submission_well_formed,,False,,2.6994990184903145,7.721458008745685
+config,part,variant,item,http,accepted,binding_failed,liveness_passed,detection_ran,vetoes,server_ms,http_ms
+final,B1,still image as 16 frames,casia_warped_photo,200,False,challenge_fulfilled,False,False,,138.8512920239009,141.8181250046473
+final,B1,still image as one frame,casia_warped_photo,200,False,submission_well_formed,,False,,0.40962500497698784,1.8565829959698021
+final,B1,still image as 16 frames,casia_warped_photo,200,False,challenge_fulfilled,False,False,,124.1295000363607,126.43683300120756
+final,B1,still image as one frame,casia_warped_photo,200,False,submission_well_formed,,False,,0.38416602183133364,1.7966250015888363
+final,B1,still image as 16 frames,casia_warped_photo,200,False,challenge_fulfilled,False,False,,117.24891696940176,119.17670897673815
+final,B1,still image as one frame,casia_warped_photo,200,False,submission_well_formed,,False,,0.33608198282308877,1.9652909832075238
+final,B1,still image as 16 frames,casia_warped_photo,200,False,challenge_fulfilled,False,False,,122.50754097476602,124.63633302832022
+final,B1,still image as one frame,casia_warped_photo,200,False,submission_well_formed,,False,,0.3592069842852652,1.8001660064328462
+final,B1,still image as 16 frames,casia_warped_photo,200,False,challenge_fulfilled,False,False,,124.11583302309737,126.55783400987275
+final,B1,still image as one frame,casia_warped_photo,200,False,submission_well_formed,,False,,0.36287595867179334,1.7440409865230322
+final,B1,still image as 16 frames,casia_cut_photo,200,False,challenge_fulfilled,False,False,,123.04991597193293,125.15633399016224
+final,B1,still image as one frame,casia_cut_photo,200,False,submission_well_formed,,False,,0.34324999433010817,1.9813750113826245
+final,B1,still image as 16 frames,casia_cut_photo,200,False,challenge_fulfilled,False,False,,123.33270799717866,125.63724999199621
+final,B1,still image as one frame,casia_cut_photo,200,False,submission_well_formed,,False,,0.36733297747559845,1.8022909935098141
+final,B1,still image as 16 frames,casia_cut_photo,200,False,challenge_fulfilled,False,False,,126.10200000926852,128.59662499977276
+final,B1,still image as one frame,casia_cut_photo,200,False,submission_well_formed,,False,,0.3385829913895577,1.9164590048603714
+final,B1,still image as 16 frames,casia_cut_photo,200,False,challenge_fulfilled,False,False,,220.65545798977837,222.86454201093875
+final,B1,still image as one frame,casia_cut_photo,200,False,submission_well_formed,,False,,0.35533399204723537,1.7040829989127815
+final,B1,still image as 16 frames,casia_cut_photo,200,False,challenge_fulfilled,False,False,,120.66866701934487,122.86916602170095
+final,B1,still image as one frame,casia_cut_photo,200,False,submission_well_formed,,False,,0.32550099422223866,1.7757080204319209
+final,B1,still image as 16 frames,casia_video_replay,200,False,challenge_fulfilled,False,False,,124.01708500692621,126.13083398900926
+final,B1,still image as one frame,casia_video_replay,200,False,submission_well_formed,,False,,0.3704580303747207,2.0630420185625553
+final,B1,still image as 16 frames,casia_video_replay,200,False,challenge_fulfilled,False,False,,120.16183399828151,122.41379200713709
+final,B1,still image as one frame,casia_video_replay,200,False,submission_well_formed,,False,,0.3294559719506651,1.6883750213310122
+final,B1,still image as 16 frames,casia_video_replay,200,False,challenge_fulfilled,False,False,,121.6092900140211,123.75137498020194
+final,B1,still image as one frame,casia_video_replay,200,False,submission_well_formed,,False,,0.33166800858452916,1.7657499993219972
+final,B1,still image as 16 frames,casia_video_replay,200,False,challenge_fulfilled,False,False,,123.0185009771958,125.10166701395065
+final,B1,still image as one frame,casia_video_replay,200,False,submission_well_formed,,False,,0.3423329908400774,1.8245000101160258
+final,B1,still image as 16 frames,casia_video_replay,200,False,challenge_fulfilled,False,False,,123.42662503942847,125.47041600919329
+final,B1,still image as one frame,casia_video_replay,200,False,submission_well_formed,,False,,0.34412500099278986,1.787666988093406
+final,B1,still image as 16 frames,dff_insight,200,False,challenge_fulfilled,False,False,,142.734957014909,145.649041980505
+final,B1,still image as one frame,dff_insight,200,False,submission_well_formed,,False,,0.37750002229586244,1.7355419986415654
+final,B1,still image as 16 frames,dff_insight,200,False,challenge_fulfilled,False,False,,61.42741601797752,63.12366700149141
+final,B1,still image as one frame,dff_insight,200,False,submission_well_formed,,False,,0.2830000303220004,1.6907920071389526
+final,B1,still image as 16 frames,dff_insight,200,False,challenge_fulfilled,False,False,,53.65770900971256,55.28999998932704
+final,B1,still image as one frame,dff_insight,200,False,submission_well_formed,,False,,0.3147080133203417,1.6739999991841614
+final,B1,still image as 16 frames,dff_insight,200,False,challenge_fulfilled,False,False,,61.76308300928213,63.66483302554116
+final,B1,still image as one frame,dff_insight,200,False,submission_well_formed,,False,,0.2829579752869904,1.6048749967012554
+final,B1,still image as 16 frames,dff_insight,200,False,challenge_fulfilled,False,False,,137.66670797485858,140.32829200732522
+final,B1,still image as one frame,dff_insight,200,False,submission_well_formed,,False,,0.38766601937823,1.885791978565976
+final,B1,still image as 16 frames,dff_inpainting,200,False,challenge_fulfilled,False,False,,60.85979100316763,62.84254099591635
+final,B1,still image as one frame,dff_inpainting,200,False,submission_well_formed,,False,,0.26762502966448665,1.6058750043157488
+final,B1,still image as 16 frames,dff_inpainting,200,False,challenge_fulfilled,False,False,,143.90766798169352,146.8983329832554
+final,B1,still image as one frame,dff_inpainting,200,False,submission_well_formed,,False,,0.41154195787385106,1.8874579982366413
+final,B1,still image as 16 frames,dff_inpainting,200,False,challenge_fulfilled,False,False,,134.0316659770906,136.480124987429
+final,B1,still image as one frame,dff_inpainting,200,False,submission_well_formed,,False,,0.3875429683830589,1.8523339822422713
+final,B1,still image as 16 frames,dff_inpainting,200,False,challenge_fulfilled,False,False,,142.33658299781382,145.55899999686517
+final,B1,still image as one frame,dff_inpainting,200,False,submission_well_formed,,False,,0.40195893961936235,1.8779590027406812
+final,B1,still image as 16 frames,dff_inpainting,200,False,challenge_fulfilled,False,False,,60.51587496767752,62.04308301676065
+final,B1,still image as one frame,dff_inpainting,200,False,submission_well_formed,,False,,0.28891704278066754,1.609708007890731
+final,B1,still image as 16 frames,dff_text2img,200,False,challenge_fulfilled,False,False,,144.7425830119755,147.9466250166297
+final,B1,still image as one frame,dff_text2img,200,False,submission_well_formed,,False,,0.40933198761194944,2.052708005066961
+final,B1,still image as 16 frames,dff_text2img,200,False,challenge_fulfilled,False,False,,56.65912604308687,58.145707997027785
+final,B1,still image as one frame,dff_text2img,200,False,submission_well_formed,,False,,0.26741696638055146,1.6267500177491456
+final,B1,still image as 16 frames,dff_text2img,200,False,challenge_fulfilled,False,False,,142.4962090095505,145.1601249864325
+final,B1,still image as one frame,dff_text2img,200,False,submission_well_formed,,False,,0.3982500347774476,1.8496249977033585
+final,B1,still image as 16 frames,dff_text2img,200,False,challenge_fulfilled,False,False,,57.927000016206875,59.44741697749123
+final,B1,still image as one frame,dff_text2img,200,False,submission_well_formed,,False,,0.30387501465156674,1.6506660031154752
+final,B1,still image as 16 frames,dff_text2img,200,False,challenge_fulfilled,False,False,,53.01658299867995,54.82254197704606
+final,B1,still image as one frame,dff_text2img,200,False,submission_well_formed,,False,,0.27483198209665716,1.5677920018788427
+"no shape check, lenient liveness",B1,still image as 16 frames,casia_warped_photo,200,False,challenge_fulfilled,False,False,,135.23645902751014,141.45954098785296
+"no shape check, lenient liveness",B1,still image as one frame,casia_warped_photo,200,False,,True,True,presentation_attack,331.07233396731317,333.19241701974533
+"no shape check, lenient liveness",B1,still image as 16 frames,casia_warped_photo,200,False,challenge_fulfilled,False,False,,126.34570902446285,129.60804099566303
+"no shape check, lenient liveness",B1,still image as one frame,casia_warped_photo,200,False,,True,True,morph+presentation_attack,123.76591499196365,125.7420829788316
+"no shape check, lenient liveness",B1,still image as 16 frames,casia_warped_photo,200,False,challenge_fulfilled,False,False,,134.96908399974927,137.46975001413375
+"no shape check, lenient liveness",B1,still image as one frame,casia_warped_photo,200,False,,True,True,morph+presentation_attack,111.90075002377853,114.15512501844205
+"no shape check, lenient liveness",B1,still image as 16 frames,casia_warped_photo,200,False,challenge_fulfilled,False,False,,122.18991600093432,124.45962501806207
+"no shape check, lenient liveness",B1,still image as one frame,casia_warped_photo,200,False,,True,True,morph+presentation_attack,134.45441602380015,136.31883400375955
+"no shape check, lenient liveness",B1,still image as 16 frames,casia_warped_photo,200,False,challenge_fulfilled,False,False,,123.32566702389158,125.52758402307518
+"no shape check, lenient liveness",B1,still image as one frame,casia_warped_photo,200,False,,True,True,presentation_attack,101.77566696074791,103.68670799653046
+"no shape check, lenient liveness",B1,still image as 16 frames,casia_cut_photo,200,False,challenge_fulfilled,False,False,,121.45379197318107,124.01112500810996
+"no shape check, lenient liveness",B1,still image as one frame,casia_cut_photo,200,False,,True,True,morph+presentation_attack,111.19770898949355,113.1752920045983
+"no shape check, lenient liveness",B1,still image as 16 frames,casia_cut_photo,200,False,challenge_fulfilled,False,False,,121.74900001264177,124.14191599236801
+"no shape check, lenient liveness",B1,still image as one frame,casia_cut_photo,200,False,,True,True,morph+presentation_attack,105.95929104601964,107.709582982352
+"no shape check, lenient liveness",B1,still image as 16 frames,casia_cut_photo,200,False,challenge_fulfilled,False,False,,124.88354201195762,127.40187501185574
+"no shape check, lenient liveness",B1,still image as one frame,casia_cut_photo,200,False,,True,True,morph+presentation_attack,108.66324999369681,110.44183300691657
+"no shape check, lenient liveness",B1,still image as 16 frames,casia_cut_photo,200,False,challenge_fulfilled,False,False,,118.81816602544859,121.05233300826512
+"no shape check, lenient liveness",B1,still image as one frame,casia_cut_photo,200,False,,True,True,morph+presentation_attack,111.58695799531415,113.29145802301355
+"no shape check, lenient liveness",B1,still image as 16 frames,casia_cut_photo,200,False,challenge_fulfilled,False,False,,120.92679101624526,123.51879201014526
+"no shape check, lenient liveness",B1,still image as one frame,casia_cut_photo,200,False,,True,True,presentation_attack,103.4685849735979,105.37687499891035
+"no shape check, lenient liveness",B1,still image as 16 frames,casia_video_replay,200,False,challenge_fulfilled,False,False,,125.82670696428977,128.24783299583942
+"no shape check, lenient liveness",B1,still image as one frame,casia_video_replay,200,False,,True,True,morph+presentation_attack,110.35454095690511,112.35941600170918
+"no shape check, lenient liveness",B1,still image as 16 frames,casia_video_replay,200,False,challenge_fulfilled,False,False,,117.54891500459053,119.69462499837391
+"no shape check, lenient liveness",B1,still image as one frame,casia_video_replay,200,False,,True,True,deepfake+presentation_attack,113.77050002920441,115.61229202197865
+"no shape check, lenient liveness",B1,still image as 16 frames,casia_video_replay,200,False,challenge_fulfilled,False,False,,120.40241697104648,122.92424999759533
+"no shape check, lenient liveness",B1,still image as one frame,casia_video_replay,200,False,,True,True,presentation_attack,111.25133401947096,113.05520799942315
+"no shape check, lenient liveness",B1,still image as 16 frames,casia_video_replay,200,False,challenge_fulfilled,False,False,,121.11508400994353,123.42424999224022
+"no shape check, lenient liveness",B1,still image as one frame,casia_video_replay,200,False,,True,True,morph+presentation_attack,128.43329200404696,130.37312499363907
+"no shape check, lenient liveness",B1,still image as 16 frames,casia_video_replay,200,False,challenge_fulfilled,False,False,,122.79958301223814,125.38058299105614
+"no shape check, lenient liveness",B1,still image as one frame,casia_video_replay,200,False,,True,True,morph+presentation_attack,125.69100098335184,127.75645800866187
+"no shape check, lenient liveness",B1,still image as 16 frames,dff_insight,200,False,challenge_fulfilled,False,False,,139.9506249872502,142.75550001184456
+"no shape check, lenient liveness",B1,still image as one frame,dff_insight,200,False,,True,True,deepfake+presentation_attack,129.58416598848999,131.6701670002658
+"no shape check, lenient liveness",B1,still image as 16 frames,dff_insight,200,False,,True,True,deepfake+injection+presentation_attack,375.8981249993667,378.0603329942096
+"no shape check, lenient liveness",B1,still image as one frame,dff_insight,200,False,,True,True,deepfake+presentation_attack,97.39816599176265,99.37941600219347
+"no shape check, lenient liveness",B1,still image as 16 frames,dff_insight,200,False,,True,True,deepfake+injection+presentation_attack,361.2352489726618,363.0588339874521
+"no shape check, lenient liveness",B1,still image as one frame,dff_insight,200,False,,True,True,deepfake+presentation_attack,97.97966596670449,99.55658399849199
+"no shape check, lenient liveness",B1,still image as 16 frames,dff_insight,200,False,,True,True,deepfake+injection,369.2620000510942,371.3362500129733
+"no shape check, lenient liveness",B1,still image as one frame,dff_insight,200,False,,True,True,deepfake,97.66149902134202,99.30454200366512
+"no shape check, lenient liveness",B1,still image as 16 frames,dff_insight,200,False,challenge_fulfilled,False,False,,135.4405019665137,138.07816701591946
+"no shape check, lenient liveness",B1,still image as one frame,dff_insight,200,False,,True,True,deepfake,112.3992929351516,114.4387079984881
+"no shape check, lenient liveness",B1,still image as 16 frames,dff_inpainting,200,False,,True,True,deepfake+injection+presentation_attack,378.63966601435095,380.7473749911878
+"no shape check, lenient liveness",B1,still image as one frame,dff_inpainting,200,False,,True,True,deepfake+presentation_attack,96.79891599807888,98.45833398867399
+"no shape check, lenient liveness",B1,still image as 16 frames,dff_inpainting,200,False,challenge_fulfilled,False,False,,143.31083200522698,146.45100000780076
+"no shape check, lenient liveness",B1,still image as one frame,dff_inpainting,200,False,,True,True,presentation_attack,134.0311669628136,136.00770899211057
+"no shape check, lenient liveness",B1,still image as 16 frames,dff_inpainting,200,False,challenge_fulfilled,False,False,,132.45404098415747,135.29900001594797
+"no shape check, lenient liveness",B1,still image as one frame,dff_inpainting,200,False,,True,True,deepfake+presentation_attack,111.50020896457136,113.35916598909535
+"no shape check, lenient liveness",B1,still image as 16 frames,dff_inpainting,200,False,challenge_fulfilled,False,False,,142.71091602859087,145.63037498737685
+"no shape check, lenient liveness",B1,still image as one frame,dff_inpainting,200,True,,True,True,,112.25691795698367,114.32175000663847
+"no shape check, lenient liveness",B1,still image as 16 frames,dff_inpainting,200,False,,True,True,deepfake+injection+presentation_attack,375.6927920039743,378.21429199539125
+"no shape check, lenient liveness",B1,still image as one frame,dff_inpainting,200,False,,True,True,deepfake+injection+presentation_attack,98.53733400814235,100.16683299909346
+"no shape check, lenient liveness",B1,still image as 16 frames,dff_text2img,200,False,challenge_fulfilled,False,False,,146.24570796149783,149.05804200679995
+"no shape check, lenient liveness",B1,still image as one frame,dff_text2img,200,False,,True,True,presentation_attack,139.95204199454747,142.15825000428595
+"no shape check, lenient liveness",B1,still image as 16 frames,dff_text2img,200,False,,True,True,deepfake+injection+presentation_attack,370.76541502028704,373.31029199413024
+"no shape check, lenient liveness",B1,still image as one frame,dff_text2img,200,False,,True,True,deepfake+injection+presentation_attack,97.46616703341715,99.51000000000931
+"no shape check, lenient liveness",B1,still image as 16 frames,dff_text2img,200,False,challenge_fulfilled,False,False,,144.49541599606164,147.56420900812373
+"no shape check, lenient liveness",B1,still image as one frame,dff_text2img,200,True,,True,True,,137.39862295915373,139.23349999822676
+"no shape check, lenient liveness",B1,still image as 16 frames,dff_text2img,200,False,,True,True,deepfake+injection+presentation_attack,374.8664590239059,376.97037498583086
+"no shape check, lenient liveness",B1,still image as one frame,dff_text2img,200,False,,True,True,deepfake+injection+presentation_attack,96.0306660272181,97.68883298966102
+"no shape check, lenient liveness",B1,still image as 16 frames,dff_text2img,200,False,,True,True,deepfake+injection+presentation_attack,375.9389170445502,377.7868329780176
+"no shape check, lenient liveness",B1,still image as one frame,dff_text2img,200,False,,True,True,deepfake+presentation_attack,97.84291801042855,99.49754099943675
+final,B2,burst_frames=8,inj_25fps_crf23,200,False,,True,True,injection,738.8789590331726,744.1479159751907
+final,B2,burst_frames=2,inj_25fps_crf23,200,False,submission_well_formed,,False,,4.752334032673389,16.59312500851229
+final,B2,burst_frames=0,inj_25fps_crf23,200,False,submission_well_formed,,False,,4.362248990219086,11.891333997482434
+final,B2,burst_frames=8,inj_25fps_crf23,200,False,,True,True,injection,506.7062930029351,514.04387500952
+final,B2,burst_frames=2,inj_25fps_crf23,200,False,submission_well_formed,,False,,4.356749006547034,13.26812501065433
+final,B2,burst_frames=0,inj_25fps_crf23,200,False,submission_well_formed,,False,,4.284707974875346,12.807916005840525
+final,B2,burst_frames=8,inj_25fps_crf23,200,False,,True,True,injection,502.6517510123085,513.4343749959953
+final,B2,burst_frames=2,inj_25fps_crf23,200,False,submission_well_formed,,False,,4.556625004624948,11.386166996089742
+final,B2,burst_frames=0,inj_25fps_crf23,200,False,submission_well_formed,,False,,4.780541028594598,14.861625008052215
+final,B2,burst_frames=8,inj_25fps_crf23,200,False,,True,True,injection,950.5276240524836,966.4167090086266
+final,B2,burst_frames=2,inj_25fps_crf23,200,False,submission_well_formed,,False,,16.558331990381703,36.152291984762996
+final,B2,burst_frames=0,inj_25fps_crf23,200,False,submission_well_formed,,False,,17.238791013369337,39.18883399455808
+final,B2,burst_frames=8,inj_25fps_crf23,200,False,,True,True,deepfake+injection+presentation_attack,470.09262500796467,472.99966699210927
+final,B2,burst_frames=2,inj_25fps_crf23,200,False,submission_well_formed,,False,,1.6081249923445284,3.9742910012137145
+final,B2,burst_frames=0,inj_25fps_crf23,200,False,submission_well_formed,,False,,1.8732910102698952,4.4640419946517795
+final,B2,burst_frames=8,inj_24fps_crf28,200,False,,True,True,injection,494.5513759739697,500.39874998037703
+final,B2,burst_frames=2,inj_24fps_crf28,200,False,submission_well_formed,,False,,3.586791950510815,8.92262498382479
+final,B2,burst_frames=0,inj_24fps_crf28,200,False,submission_well_formed,,False,,3.7687069561798126,10.908958007348701
+final,B2,burst_frames=8,inj_24fps_crf28,200,False,,True,True,injection,496.8616680125706,504.22008300665766
+final,B2,burst_frames=2,inj_24fps_crf28,200,False,submission_well_formed,,False,,3.9277079922612756,9.629625012166798
+final,B2,burst_frames=0,inj_24fps_crf28,200,False,submission_well_formed,,False,,3.896707989042625,11.102582997409627
+final,B2,burst_frames=8,inj_24fps_crf28,200,False,,True,True,injection,467.39029200398363,475.29387500253506
+final,B2,burst_frames=2,inj_24fps_crf28,200,False,submission_well_formed,,False,,3.967666008975357,9.834333002800122
+final,B2,burst_frames=0,inj_24fps_crf28,200,False,submission_well_formed,,False,,3.7405419861897826,9.154917002888396
+final,B2,burst_frames=8,inj_24fps_crf28,200,False,,True,True,injection,964.2864160123281,980.2415000158362
+final,B2,burst_frames=2,inj_24fps_crf28,200,False,submission_well_formed,,False,,15.49604200408794,30.51262500230223
+final,B2,burst_frames=0,inj_24fps_crf28,200,False,submission_well_formed,,False,,15.604666987201199,33.430084004066885
+final,B2,burst_frames=8,inj_24fps_crf28,200,False,,True,True,deepfake+injection+presentation_attack,449.6424570097588,452.2114590217825
+final,B2,burst_frames=2,inj_24fps_crf28,200,False,submission_well_formed,,False,,1.1768329713959247,3.098791989032179
+final,B2,burst_frames=0,inj_24fps_crf28,200,False,submission_well_formed,,False,,1.1838749924208969,3.0172920087352395
+final,B2,burst_frames=8,inj_30fps_crf23,200,True,,True,True,,520.8673760062084,525.5222920095548
+final,B2,burst_frames=2,inj_30fps_crf23,200,False,submission_well_formed,,False,,4.475291003473103,9.292667004046962
+final,B2,burst_frames=0,inj_30fps_crf23,200,False,submission_well_formed,,False,,4.712834022939205,10.450000001583248
+final,B2,burst_frames=8,inj_30fps_crf23,200,False,,True,True,injection,511.2979160330724,515.9622910141479
+final,B2,burst_frames=2,inj_30fps_crf23,200,False,submission_well_formed,,False,,4.642207961296663,9.873249975498766
+final,B2,burst_frames=0,inj_30fps_crf23,200,False,submission_well_formed,,False,,3.949332982301712,7.414833002258092
+final,B2,burst_frames=8,inj_30fps_crf23,200,False,,True,True,injection,525.202876975527,534.5961670100223
+final,B2,burst_frames=2,inj_30fps_crf23,200,False,submission_well_formed,,False,,4.744459001813084,9.230958006810397
+final,B2,burst_frames=0,inj_30fps_crf23,200,False,submission_well_formed,,False,,4.555082006845623,9.198417013976723
+final,B2,burst_frames=8,inj_30fps_crf23,200,True,,True,True,,963.0572930327617,984.2700840090401
+final,B2,burst_frames=2,inj_30fps_crf23,200,False,submission_well_formed,,False,,17.093166999984533,36.79620800539851
+final,B2,burst_frames=0,inj_30fps_crf23,200,False,submission_well_formed,,False,,16.572792956139892,34.435459005180746
+final,B2,burst_frames=8,inj_30fps_crf23,200,False,,True,True,injection+presentation_attack,497.8905410389416,500.87704200996086
+final,B2,burst_frames=2,inj_30fps_crf23,200,False,submission_well_formed,,False,,1.9460400217212737,5.684915988240391
+final,B2,burst_frames=0,inj_30fps_crf23,200,False,submission_well_formed,,False,,1.8142090120818466,4.476125002838671
+final,B2,burst_frames=8,inj_30fps_crf18,200,True,,True,True,,522.8414579469245,530.783624999458
+final,B2,burst_frames=2,inj_30fps_crf18,200,False,submission_well_formed,,False,,5.115208972711116,14.707750000525266
+final,B2,burst_frames=0,inj_30fps_crf18,200,False,submission_well_formed,,False,,5.227833025855944,10.978834005072713
+final,B2,burst_frames=8,inj_30fps_crf18,200,False,,True,True,injection,507.2558330139145,515.9004999732133
+final,B2,burst_frames=2,inj_30fps_crf18,200,False,submission_well_formed,,False,,4.619082988938317,14.623708004364744
+final,B2,burst_frames=0,inj_30fps_crf18,200,False,submission_well_formed,,False,,4.9932090332731605,9.446167008718476
+final,B2,burst_frames=8,inj_30fps_crf18,200,True,,True,True,,516.4194169919938,522.4038749875035
+final,B2,burst_frames=2,inj_30fps_crf18,200,False,submission_well_formed,,False,,5.300958000589162,10.134874988580123
+final,B2,burst_frames=0,inj_30fps_crf18,200,False,submission_well_formed,,False,,5.305792001308873,9.944958001142368
+final,B2,burst_frames=8,inj_30fps_crf18,200,True,,True,True,,984.4549999688752,1004.349374998128
+final,B2,burst_frames=2,inj_30fps_crf18,200,False,submission_well_formed,,False,,16.93141699070111,32.778666995000094
+final,B2,burst_frames=0,inj_30fps_crf18,200,False,submission_well_formed,,False,,17.429582978365943,35.22795799653977
+final,B2,burst_frames=8,inj_30fps_crf18,200,False,,True,True,injection+presentation_attack,526.3750830490608,530.9311669843737
+final,B2,burst_frames=2,inj_30fps_crf18,200,False,submission_well_formed,,False,,2.7984999760519713,8.074874989688396
+final,B2,burst_frames=0,inj_30fps_crf18,200,False,submission_well_formed,,False,,2.937875018687919,8.182916993973777
+no shape check,B2,burst_frames=8,inj_25fps_crf23,200,False,,True,True,injection,738.7559159833472,745.6849169975612
+no shape check,B2,burst_frames=2,inj_25fps_crf23,200,True,,True,True,,540.1127490331419,546.3043749914505
+no shape check,B2,burst_frames=0,inj_25fps_crf23,200,False,,True,True,injection,1544.2692499491386,1550.0979999778792
+no shape check,B2,burst_frames=8,inj_25fps_crf23,200,False,,True,True,injection,480.06241701659746,485.7675420062151
+no shape check,B2,burst_frames=2,inj_25fps_crf23,200,True,,True,True,,546.0986240068451,552.0863750134595
+no shape check,B2,burst_frames=0,inj_25fps_crf23,200,False,,True,True,injection,1696.2167080200743,1702.823833009461
+no shape check,B2,burst_frames=8,inj_25fps_crf23,200,False,,True,True,injection,484.5881249930244,490.1319580094423
+no shape check,B2,burst_frames=2,inj_25fps_crf23,200,False,,True,True,injection,553.8610000221524,559.3790840066504
+no shape check,B2,burst_frames=0,inj_25fps_crf23,200,False,,True,True,injection,1504.9282939871773,1509.8033749964088
+no shape check,B2,burst_frames=8,inj_25fps_crf23,200,False,,True,True,injection,960.1645820075646,979.9466250115074
+no shape check,B2,burst_frames=2,inj_25fps_crf23,200,True,,True,True,,977.0628320111427,998.5545420204289
+no shape check,B2,burst_frames=0,inj_25fps_crf23,200,False,,True,True,injection,2354.897666053148,2378.0164159834385
+no shape check,B2,burst_frames=8,inj_25fps_crf23,200,False,,True,True,deepfake+injection+presentation_attack,478.86649999418296,485.1008749974426
+no shape check,B2,burst_frames=2,inj_25fps_crf23,200,False,,True,True,deepfake+injection+presentation_attack,518.3230839902535,521.6349579859525
+no shape check,B2,burst_frames=0,inj_25fps_crf23,200,False,,True,True,deepfake+injection+presentation_attack,1507.3110399825964,1511.0598749888595
+no shape check,B2,burst_frames=8,inj_24fps_crf28,200,False,,True,True,injection,527.6414589898195,534.7432499984279
+no shape check,B2,burst_frames=2,inj_24fps_crf28,200,False,,True,True,injection,547.5504180649295,553.6665420222562
+no shape check,B2,burst_frames=0,inj_24fps_crf28,200,False,,True,True,injection,1537.8629170008935,1542.7788340020925
+no shape check,B2,burst_frames=8,inj_24fps_crf28,200,False,,True,True,injection,498.8762499706354,504.82954099425115
+no shape check,B2,burst_frames=2,inj_24fps_crf28,200,False,,True,True,injection,562.188082956709,568.0121660116129
+no shape check,B2,burst_frames=0,inj_24fps_crf28,200,False,,True,True,injection,1753.7268740125,1760.3923330025282
+no shape check,B2,burst_frames=8,inj_24fps_crf28,200,False,,True,True,injection,497.8912089718506,503.4314579970669
+no shape check,B2,burst_frames=2,inj_24fps_crf28,200,False,,True,True,injection,552.1820000431035,556.1977500037756
+no shape check,B2,burst_frames=0,inj_24fps_crf28,200,False,,True,True,injection,1511.1626660218462,1515.536000020802
+no shape check,B2,burst_frames=8,inj_24fps_crf28,200,False,,True,True,injection,999.5714979886543,1014.7288329899311
+no shape check,B2,burst_frames=2,inj_24fps_crf28,200,True,,True,True,,1015.9413750225212,1038.7846250087023
+no shape check,B2,burst_frames=0,inj_24fps_crf28,200,False,,True,True,injection,2333.356458984781,2356.9939580047503
+no shape check,B2,burst_frames=8,inj_24fps_crf28,200,False,,True,True,deepfake+injection+presentation_attack,469.8537490039598,473.4353339881636
+no shape check,B2,burst_frames=2,inj_24fps_crf28,200,False,,True,True,deepfake+injection+presentation_attack,515.7352909736801,518.3465830050409
+no shape check,B2,burst_frames=0,inj_24fps_crf28,200,False,,True,True,deepfake+injection+presentation_attack,1508.0938340106513,1516.9268750178162
+no shape check,B2,burst_frames=8,inj_30fps_crf23,200,True,,True,True,,552.082416950725,558.4672910044901
+no shape check,B2,burst_frames=2,inj_30fps_crf23,200,True,,True,True,,569.0283759613521,575.4732500063255
+no shape check,B2,burst_frames=0,inj_30fps_crf23,200,True,,True,True,,1588.3697070239577,1592.816040996695
+no shape check,B2,burst_frames=8,inj_30fps_crf23,200,False,,True,True,injection,512.61245898786,518.9296659955289
+no shape check,B2,burst_frames=2,inj_30fps_crf23,200,False,,True,True,injection,557.7274589741137,565.5558749858756
+no shape check,B2,burst_frames=0,inj_30fps_crf23,200,False,,True,True,injection,1544.3928329914343,1552.1441670134664
+no shape check,B2,burst_frames=8,inj_30fps_crf23,200,False,,True,True,injection+presentation_attack,537.3918329714797,543.1974579987582
+no shape check,B2,burst_frames=2,inj_30fps_crf23,200,False,,True,True,injection,597.9565000452567,603.1156250101048
+no shape check,B2,burst_frames=0,inj_30fps_crf23,200,False,,True,True,injection,1588.6689590115566,1593.7021669815294
+no shape check,B2,burst_frames=8,inj_30fps_crf23,200,True,,True,True,,993.2091670052614,1014.2258330015466
+no shape check,B2,burst_frames=2,inj_30fps_crf23,200,True,,True,True,,972.1622079669032,992.4467499949969
+no shape check,B2,burst_frames=0,inj_30fps_crf23,200,True,,True,True,,2302.7129170368426,2325.2130409819074
+no shape check,B2,burst_frames=8,inj_30fps_crf23,200,False,,True,True,injection+presentation_attack,491.99958296958357,495.6342500227038
+no shape check,B2,burst_frames=2,inj_30fps_crf23,200,False,,True,True,injection+presentation_attack,520.7460410310887,524.9507910048123
+no shape check,B2,burst_frames=0,inj_30fps_crf23,200,False,,True,True,injection+presentation_attack,1488.226084067719,1492.2765420051292
+no shape check,B2,burst_frames=8,inj_30fps_crf18,200,True,,True,True,,525.7158329768572,533.9482499985024
+no shape check,B2,burst_frames=2,inj_30fps_crf18,200,True,,True,True,,559.4215420424007,565.3110409912188
+no shape check,B2,burst_frames=0,inj_30fps_crf18,200,True,,True,True,,1783.8623750430997,1788.914750010008
+no shape check,B2,burst_frames=8,inj_30fps_crf18,200,False,,True,True,injection,502.5937080208678,508.7043750099838
+no shape check,B2,burst_frames=2,inj_30fps_crf18,200,False,,True,True,injection,575.4198750073556,579.7535839956254
+no shape check,B2,burst_frames=0,inj_30fps_crf18,200,False,,True,True,injection,1752.3534979845863,1759.0645420132205
+no shape check,B2,burst_frames=8,inj_30fps_crf18,200,True,,True,True,,494.7005409630947,499.5713330281433
+no shape check,B2,burst_frames=2,inj_30fps_crf18,200,False,,True,True,injection,564.4232490158174,568.5142920119688
+no shape check,B2,burst_frames=0,inj_30fps_crf18,200,True,,True,True,,1532.4381660029758,1537.9654580028728
+no shape check,B2,burst_frames=8,inj_30fps_crf18,200,True,,True,True,,998.2965830131434,1017.8799580025952
+no shape check,B2,burst_frames=2,inj_30fps_crf18,200,True,,True,True,,1014.0885829750914,1033.272083994234
+no shape check,B2,burst_frames=0,inj_30fps_crf18,200,True,,True,True,,2378.8294150144793,2398.2774580072146
+no shape check,B2,burst_frames=8,inj_30fps_crf18,200,False,,True,True,injection+presentation_attack,557.6217909692787,561.2944579916075
+no shape check,B2,burst_frames=2,inj_30fps_crf18,200,False,,True,True,presentation_attack,545.6661659991369,552.1668329893146
+no shape check,B2,burst_frames=0,inj_30fps_crf18,200,False,,True,True,injection+presentation_attack,1611.3155820057727,1616.7397499957588
+final,B3,unaltered,mask,200,True,,True,True,,1195.9657089610118,1216.2539169949014
+final,B3,bona fide frame spliced first,mask,200,False,submission_well_formed,,False,,20.966416981536895,41.77095799241215
+final,B3,unaltered,mask,200,True,,True,True,,1000.1929590071086,1015.8514580107294
+final,B3,bona fide frame spliced first,mask,200,False,submission_well_formed,,False,,13.50550094502978,30.151541985105723
+final,B3,unaltered,mask,200,False,,True,True,presentation_attack,1628.8131670444272,1669.0416249912232
+final,B3,bona fide frame spliced first,mask,200,False,submission_well_formed,,False,,38.992293033516034,69.48720800573938
+final,B3,unaltered,mask,200,False,,True,True,presentation_attack,556.6797069623135,561.1118749948218
+final,B3,bona fide frame spliced first,mask,200,False,submission_well_formed,,False,,7.189499010564759,14.912208978785202
+final,B3,unaltered,mask,200,False,,True,True,deepfake,493.9422930183355,499.93420799728483
+final,B3,bona fide frame spliced first,mask,200,False,,True,True,deepfake,503.4286670270376,508.5002919950057
+final,B3,unaltered,mask,200,True,,True,True,,600.3067090350669,608.9910000155214
+final,B3,bona fide frame spliced first,mask,200,True,,True,True,,557.0447070058435,565.118500002427
+final,B3,unaltered,mask,200,False,,True,True,deepfake,570.3305839560926,576.7810419783928
+final,B3,bona fide frame spliced first,mask,200,False,,True,True,deepfake,561.8415009812452,567.9173340031411
+final,B3,unaltered,mask,200,True,,True,True,,567.7542500197887,576.2164999905508
+final,B3,bona fide frame spliced first,mask,200,True,,True,True,,541.6263739753049,551.420333009446
+final,B3,unaltered,mask,200,False,,True,True,deepfake+injection+presentation_attack,560.0648329709657,567.4507499788888
+final,B3,bona fide frame spliced first,mask,200,False,submission_well_formed,,False,,6.626583024626598,12.67558298422955
+final,B3,unaltered,mask,200,False,,True,True,injection+presentation_attack,559.510711056646,566.3988750020508
+final,B3,bona fide frame spliced first,mask,200,False,submission_well_formed,,False,,7.313500042073429,15.70950000314042
+final,B3,unaltered,monitor,200,False,,True,True,deepfake+presentation_attack,536.9521250540856,542.32129099546
+final,B3,bona fide frame spliced first,monitor,200,False,,True,True,deepfake+presentation_attack,515.791417012224,520.3443329955917
+final,B3,unaltered,monitor,200,False,,True,True,presentation_attack,493.1667089986149,500.76895800884813
+final,B3,bona fide frame spliced first,monitor,200,True,,True,True,,493.4509590093512,502.1047919872217
+final,B3,unaltered,monitor,200,False,,True,True,presentation_attack,546.8787080026232,554.799625009764
+final,B3,bona fide frame spliced first,monitor,200,True,,True,True,,529.9379570351448,536.2269160104915
+final,B3,unaltered,monitor,200,False,,True,True,injection+presentation_attack,500.8550829952583,505.95195800997317
+final,B3,bona fide frame spliced first,monitor,200,False,,True,True,injection,514.491625042865,519.9295000056736
+final,B3,unaltered,monitor,200,False,,True,True,presentation_attack,553.2926260202657,560.8535000064876
+final,B3,bona fide frame spliced first,monitor,200,False,,True,True,presentation_attack,524.4472080375999,530.7242090057116
+final,B3,unaltered,monitor,200,True,,True,True,,544.1758329980075,550.52412499208
+final,B3,bona fide frame spliced first,monitor,200,False,submission_well_formed,,False,,7.333791989367455,17.140582989668474
+final,B3,unaltered,monitor,200,False,,True,True,deepfake,542.230667982949,550.4022920213174
+final,B3,bona fide frame spliced first,monitor,200,False,,True,True,deepfake,542.37650000141,552.6665000070352
+final,B3,unaltered,monitor,200,False,,True,True,deepfake,558.5307900037151,567.2429580008611
+final,B3,bona fide frame spliced first,monitor,200,False,,True,True,deepfake+presentation_attack,569.3187080032658,576.3349159969948
+final,B3,unaltered,monitor,200,False,,True,True,injection+presentation_attack,544.7987070365343,550.476707983762
+final,B3,bona fide frame spliced first,monitor,200,False,,True,True,injection,551.33662497974,557.217916008085
+final,B3,unaltered,monitor,200,False,,True,True,presentation_attack,575.6740420765709,584.172041999409
+final,B3,bona fide frame spliced first,monitor,200,True,,True,True,,558.7956260715146,566.3515420164913
+final,B3,unaltered,outline,200,False,,True,True,presentation_attack,519.8909149621613,525.6765410013031
+final,B3,bona fide frame spliced first,outline,200,False,submission_well_formed,,False,,6.327124952804297,13.94795801024884
+final,B3,unaltered,outline,200,False,,True,True,morph,1014.7414590173867,1035.5187089880928
+final,B3,bona fide frame spliced first,outline,200,True,,True,True,,996.4747920166701,1017.5404160108883
+final,B3,unaltered,outline,200,True,,True,True,,1004.5239580213092,1022.9937080002856
+final,B3,bona fide frame spliced first,outline,200,False,submission_well_formed,,False,,17.656376003287733,34.74812497734092
+final,B3,unaltered,outline,200,False,,True,True,deepfake,543.639374023769,548.3029999886639
+final,B3,bona fide frame spliced first,outline,200,False,,True,True,deepfake,523.7339179439005,532.0861249929294
+final,B3,unaltered,outline,200,False,,True,True,presentation_attack,1647.0285840332508,1681.8437089968938
+final,B3,bona fide frame spliced first,outline,200,False,submission_well_formed,,False,,37.86233303253539,70.63595799263567
+final,B3,unaltered,outline,200,True,,True,True,,576.84120797785,585.759917012183
+final,B3,bona fide frame spliced first,outline,200,True,,True,True,,522.2158329852391,527.7182919962797
+final,B3,unaltered,outline,200,False,,True,True,injection+presentation_attack,843.887208000524,853.4597910183948
+final,B3,bona fide frame spliced first,outline,200,False,submission_well_formed,,False,,8.33470799261704,17.97887499560602
+final,B3,unaltered,outline,200,True,,True,True,,628.2192499784287,635.0806670088787
+final,B3,bona fide frame spliced first,outline,200,False,submission_well_formed,,False,,6.937958998605609,17.414833011571318
+final,B3,unaltered,outline,200,True,,True,True,,537.5682909798343,543.870292021893
+final,B3,bona fide frame spliced first,outline,200,True,,True,True,,530.7477499882225,538.7402919877786
+final,B3,unaltered,outline,200,False,,True,True,presentation_attack,979.9413740402088,996.1515420000069
+final,B3,bona fide frame spliced first,outline,200,False,submission_well_formed,,False,,15.673167014028877,32.52466698177159
+final,B3,unaltered,print,200,True,,True,True,,609.4805419852491,617.455458996119
+final,B3,bona fide frame spliced first,print,200,True,,True,True,,585.1024589501321,590.5930419976357
+final,B3,unaltered,print,200,True,,True,True,,510.6748329999391,518.978333013365
+final,B3,bona fide frame spliced first,print,200,True,,True,True,,536.8123739608563,545.7279999973252
+final,B3,unaltered,print,200,False,,True,True,presentation_attack,977.3920830339193,995.268708007643
+final,B3,bona fide frame spliced first,print,200,True,,True,True,,994.2219579825178,1012.3865409987047
+final,B3,unaltered,print,200,False,,True,True,deepfake+injection,575.5324999627192,583.7390829983633
+final,B3,bona fide frame spliced first,print,200,False,submission_well_formed,,False,,5.9755419788416475,13.649375003296882
+final,B3,unaltered,print,200,False,,True,True,injection,585.9159149986226,596.5950000099838
+final,B3,bona fide frame spliced first,print,200,False,,True,True,injection,589.9612910288852,603.2282919913996
+final,B3,unaltered,print,200,False,,True,True,presentation_attack,956.6754160332493,983.7127079954371
+final,B3,bona fide frame spliced first,print,200,False,submission_well_formed,,False,,13.70737500838004,33.810082997661084
+final,B3,unaltered,print,200,False,,True,True,deepfake,641.6522939689457,647.3931670188904
+final,B3,bona fide frame spliced first,print,200,False,,True,True,deepfake,579.2400849750265,587.5433750043157
+final,B3,unaltered,print,200,False,,True,True,deepfake,578.8992919842713,587.496583990287
+final,B3,bona fide frame spliced first,print,200,False,,True,True,deepfake,594.1149570280686,602.7977500052657
+final,B3,unaltered,print,200,False,,True,True,presentation_attack,966.4265410101507,990.3391250118148
+final,B3,bona fide frame spliced first,print,200,False,submission_well_formed,,False,,14.713208976900205,28.612166992388666
+final,B3,unaltered,print,200,False,,True,True,deepfake,573.9497909962665,579.2799589980859
+final,B3,bona fide frame spliced first,print,200,False,submission_well_formed,,False,,6.153914961032569,13.025375024881214
+final,B3,unaltered,print_cut,200,True,,True,True,,599.7934169718064,612.9312500124797
+final,B3,bona fide frame spliced first,print_cut,200,True,,True,True,,622.2774569760077,631.9752499985043
+final,B3,unaltered,print_cut,200,True,,True,True,,585.0238339917269,591.5519169939216
+final,B3,bona fide frame spliced first,print_cut,200,True,,True,True,,575.4233329789713,583.7215000065044
+final,B3,unaltered,print_cut,200,False,,True,True,presentation_attack,964.8461260367185,990.0070420117117
+final,B3,bona fide frame spliced first,print_cut,200,False,submission_well_formed,,False,,14.97600000584498,30.455583008006215
+final,B3,unaltered,print_cut,200,False,,True,True,injection,627.1153739944566,635.0649580126628
+final,B3,bona fide frame spliced first,print_cut,200,False,,True,True,injection,538.9924989722203,545.8305829961319
+final,B3,unaltered,print_cut,200,True,,True,True,,561.0342089494225,569.9089169793297
+final,B3,bona fide frame spliced first,print_cut,200,False,submission_well_formed,,False,,7.051415974274278,17.987500003073364
+final,B3,unaltered,print_cut,200,False,,True,True,presentation_attack,975.6172500201501,992.9135419952217
+final,B3,bona fide frame spliced first,print_cut,200,True,,True,True,,1019.4860009942204,1035.9992499870714
+final,B3,unaltered,print_cut,200,True,,True,True,,629.8298340116162,635.4617910110392
+final,B3,bona fide frame spliced first,print_cut,200,True,,True,True,,589.3102910195012,596.2920830061194
+final,B3,unaltered,print_cut,200,True,,True,True,,593.6364579538349,600.2476660069078
+final,B3,bona fide frame spliced first,print_cut,200,True,,True,True,,571.9294579466805,580.598500004271
+final,B3,unaltered,print_cut,200,False,,True,True,presentation_attack,1000.6492510146927,1019.8190409864765
+final,B3,bona fide frame spliced first,print_cut,200,False,submission_well_formed,,False,,14.406791015062481,33.712125004967675
+final,B3,unaltered,print_cut,200,False,,True,True,injection,576.8168339855038,581.8155840097461
+final,B3,bona fide frame spliced first,print_cut,200,False,,True,True,injection,553.3947910007555,558.7029999878723
+final,B3,unaltered,silicone,200,True,,True,True,,593.6033340112772,601.8842500052415
+final,B3,bona fide frame spliced first,silicone,200,True,,True,True,,632.2097499796655,646.5524160012137
+final,B3,unaltered,silicone,200,False,,True,True,injection,564.2850830045063,572.8887090226635
+final,B3,bona fide frame spliced first,silicone,200,False,submission_well_formed,,False,,6.523666030261666,15.463832998648286
+final,B3,unaltered,silicone,200,False,,True,True,deepfake+injection+presentation_attack,523.199916962767,527.6460830064025
+final,B3,bona fide frame spliced first,silicone,200,False,,True,True,deepfake+injection,533.3284979278687,536.85362500255
+final,B3,unaltered,silicone,200,False,,True,True,injection+presentation_attack,550.0946660176851,558.5973750276025
+final,B3,bona fide frame spliced first,silicone,200,False,,True,True,injection,593.1072920502629,601.171082991641
+final,B3,unaltered,silicone,200,False,,True,True,injection,552.9516669921577,563.1214579916559
+final,B3,bona fide frame spliced first,silicone,200,False,,True,True,injection,593.6941240215674,605.1229580189101
+final,B3,unaltered,silicone,200,False,,True,True,presentation_attack,1016.1916660144925,1036.4699579949956
+final,B3,bona fide frame spliced first,silicone,200,False,submission_well_formed,,False,,12.129291979363188,29.811082989908755
+final,B3,unaltered,silicone,200,False,,True,True,presentation_attack,969.0866260207258,992.4121669901069
+final,B3,bona fide frame spliced first,silicone,200,False,,True,True,presentation_attack,1005.5453759850934,1027.438749995781
+final,B3,unaltered,silicone,200,False,,True,True,presentation_attack,951.5051229682285,970.0419169967063
+final,B3,bona fide frame spliced first,silicone,200,False,,True,True,presentation_attack,1020.8124159544241,1042.3554159933701
+final,B3,unaltered,silicone,200,True,,True,True,,1018.1811250222381,1036.4541669841856
+final,B3,bona fide frame spliced first,silicone,200,False,submission_well_formed,,False,,13.171749975299463,29.722875013248995
+final,B3,unaltered,silicone,200,True,,True,True,,1049.3032100202981,1070.0408749980852
+final,B3,bona fide frame spliced first,silicone,200,False,submission_well_formed,,False,,13.701124029466882,29.979499988257885
+PAD on first frame only,B3,unaltered,mask,200,True,,True,True,,1120.1916249992792,1137.4103750276845
+PAD on first frame only,B3,bona fide frame spliced first,mask,200,False,submission_well_formed,,False,,21.04920899728313,39.44604200660251
+PAD on first frame only,B3,unaltered,mask,200,True,,True,True,,922.556418023305,937.8507499932311
+PAD on first frame only,B3,bona fide frame spliced first,mask,200,False,submission_well_formed,,False,,13.50458402885124,30.15170802245848
+PAD on first frame only,B3,unaltered,mask,200,True,,True,True,,1536.6153339564335,1575.550125009613
+PAD on first frame only,B3,bona fide frame spliced first,mask,200,False,submission_well_formed,,False,,38.518124929396436,72.97445900621824
+PAD on first frame only,B3,unaltered,mask,200,False,,True,True,presentation_attack,475.9545429551508,483.9959999953862
+PAD on first frame only,B3,bona fide frame spliced first,mask,200,False,submission_well_formed,,False,,7.30387496878393,14.643458009231836
+PAD on first frame only,B3,unaltered,mask,200,False,,True,True,deepfake,415.0067100126762,419.59970898460597
+PAD on first frame only,B3,bona fide frame spliced first,mask,200,False,,True,True,deepfake,437.52787506673485,444.8848750034813
+PAD on first frame only,B3,unaltered,mask,200,True,,True,True,,536.7405819706619,547.0035839825869
+PAD on first frame only,B3,bona fide frame spliced first,mask,200,True,,True,True,,467.5760410609655,475.5143749935087
+PAD on first frame only,B3,unaltered,mask,200,False,,True,True,deepfake,501.77787503344007,510.3647910000291
+PAD on first frame only,B3,bona fide frame spliced first,mask,200,False,,True,True,deepfake,478.10720998677425,484.5846249954775
+PAD on first frame only,B3,unaltered,mask,200,True,,True,True,,490.5779600085225,497.9812500241678
+PAD on first frame only,B3,bona fide frame spliced first,mask,200,True,,True,True,,464.5174170145765,471.10220801550895
+PAD on first frame only,B3,unaltered,mask,200,False,,True,True,deepfake+injection+presentation_attack,475.6495420297142,482.7592090005055
+PAD on first frame only,B3,bona fide frame spliced first,mask,200,False,submission_well_formed,,False,,7.540082966443151,17.30866701109335
+PAD on first frame only,B3,unaltered,mask,200,False,,True,True,injection+presentation_attack,476.75608401186764,484.1719579999335
+PAD on first frame only,B3,bona fide frame spliced first,mask,200,False,submission_well_formed,,False,,7.528457994339988,19.62658399133943
+PAD on first frame only,B3,unaltered,monitor,200,False,,True,True,deepfake+presentation_attack,467.43458398850635,475.7263329811394
+PAD on first frame only,B3,bona fide frame spliced first,monitor,200,False,,True,True,deepfake,452.24124993546866,459.02208299958147
+PAD on first frame only,B3,unaltered,monitor,200,False,,True,True,presentation_attack,416.08187602832913,421.7511249880772
+PAD on first frame only,B3,bona fide frame spliced first,monitor,200,True,,True,True,,421.66987498058006,429.039249982452
+PAD on first frame only,B3,unaltered,monitor,200,False,,True,True,presentation_attack,462.54812605911866,469.53962501720525
+PAD on first frame only,B3,bona fide frame spliced first,monitor,200,True,,True,True,,473.6169599927962,480.6976669933647
+PAD on first frame only,B3,unaltered,monitor,200,False,,True,True,injection+presentation_attack,438.3782509539742,444.4991670025047
+PAD on first frame only,B3,bona fide frame spliced first,monitor,200,False,,True,True,injection,471.9938740017824,479.2754590162076
+PAD on first frame only,B3,unaltered,monitor,200,False,,True,True,presentation_attack,474.5239999901969,479.31362499366514
+PAD on first frame only,B3,bona fide frame spliced first,monitor,200,True,,True,True,,454.8450849833898,461.7732500191778
+PAD on first frame only,B3,unaltered,monitor,200,True,,True,True,,481.5115009841975,488.8991669868119
+PAD on first frame only,B3,bona fide frame spliced first,monitor,200,False,submission_well_formed,,False,,6.833623978309333,15.288124996004626
+PAD on first frame only,B3,unaltered,monitor,200,False,,True,True,deepfake,486.1512499919627,494.2812499939464
+PAD on first frame only,B3,bona fide frame spliced first,monitor,200,False,,True,True,deepfake,473.18099898984656,482.5915840046946
+PAD on first frame only,B3,unaltered,monitor,200,False,,True,True,deepfake,471.2039169971831,483.4631670091767
+PAD on first frame only,B3,bona fide frame spliced first,monitor,200,False,,True,True,deepfake,496.7862500343472,504.21395801822655
+PAD on first frame only,B3,unaltered,monitor,200,False,,True,True,injection+presentation_attack,464.83183398959227,471.72154200961813
+PAD on first frame only,B3,bona fide frame spliced first,monitor,200,False,,True,True,injection,469.1334989911411,477.4063329969067
+PAD on first frame only,B3,unaltered,monitor,200,True,,True,True,,489.5643340132665,499.98933300958015
+PAD on first frame only,B3,bona fide frame spliced first,monitor,200,True,,True,True,,473.3118749863934,480.04579200642183
+PAD on first frame only,B3,unaltered,outline,200,True,,True,True,,440.89279204490595,447.4515829933807
+PAD on first frame only,B3,bona fide frame spliced first,outline,200,False,submission_well_formed,,False,,6.072210002457723,11.434749991167337
+PAD on first frame only,B3,unaltered,outline,200,False,,True,True,morph,934.3489589809906,953.9308750245254
+PAD on first frame only,B3,bona fide frame spliced first,outline,200,True,,True,True,,891.2999579915777,913.4268749912735
+PAD on first frame only,B3,unaltered,outline,200,True,,True,True,,930.1520839799196,949.2327919870149
+PAD on first frame only,B3,bona fide frame spliced first,outline,200,False,submission_well_formed,,False,,18.5153330094181,37.48275001998991
+PAD on first frame only,B3,unaltered,outline,200,False,,True,True,deepfake,460.485917981714,466.02616700693034
+PAD on first frame only,B3,bona fide frame spliced first,outline,200,False,,True,True,deepfake,437.2856659756508,446.0094590031076
+PAD on first frame only,B3,unaltered,outline,200,True,,True,True,,1540.6109979667235,1575.549208006123
+PAD on first frame only,B3,bona fide frame spliced first,outline,200,False,submission_well_formed,,False,,36.41049997531809,72.1989159937948
+PAD on first frame only,B3,unaltered,outline,200,True,,True,True,,492.5563319702633,497.5580419995822
+PAD on first frame only,B3,bona fide frame spliced first,outline,200,True,,True,True,,450.6701240024995,458.8658749999013
+PAD on first frame only,B3,unaltered,outline,200,False,,True,True,injection+presentation_attack,764.78020902141,773.4028330014553
+PAD on first frame only,B3,bona fide frame spliced first,outline,200,False,submission_well_formed,,False,,8.470875007333234,17.145207995781675
+PAD on first frame only,B3,unaltered,outline,200,True,,True,True,,525.9776660241187,533.4824160090648
+PAD on first frame only,B3,bona fide frame spliced first,outline,200,False,submission_well_formed,,False,,6.621042004553601,14.228208980057389
+PAD on first frame only,B3,unaltered,outline,200,True,,True,True,,463.9235000067856,470.7537089998368
+PAD on first frame only,B3,bona fide frame spliced first,outline,200,True,,True,True,,495.7803739816882,503.5064580151811
+PAD on first frame only,B3,unaltered,outline,200,False,,True,True,presentation_attack,875.4382089828141,890.5331249989104
+PAD on first frame only,B3,bona fide frame spliced first,outline,200,False,submission_well_formed,,False,,15.575291006825864,33.35395801695995
+PAD on first frame only,B3,unaltered,print,200,True,,True,True,,506.9101260160096,511.9586249929853
+PAD on first frame only,B3,bona fide frame spliced first,print,200,True,,True,True,,492.35566501738504,499.7572500142269
+PAD on first frame only,B3,unaltered,print,200,True,,True,True,,426.11358303111047,433.3797500003129
+PAD on first frame only,B3,bona fide frame spliced first,print,200,True,,True,True,,431.41583498800173,437.6583340053912
+PAD on first frame only,B3,unaltered,print,200,False,,True,True,presentation_attack,877.81579096918,892.7037920220755
+PAD on first frame only,B3,bona fide frame spliced first,print,200,True,,True,True,,901.6531650850084,923.8055419991724
+PAD on first frame only,B3,unaltered,print,200,False,,True,True,deepfake+injection,476.7662090016529,482.2317910147831
+PAD on first frame only,B3,bona fide frame spliced first,print,200,False,submission_well_formed,,False,,6.458165968069807,17.865332978544757
+PAD on first frame only,B3,unaltered,print,200,False,,True,True,injection,505.12783200247213,517.0222499873489
+PAD on first frame only,B3,bona fide frame spliced first,print,200,False,,True,True,injection,482.4235420092009,492.14183300500736
+PAD on first frame only,B3,unaltered,print,200,False,,True,True,presentation_attack,871.0045010084286,886.5088750026189
+PAD on first frame only,B3,bona fide frame spliced first,print,200,False,submission_well_formed,,False,,14.181498991092667,32.450166007038206
+PAD on first frame only,B3,unaltered,print,200,False,,True,True,deepfake,514.4453750108369,521.9928750011604
+PAD on first frame only,B3,bona fide frame spliced first,print,200,False,,True,True,deepfake,482.9385420016479,491.31233399384655
+PAD on first frame only,B3,unaltered,print,200,False,,True,True,deepfake,487.00895902584307,496.7216670047492
+PAD on first frame only,B3,bona fide frame spliced first,print,200,False,,True,True,deepfake,501.0479169723112,510.7250830042176
+PAD on first frame only,B3,unaltered,print,200,False,,True,True,presentation_attack,839.734665962169,860.9097090084106
+PAD on first frame only,B3,bona fide frame spliced first,print,200,False,submission_well_formed,,False,,15.232542034937069,30.931582994526252
+PAD on first frame only,B3,unaltered,print,200,False,,True,True,deepfake,466.92574996268377,475.15870799543336
+PAD on first frame only,B3,bona fide frame spliced first,print,200,False,submission_well_formed,,False,,6.784831988625228,13.51487499778159
+PAD on first frame only,B3,unaltered,print_cut,200,True,,True,True,,497.6442070037592,504.0157919866033
+PAD on first frame only,B3,bona fide frame spliced first,print_cut,200,True,,True,True,,517.7891660132445,526.785291993292
+PAD on first frame only,B3,unaltered,print_cut,200,True,,True,True,,482.2321669780649,494.36112502007745
+PAD on first frame only,B3,bona fide frame spliced first,print_cut,200,True,,True,True,,477.86100005032495,483.9137500093784
+PAD on first frame only,B3,unaltered,print_cut,200,False,,True,True,presentation_attack,876.7624580068514,891.4694999984931
+PAD on first frame only,B3,bona fide frame spliced first,print_cut,200,False,submission_well_formed,,False,,15.820165979675949,36.71220800606534
+PAD on first frame only,B3,unaltered,print_cut,200,False,,True,True,injection,494.2125420202501,499.800999998115
+PAD on first frame only,B3,bona fide frame spliced first,print_cut,200,False,,True,True,injection,469.0329599834513,478.5521249868907
+PAD on first frame only,B3,unaltered,print_cut,200,True,,True,True,,470.4586679581553,480.9338330233004
+PAD on first frame only,B3,bona fide frame spliced first,print_cut,200,False,submission_well_formed,,False,,6.934666977031156,14.740167011041194
+PAD on first frame only,B3,unaltered,print_cut,200,False,,True,True,presentation_attack,859.1129580163397,879.1421659989282
+PAD on first frame only,B3,bona fide frame spliced first,print_cut,200,True,,True,True,,886.4110420108773,909.2902499833144
+PAD on first frame only,B3,unaltered,print_cut,200,True,,True,True,,497.8464160230942,502.74491601157933
+PAD on first frame only,B3,bona fide frame spliced first,print_cut,200,True,,True,True,,480.1677930227015,490.27533299522474
+PAD on first frame only,B3,unaltered,print_cut,200,True,,True,True,,477.75258307228796,491.2240839912556
+PAD on first frame only,B3,bona fide frame spliced first,print_cut,200,True,,True,True,,456.59820799482986,466.35624999180436
+PAD on first frame only,B3,unaltered,print_cut,200,False,,True,True,presentation_attack,878.3684170048218,897.9712910077069
+PAD on first frame only,B3,bona fide frame spliced first,print_cut,200,False,submission_well_formed,,False,,14.7447929775808,35.85941597702913
+PAD on first frame only,B3,unaltered,print_cut,200,False,,True,True,injection,480.99104198627174,486.16283299634233
+PAD on first frame only,B3,bona fide frame spliced first,print_cut,200,False,,True,True,injection,461.5711660007946,466.55583300162107
+PAD on first frame only,B3,unaltered,silicone,200,True,,True,True,,510.2527910203207,520.3868749958929
+PAD on first frame only,B3,bona fide frame spliced first,silicone,200,True,,True,True,,513.2202080567367,520.1889169984497
+PAD on first frame only,B3,unaltered,silicone,200,False,,True,True,injection,447.34695804072544,454.69733301433735
+PAD on first frame only,B3,bona fide frame spliced first,silicone,200,False,submission_well_formed,,False,,6.379707949236035,12.65687501290813
+PAD on first frame only,B3,unaltered,silicone,200,False,,True,True,deepfake+injection,419.9305819638539,428.493667015573
+PAD on first frame only,B3,bona fide frame spliced first,silicone,200,False,,True,True,deepfake+injection,430.0497080257628,439.13108299602754
+PAD on first frame only,B3,unaltered,silicone,200,False,,True,True,injection+presentation_attack,459.71512599498965,466.3583330111578
+PAD on first frame only,B3,bona fide frame spliced first,silicone,200,False,,True,True,injection,473.6154170241207,481.9677920022514
+PAD on first frame only,B3,unaltered,silicone,200,False,,True,True,injection,467.31145901139826,473.32874999847263
+PAD on first frame only,B3,bona fide frame spliced first,silicone,200,False,,True,True,injection,497.24295796477236,503.00508399959654
+PAD on first frame only,B3,unaltered,silicone,200,False,,True,True,presentation_attack,866.8072099972051,890.425999998115
+PAD on first frame only,B3,bona fide frame spliced first,silicone,200,False,submission_well_formed,,False,,12.321333022555336,27.420458005508408
+PAD on first frame only,B3,unaltered,silicone,200,True,,True,True,,838.5745419946034,854.2106249951757
+PAD on first frame only,B3,bona fide frame spliced first,silicone,200,True,,True,True,,881.6123749711551,899.2594580049627
+PAD on first frame only,B3,unaltered,silicone,200,True,,True,True,,849.8444579599891,864.7615000081714
+PAD on first frame only,B3,bona fide frame spliced first,silicone,200,True,,True,True,,882.8653749951627,900.7342919940129
+PAD on first frame only,B3,unaltered,silicone,200,True,,True,True,,906.8116260168608,923.6903339915443
+PAD on first frame only,B3,bona fide frame spliced first,silicone,200,False,submission_well_formed,,False,,12.989124981686473,29.205166996689513
+PAD on first frame only,B3,unaltered,silicone,200,True,,True,True,,846.3848760002293,863.0837920063641
+PAD on first frame only,B3,bona fide frame spliced first,silicone,200,False,submission_well_formed,,False,,13.183250994188711,28.76941702561453
+final,B4,16 frames of 1920x1080,hd,200,True,,True,True,,1653.0343320046086,1678.56725002639
+final,B4,16 frames of 4000x3000,12MP,413,False,HTTP 413,,False,,,33.4934999991674
+final,B4,64 frames,64,200,False,submission_well_formed,,False,,30.521458014845848,58.43441601609811
+final,B4,16 frames of 1920x1080,hd,200,True,,True,True,,1440.4129600152373,1467.870041000424
+final,B4,16 frames of 4000x3000,12MP,413,False,HTTP 413,,False,,,28.202583984239027
+final,B4,64 frames,64,200,False,submission_well_formed,,False,,24.686417018529028,49.46279097930528
+final,B4,16 frames of 1920x1080,hd,200,True,,True,True,,1435.869915963849,1464.641084021423
+final,B4,16 frames of 4000x3000,12MP,413,False,HTTP 413,,False,,,31.072292011231184
+final,B4,64 frames,64,200,False,submission_well_formed,,False,,25.851082958979532,45.811999996658415
+"no shape check, no body cap",B4,16 frames of 1920x1080,hd,200,True,,True,True,,1635.9342090436257,1658.720458013704
+"no shape check, no body cap",B4,16 frames of 4000x3000,12MP,200,True,,True,True,,5482.986248971429,5563.079417013796
+"no shape check, no body cap",B4,64 frames,64,200,True,,True,True,,4230.2985829883255,4255.27150000562
+"no shape check, no body cap",B4,16 frames of 1920x1080,hd,200,True,,True,True,,1452.488707989687,1481.0277080105152
+"no shape check, no body cap",B4,16 frames of 4000x3000,12MP,404,False,HTTP 404,,False,,,22.21770799951628
+"no shape check, no body cap",B4,64 frames,64,200,True,,True,True,,5770.652957988204,5793.218083999818
+"no shape check, no body cap",B4,16 frames of 1920x1080,hd,200,True,,True,True,,2154.598082008306,2183.0696660035755
+"no shape check, no body cap",B4,16 frames of 4000x3000,12MP,200,True,,True,True,,5659.151458996348,5760.028749995399
+"no shape check, no body cap",B4,64 frames,64,200,True,,True,True,,4429.661372996634,4453.716209012782
+final,B5,PGD eps=0/255,mask,200,True,,True,True,,1220.6472080142703,1237.5023330096155
+final,B5,PGD eps=0/255,mask,200,False,,True,True,presentation_attack,527.511376014445,532.8508749953471
+final,B5,PGD eps=0/255,mask,200,False,,True,True,deepfake,561.6570010024589,567.7781669946853
+final,B5,PGD eps=0/255,mask,200,False,,True,True,injection+presentation_attack,534.280249994481,542.2988330246881
+final,B5,PGD eps=0/255,monitor,200,False,,True,True,presentation_attack,506.2952089938335,512.9074170254171
+final,B5,PGD eps=0/255,monitor,200,True,,True,True,,532.4309999414254,539.0286250039935
+final,B5,PGD eps=0/255,monitor,200,False,,True,True,injection+presentation_attack,544.286083051702,554.7049159940798
+final,B5,PGD eps=0/255,outline,200,False,,True,True,morph,988.6440410045907,1003.163040993968
+final,B5,PGD eps=0/255,outline,200,False,,True,True,presentation_attack,1763.7190009700134,1800.3282079880591
+final,B5,PGD eps=0/255,outline,200,True,,True,True,,581.7876690707635,590.7277500082273
+final,B5,PGD eps=0/255,print,200,True,,True,True,,550.6371660158038,557.5361659866758
+final,B5,PGD eps=0/255,print,200,False,,True,True,deepfake+injection,547.317207994638,556.3827499863692
+final,B5,PGD eps=0/255,print,200,False,,True,True,deepfake,564.2905830172822,569.6717080136295
+final,B5,PGD eps=0/255,print,200,False,,True,True,deepfake,528.3188750327099,534.0676670020912
+final,B5,PGD eps=0/255,print_cut,200,False,,True,True,presentation_attack,962.806791998446,979.1787919821218
+final,B5,PGD eps=0/255,print_cut,200,False,,True,True,presentation_attack,962.8949179605115,978.6648750014137
+final,B5,PGD eps=0/255,print_cut,200,False,,True,True,presentation_attack,933.6672500066925,955.2011250052601
+final,B5,PGD eps=0/255,silicone,200,False,,True,True,injection,541.2765000364743,546.3748750044033
+final,B5,PGD eps=0/255,silicone,200,False,,True,True,injection,527.1653339732438,534.0731669857632
+final,B5,PGD eps=0/255,silicone,200,False,,True,True,presentation_attack,957.3459590028506,972.4045830080286
+final,B5,PGD eps=4/255,mask,200,True,,True,True,,1031.9918330351356,1054.4978330144659
+final,B5,PGD eps=4/255,mask,200,False,,True,True,presentation_attack,581.5065000206232,589.0434999892022
+final,B5,PGD eps=4/255,mask,200,True,,True,True,,559.8050419939682,566.6595000075176
+final,B5,PGD eps=4/255,mask,200,True,,True,True,,558.651458035456,565.2144170016982
+final,B5,PGD eps=4/255,monitor,200,False,,True,True,presentation_attack,532.2636249766219,538.4262500156183
+final,B5,PGD eps=4/255,monitor,200,True,,True,True,,577.6512489828747,582.9750410048291
+final,B5,PGD eps=4/255,monitor,200,True,,True,True,,569.8939989961218,575.258249999024
+final,B5,PGD eps=4/255,outline,200,True,,True,True,,1044.31933502201,1059.1932080278639
+final,B5,PGD eps=4/255,outline,200,True,,True,True,,1671.4657489501406,1716.4194170036353
+final,B5,PGD eps=4/255,outline,200,True,,True,True,,608.2127930421848,614.9623749952298
+final,B5,PGD eps=4/255,print,200,True,,True,True,,559.0706660004798,565.8313749881927
+final,B5,PGD eps=4/255,print,200,True,,True,True,,539.3480830243789,546.9355000241194
+final,B5,PGD eps=4/255,print,200,True,,True,True,,576.8422510009259,585.2117910108063
+final,B5,PGD eps=4/255,print,200,True,,True,True,,523.3654580079019,531.2942499876954
+final,B5,PGD eps=4/255,print_cut,200,False,,True,True,presentation_attack,985.3845410107169,1002.6107089943253
+final,B5,PGD eps=4/255,print_cut,200,True,,True,True,,924.9267499835696,947.0620419888292
+final,B5,PGD eps=4/255,print_cut,200,True,,True,True,,956.7808340070769,977.1870419790503
+final,B5,PGD eps=4/255,silicone,200,True,,True,True,,530.4643759736791,536.400709010195
+final,B5,PGD eps=4/255,silicone,200,True,,True,True,,536.1965830088593,545.2395000029355
+final,B5,PGD eps=4/255,silicone,200,True,,True,True,,994.3309990048874,1009.2017500137445
+final,B5,PGD eps=8/255,mask,200,True,,True,True,,1002.4112920218613,1022.3652079876047
+final,B5,PGD eps=8/255,mask,200,False,,True,True,presentation_attack,559.0571669745259,566.8600420176517
+final,B5,PGD eps=8/255,mask,200,True,,True,True,,580.9801669965964,588.1041249958798
+final,B5,PGD eps=8/255,mask,200,True,,True,True,,562.5911669922061,569.8642919887789
+final,B5,PGD eps=8/255,monitor,200,False,,True,True,presentation_attack,539.935000037076,546.2712500011548
+final,B5,PGD eps=8/255,monitor,200,True,,True,True,,570.866166963242,577.965165983187
+final,B5,PGD eps=8/255,monitor,200,True,,True,True,,622.0467510574963,630.6889160186984
+final,B5,PGD eps=8/255,outline,200,True,,True,True,,1051.5387489867862,1070.7159590092488
+final,B5,PGD eps=8/255,outline,200,True,,True,True,,1702.0484149979893,1742.9533330141567
+final,B5,PGD eps=8/255,outline,200,False,,True,True,presentation_attack,630.7011270255316,639.2460000060964
+final,B5,PGD eps=8/255,print,200,True,,True,True,,627.2982920054346,635.9287080122158
+final,B5,PGD eps=8/255,print,200,True,,True,True,,539.4566240138374,544.9324579967652
+final,B5,PGD eps=8/255,print,200,True,,True,True,,582.6153759844601,590.8963749825489
+final,B5,PGD eps=8/255,print,200,True,,True,True,,528.9884159865323,534.994249988813
+final,B5,PGD eps=8/255,print_cut,200,True,,True,True,,965.7259569794405,982.5229170091916
+final,B5,PGD eps=8/255,print_cut,200,True,,True,True,,964.1877509711776,984.5908340066671
+final,B5,PGD eps=8/255,print_cut,200,True,,True,True,,941.5102910425048,961.8208330066409
+final,B5,PGD eps=8/255,silicone,200,True,,True,True,,561.326458962867,567.9843749967404
+final,B5,PGD eps=8/255,silicone,200,False,,True,True,injection,557.5404999835882,569.1732090199366
+final,B5,PGD eps=8/255,silicone,200,False,,True,True,presentation_attack,1247.42233401048,1271.8827910139225
