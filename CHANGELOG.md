@@ -12,6 +12,10 @@ versioned package).
   camera discovery, guided genuine recording, automatic attack recording,
   end-to-end evaluation through the final server). Clips stay in
   `datasets/vcam/` (gitignored).
+- Ran it: 40 live bona fide clips (4 people), 150 OBS attack clips (5
+  conditions) and 20 from a phone video. Results in
+  `evaluation/results/vcam_summary.json`; paper Section 4.3 and Table 8
+  updated. Finding: the motion challenge checks movement size, not direction.
 
 ## [1.4.0] - paper version: final-system results only
 

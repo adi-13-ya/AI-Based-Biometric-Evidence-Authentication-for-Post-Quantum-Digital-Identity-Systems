@@ -126,6 +126,7 @@ Apple M3, CPU only; details in `report/final-report/QUANTUM-FINAL-REPORT-REVISED
 | PAD cross-dataset AUC: CelebA-Spoof / webcam video | 0.782 / 0.782 |
 | Deepfake (EfficientNet-B0), DFF unseen identities | AUC 0.930 on the training generator; does not transfer to unseen diffusion generators |
 | Injection classifier vs timing heuristic (forged jitter) | APCER 4.0% vs 100% (25→30 fps file), BPCER 6.4% |
+| Real OBS Virtual Camera (4 people live, 150 attack clips) | BPCER 0/40; attacks accepted: 24–25 fps files 0–17%, 30 fps files 40–100% |
 
 The detector results are limitations, not a robust identity-verification
 solution: the system screens evidence and does not match faces to an identity.
@@ -333,8 +334,8 @@ The quantum experiments need Qiskit in a separate environment
   diffusion-model fakes it has never seen.
 - **Injection.** A lossless video file at the camera's own frame rate is
   pixel-identical to a camera stream and is not detected. The injection
-  benchmark is an emulation on real webcam footage; no public virtual-camera
-  dataset exists.
+  benchmark is an emulation on real webcam footage, checked with a real
+  OBS Virtual Camera on macOS: 30 fps files get through far more often.
 - **Morph detector** is still signal processing and is not benchmarked
   (public morph datasets require an access request).
 - **Screening, not identification.** A valid device signature proves the
